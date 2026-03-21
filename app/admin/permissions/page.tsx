@@ -59,7 +59,7 @@ export default function PermissionsPage() {
 
   const fetchPendingCounts = async () => {
     try {
-      const res = await fetch('/api/admin/users/pending-count?detail=1');
+      const res = await fetch(`/api/admin/users/pending-count?detail=1&t=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
         setPendingCounts({
@@ -76,7 +76,7 @@ export default function PermissionsPage() {
   const fetchUsers = async (skipLoading = false) => {
     if (!skipLoading) setLoading(true);
     try {
-      const res = await fetch(`/api/admin/users?status=PENDING`);
+      const res = await fetch(`/api/admin/users?status=PENDING&t=${Date.now()}`);
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setUsers(data);
@@ -89,7 +89,7 @@ export default function PermissionsPage() {
 
   const fetchContactRequests = async (skipLoading = false) => {
     try {
-      const res = await fetch(`/api/contact-requests?status=PENDING`);
+      const res = await fetch(`/api/contact-requests?status=PENDING&t=${Date.now()}`);
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setContactRequests(data);
@@ -100,7 +100,7 @@ export default function PermissionsPage() {
 
   const fetchCorrectionRequests = async (skipLoading = false) => {
     try {
-      const res = await fetch(`/api/corrections?status=PENDING`);
+      const res = await fetch(`/api/corrections?status=PENDING&t=${Date.now()}`);
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setCorrectionRequests(data);

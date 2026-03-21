@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import AlumniForm from '@/components/AlumniForm';
 import ImportModal from '@/components/ImportModal';
+import { calculateProfileCompletion, COMPLETION_THRESHOLD, isProfileEligible } from '@/lib/profile-utils';
 
 interface Alumni {
   id: number;
@@ -64,6 +65,8 @@ export default function HomePage() {
   const [showForm, setShowForm] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [completion, setCompletion] = useState<number>(0);
+  const [eligibility, setEligibility] = useState<{ eligible: boolean; reason?: string }>({ eligible: false });
   
   // Contact request state
   const [requestingAlumni, setRequestingAlumni] = useState<any>(null);
@@ -75,9 +78,19 @@ export default function HomePage() {
   useEffect(() => {
     fetch('/api/auth/me')
       .then(res => res.json())
-      .then(data => {
+      .then(async data => {
         if (data.authenticated) {
           setUser(data.user);
+          if (data.user.role !== 'ADMIN' && data.user.alumniId) {
+            try {
+              const aRes = await fetch(`/api/alumni/${data.user.alumniId}`);
+              const aData = await aRes.json();
+              if (aData) {
+                setCompletion(calculateProfileCompletion(aData, aData.experiences));
+                setEligibility(isProfileEligible(aData, aData.experiences));
+              }
+            } catch (e) { console.error(e); }
+          }
         }
       });
   }, []);
@@ -340,7 +353,13 @@ export default function HomePage() {
                         <button 
                           className="btn btn-outline btn-sm" 
                           style={{ fontSize: '11px', padding: '4px 8px' }}
-                          onClick={() => setRequestingAlumni(alumni)}
+                          onClick={() => {
+                            if (!isAdmin && !eligibility.eligible) {
+                              alert(eligibility.reason || '您的个人资料未达到申请要求。请前往个人中心完善资料。');
+                              return;
+                            }
+                            setRequestingAlumni(alumni);
+                          }}
                         >
                           🔒 申请对接
                         </button>

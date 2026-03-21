@@ -43,14 +43,14 @@ export default function Sidebar() {
   }, [pathname]);
 
   const fetchPendingCount = () => {
-    fetch('/api/admin/users/pending-count')
+    fetch(`/api/admin/users/pending-count?t=${Date.now()}`)
       .then(res => res.json())
       .then(data => setPendingCount(data.count || 0))
       .catch(() => {});
   };
 
   const fetchUserUnreadCount = () => {
-    fetch('/api/notifications/unread-count')
+    fetch(`/api/notifications/unread-count?t=${Date.now()}`)
       .then(res => res.json())
       .then(data => setUserUnreadCount(data.count || 0))
       .catch(() => {});

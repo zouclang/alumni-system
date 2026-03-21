@@ -3,10 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AlumniForm from '@/components/AlumniForm';
+import { calculateProfileCompletion, COMPLETION_THRESHOLD, isProfileEligible } from '@/lib/profile-utils';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [alumni, setAlumni] = useState<any>(null);
+  const [completion, setCompletion] = useState<number>(0);
+  const [eligibility, setEligibility] = useState<{ eligible: boolean; reason?: string }>({ eligible: false });
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<'info' | 'password' | 'requests'>('info');
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
@@ -16,6 +19,7 @@ export default function ProfilePage() {
   const router = useRouter();
 
   const [contactRequests, setContactRequests] = useState<any[]>([]);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -44,6 +48,9 @@ export default function ProfilePage() {
           const aRes = await fetch(`/api/alumni/${data.user.alumniId}`);
           const aData = await aRes.json();
           setAlumni(aData);
+          const percent = calculateProfileCompletion(aData, aData.experiences);
+          setCompletion(percent);
+          setEligibility(isProfileEligible(aData, aData.experiences));
         }
       } else {
         router.push('/login');
@@ -140,6 +147,25 @@ export default function ProfilePage() {
                   </span>
                 )}
               </div>
+              {user?.role !== 'ADMIN' && (
+                <div className="completion-container" style={{ marginTop: '16px' }}>
+                  <div className="completion-label">
+                    <span>资料完善度</span>
+                    <span className={`completion-percentage ${eligibility.eligible ? 'success' : 'warning'}`}>{completion}%</span>
+                  </div>
+                  <div className="completion-bar-bg">
+                    <div className="completion-bar-fill" style={{ width: `${completion}%`, backgroundColor: eligibility.eligible ? '#10b981' : '#f59e0b' }}></div>
+                  </div>
+                  {!eligibility.eligible && (
+                    <div className="completion-hint" style={{ color: '#f59e0b', fontWeight: 500 }}>
+                      ⚠️ {eligibility.reason}
+                    </div>
+                  )}
+                  {eligibility.eligible && (
+                    <div className="completion-hint" style={{ color: '#10b981' }}>✅ 已达到申请对接标准</div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -230,7 +256,7 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="audit-log-list">
-                    {auditLogs.map(log => (
+                    {auditLogs.map((log: any) => (
                       <div key={`${log.type}-${log.id}`} className="audit-log-item-single">
                         <div className="log-left">
                           <div className="log-type-tag-compact">
@@ -267,12 +293,12 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className="request-list">
-                  {contactRequests.map(req => (
+                  {contactRequests.map((req: any) => (
                     <div key={req.id} className={`request-item ${req.status.toLowerCase()}`}>
                       <div className="request-header">
                         <span className="target-name">对接校友: {req.target_name}</span>
                         <span className={`status-pill ${req.status.toLowerCase()}`}>
-                          {req.status === 'PENDING' ? '待审核' : req.status === 'APPROVED' ? '已通过' : '已拒绝'}
+                          {req.status === 'PENDING' ? '待审核' : req.status === 'APPROVED' ? '已通过' : req.status === '拒绝' ? '已拒绝' : req.status}
                         </span>
                       </div>
                       <div className="request-body">
@@ -369,25 +395,45 @@ export default function ProfilePage() {
           border: 1px solid #ffedd5;
         }
         
-        .action-btn {
-          padding: 10px 20px;
-          background: #fff;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          color: #475569;
-          font-weight: 600;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.2s;
+        /* Completion Bar */
+        .completion-container {
+          width: 100%;
+          max-width: 300px;
         }
-        .action-btn:hover {
-          background: #f8fafc;
-          border-color: #cbd5e1;
+        .completion-label {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 6px;
         }
-        .action-btn.active {
-          background: #1e293b;
-          color: white;
-          border-color: #1e293b;
+        .completion-label span:first-child {
+          font-size: 12px;
+          color: #64748b;
+          font-weight: 500;
+        }
+        .completion-percentage {
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .completion-percentage.success { color: #10b981; }
+        .completion-percentage.warning { color: #f59e0b; }
+        
+        .completion-bar-bg {
+          height: 6px;
+          background: #f1f5f9;
+          border-radius: 3px;
+          overflow: hidden;
+        }
+        .completion-bar-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #3b82f6, #60a5fa);
+          border-radius: 3px;
+          transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .completion-hint {
+          margin-top: 6px;
+          font-size: 11px;
+          color: #94a3b8;
         }
 
         .profile-nav-tabs {
@@ -418,78 +464,6 @@ export default function ProfilePage() {
           right: 0;
           height: 2px;
           background: #2563eb;
-        }
-        .count-badge {
-          background: #ef4444;
-          color: white;
-          font-size: 10px;
-          padding: 2px 6px;
-          border-radius: 10px;
-          margin-left: 6px;
-          vertical-align: middle;
-        }
-
-        /* Requests View */
-        .request-list {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-        .request-item {
-          padding: 20px;
-          border-radius: 16px;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-        }
-        .request-item.approved { border-left: 4px solid #10b981; background: #f0fdf4; }
-        .request-item.rejected { border-left: 4px solid #ef4444; background: #fef2f2; }
-        .request-item.pending { border-left: 4px solid #f59e0b; }
-
-        .request-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-        .target-name { font-weight: 700; color: #1e293b; font-size: 16px; }
-        .status-pill {
-          font-size: 11px;
-          font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 100px;
-          text-transform: uppercase;
-        }
-        .status-pill.pending { background: #fef3c7; color: #92400e; }
-        .status-pill.approved { background: #d1fae5; color: #065f46; }
-        .status-pill.rejected { background: #fee2e2; color: #991b1b; }
-
-        .request-body { margin-bottom: 12px; }
-        .reason-text { font-size: 14px; color: #475569; line-height: 1.5; }
-        .contact-reveal {
-          margin-top: 15px;
-          padding: 15px;
-          background: white;
-          border-radius: 12px;
-          border: 1px solid #d1fae5;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .reveal-item { font-size: 14px; color: #065f46; }
-        .reject-remark {
-          margin-top: 12px;
-          padding: 10px;
-          background: #fee2e2;
-          color: #991b1b;
-          border-radius: 8px;
-          font-size: 13px;
-        }
-        .request-time { font-size: 12px; color: #94a3b8; text-align: right; }
-
-        .empty-requests {
-          padding: 60px 0;
-          text-align: center;
-          color: #94a3b8;
         }
 
         /* Content Area */
@@ -608,6 +582,67 @@ export default function ProfilePage() {
         
         .log-time-mini { font-size: 11px; color: #94a3b8; min-width: 110px; text-align: right; }
         
+        .empty-requests {
+          padding: 60px 0;
+          text-align: center;
+          color: #94a3b8;
+        }
+
+        .request-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .request-item {
+          padding: 20px;
+          border-radius: 16px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+        }
+        .request-item.approved { border-left: 4px solid #10b981; background: #f0fdf4; }
+        .request-item.rejected { border-left: 4px solid #ef4444; background: #fef2f2; }
+        .request-item.pending { border-left: 4px solid #f59e0b; }
+
+        .request-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+        .target-name { font-weight: 700; color: #1e293b; font-size: 16px; }
+        .status-pill {
+          font-size: 11px;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 100px;
+        }
+        .status-pill.pending { background: #fef3c7; color: #92400e; }
+        .status-pill.approved { background: #d1fae5; color: #065f46; }
+        .status-pill.rejected { background: #fee2e2; color: #991b1b; }
+
+        .request-body { margin-bottom: 12px; }
+        .reason-text { font-size: 14px; color: #475569; line-height: 1.5; }
+        .contact-reveal {
+          margin-top: 15px;
+          padding: 15px;
+          background: white;
+          border-radius: 12px;
+          border: 1px solid #d1fae5;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .reveal-item { font-size: 14px; color: #065f46; }
+        .reject-remark {
+          margin-top: 12px;
+          padding: 10px;
+          background: #fee2e2;
+          color: #991b1b;
+          border-radius: 8px;
+          font-size: 13px;
+        }
+        .request-time { font-size: 12px; color: #94a3b8; text-align: right; }
+
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
@@ -617,8 +652,6 @@ export default function ProfilePage() {
         
         @media (max-width: 640px) {
           .user-profile-header { flex-direction: column; gap: 20px; align-items: flex-start; }
-          .header-actions { width: 100%; }
-          .action-btn { width: 100%; }
           .profile-content-area { padding: 20px; }
           .audit-log-item-single { flex-direction: column; align-items: flex-start; gap: 8px; }
           .log-right { width: 100%; justify-content: space-between; }

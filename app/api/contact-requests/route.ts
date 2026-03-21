@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { calculateProfileCompletion, COMPLETION_THRESHOLD, isProfileEligible } from '@/lib/profile-utils';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,6 +70,29 @@ export async function POST(request: NextRequest) {
     }
 
     const db = getDb();
+    
+    // Check sender's profile completion (Exempt ADMIN)
+    if (session.role !== 'ADMIN') {
+      const senderAlumni = db.prepare(`
+        SELECT a.* FROM alumni a
+        JOIN users u ON u.alumni_id = a.id
+        WHERE u.id = ?
+      `).get(session.userId) as any;
+
+      if (senderAlumni) {
+        const experiences = db.prepare('SELECT * FROM school_experiences WHERE alumni_id = ?').all(senderAlumni.id);
+        const eligibility = isProfileEligible(senderAlumni, experiences);
+        
+        if (!eligibility.eligible) {
+          return NextResponse.json({ 
+            error: eligibility.reason || '您的个人资料未达到申请要求。',
+            completion: calculateProfileCompletion(senderAlumni, experiences)
+          }, { status: 403 });
+        }
+      } else {
+        return NextResponse.json({ error: '未找到您的校友档案，请先完善资料。' }, { status: 403 });
+      }
+    }
 
     // Check if already requested and pending/approved
     const existing = db.prepare(`
