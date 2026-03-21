@@ -162,7 +162,7 @@ export default function ProfilePage() {
                       {alumni?.association_role && alumni?.association_role !== '普通校友' && '（已获理事会员权限，申请不受限）'}
                     </div>
                   )}
-                  {eligibility.eligible && (
+                  {eligibility.eligible && !(alumni?.association_role && alumni?.association_role !== '普通校友') && (
                     <div className="completion-hint" style={{ color: '#10b981' }}>✅ 已达到申请对接标准</div>
                   )}
                 </div>
