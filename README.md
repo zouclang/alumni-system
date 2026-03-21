@@ -62,6 +62,27 @@ npm run build
 npx pm2 start npm --name "alumni-system" -- start
 ```
 
+## 🎨 个性化定制
+
+### 1. 更换会徽 (Logo)
+直接替换 `public/logo.png` 文件即可。建议图片为 PNG 格式，尺寸保持正方形以获得最佳显示效果。
+
+### 2. 修改管理员账号密码
+1. 打开 `scripts/init_admin.js` 文件。
+2. 修改第 9 行和第 10 行的 `username` 和 `password` 变量：
+   ```javascript
+   const username = '您的用户名';
+   const password = '您的新密码';
+   ```
+3. 在项目根目录下运行初始化脚本：
+   ```bash
+   node scripts/init_admin.js
+   ```
+   *注意：如果账号已存在，运行该脚本将更新其密码。*
+
+### 3. 更换登录页背景
+替换 `public/login-bg.png` 即可。
+
 ## 📝 开发备注
 - 本系统数据库文件存储在本地，部署方便。
 - 生产环境下如果遇到登录 Cookie 失效，请检查 `app/api/auth/login/route.ts` 中的 `secure` 属性配置。
