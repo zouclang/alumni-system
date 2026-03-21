@@ -67,6 +67,7 @@ export default function HomePage() {
   const [user, setUser] = useState<any>(null);
   const [completion, setCompletion] = useState<number>(0);
   const [eligibility, setEligibility] = useState<{ eligible: boolean; reason?: string }>({ eligible: false });
+  const [currentUserAlumni, setCurrentUserAlumni] = useState<any>(null);
   
   // Contact request state
   const [requestingAlumni, setRequestingAlumni] = useState<any>(null);
@@ -85,10 +86,11 @@ export default function HomePage() {
             try {
               const aRes = await fetch(`/api/alumni/${data.user.alumniId}`);
               const aData = await aRes.json();
-              if (aData) {
-                setCompletion(calculateProfileCompletion(aData, aData.experiences));
-                setEligibility(isProfileEligible(aData, aData.experiences));
-              }
+                if (aData) {
+                  setCompletion(calculateProfileCompletion(aData, aData.experiences));
+                  setEligibility(isProfileEligible(aData, aData.experiences));
+                  setCurrentUserAlumni(aData);
+                }
             } catch (e) { console.error(e); }
           }
         }
@@ -354,7 +356,10 @@ export default function HomePage() {
                           className="btn btn-outline btn-sm" 
                           style={{ fontSize: '11px', padding: '4px 8px' }}
                           onClick={() => {
-                            if (!isAdmin && !eligibility.eligible) {
+                            const isAdmin = user?.role === 'ADMIN';
+                            const isCouncilMember = currentUserAlumni?.association_role && currentUserAlumni?.association_role !== '普通校友';
+                            
+                            if (!isAdmin && !isCouncilMember && !eligibility.eligible) {
                               alert(eligibility.reason || '您的个人资料未达到申请要求。请前往个人中心完善资料。');
                               return;
                             }

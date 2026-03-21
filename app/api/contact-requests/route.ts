@@ -80,14 +80,19 @@ export async function POST(request: NextRequest) {
       `).get(session.userId) as any;
 
       if (senderAlumni) {
-        const experiences = db.prepare('SELECT * FROM school_experiences WHERE alumni_id = ?').all(senderAlumni.id);
-        const eligibility = isProfileEligible(senderAlumni, experiences);
+        // Exempt Council Members (association_role !== '普通校友')
+        const isCouncilMember = senderAlumni.association_role && senderAlumni.association_role !== '普通校友';
         
-        if (!eligibility.eligible) {
-          return NextResponse.json({ 
-            error: eligibility.reason || '您的个人资料未达到申请要求。',
-            completion: calculateProfileCompletion(senderAlumni, experiences)
-          }, { status: 403 });
+        if (!isCouncilMember) {
+          const experiences = db.prepare('SELECT * FROM school_experiences WHERE alumni_id = ?').all(senderAlumni.id);
+          const eligibility = isProfileEligible(senderAlumni, experiences);
+          
+          if (!eligibility.eligible) {
+            return NextResponse.json({ 
+              error: eligibility.reason || '您的个人资料未达到申请要求。',
+              completion: calculateProfileCompletion(senderAlumni, experiences)
+            }, { status: 403 });
+          }
         }
       } else {
         return NextResponse.json({ error: '未找到您的校友档案，请先完善资料。' }, { status: 403 });

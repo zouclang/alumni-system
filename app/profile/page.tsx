@@ -154,11 +154,12 @@ export default function ProfilePage() {
                     <span className={`completion-percentage ${eligibility.eligible ? 'success' : 'warning'}`}>{completion}%</span>
                   </div>
                   <div className="completion-bar-bg">
-                    <div className="completion-bar-fill" style={{ width: `${completion}%`, backgroundColor: eligibility.eligible ? '#10b981' : '#f59e0b' }}></div>
+                    <div className="completion-bar-fill" style={{ width: `${completion}%`, backgroundColor: (eligibility.eligible || (alumni?.association_role && alumni?.association_role !== '普通校友')) ? '#10b981' : '#f59e0b' }}></div>
                   </div>
                   {!eligibility.eligible && (
                     <div className="completion-hint" style={{ color: '#f59e0b', fontWeight: 500 }}>
-                      ⚠️ {eligibility.reason}
+                      {alumni?.association_role && alumni?.association_role !== '普通校友' ? '💡' : '⚠️'} {eligibility.reason}
+                      {alumni?.association_role && alumni?.association_role !== '普通校友' && '（已获理事会员权限，申请不受限）'}
                     </div>
                   )}
                   {eligibility.eligible && (
