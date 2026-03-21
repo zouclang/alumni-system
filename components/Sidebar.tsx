@@ -161,7 +161,7 @@ export default function Sidebar() {
           justify-content: space-between;
           align-items: center;
           padding: 10px;
-          margin-bottom: 24px;
+          margin-bottom: 48px;
           border-radius: 8px;
           transition: all 0.2s;
           text-decoration: none;
