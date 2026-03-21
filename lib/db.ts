@@ -77,6 +77,10 @@ function initializeSchema(database: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_alumni_degree ON alumni(degree);
     CREATE INDEX IF NOT EXISTS idx_alumni_gender ON alumni(gender);
     CREATE INDEX IF NOT EXISTS idx_alumni_career_type ON alumni(career_type);
+    CREATE INDEX IF NOT EXISTS idx_alumni_enrollment_year ON alumni(enrollment_year);
+    CREATE INDEX IF NOT EXISTS idx_alumni_pinyin_name ON alumni(pinyin_name);
+    CREATE INDEX IF NOT EXISTS idx_alumni_company ON alumni(company);
+    CREATE INDEX IF NOT EXISTS idx_alumni_industry ON alumni(industry);
     CREATE INDEX IF NOT EXISTS idx_se_alumni_id ON school_experiences(alumni_id);
 
     CREATE TABLE IF NOT EXISTS users (
