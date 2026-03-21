@@ -7,8 +7,8 @@ const db = new Database(DB_PATH);
 
 async function initAdmin() {
   // Use environment variables or fallback to defaults
-  const username = process.env.ADMIN_USERNAME || 'duters';
-  const password = process.env.ADMIN_PASSWORD || 'szdut1949';
+  const username = process.env.ADMIN_USERNAME || 'admin';
+  const password = process.env.ADMIN_PASSWORD || 'admin';
   const role = 'ADMIN';
   const status = 'APPROVED';
 

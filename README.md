@@ -74,10 +74,10 @@ npx pm2 start npm --name "alumni-system" -- start
     ```bash
     cp .env.example .env
     ```
-2.  编辑 `.env` 文件，填入您的私密账号和密码：
+2.  编辑 `.env` 文件，点击“您的用户名”和“您的新密码”（默认为 `admin`/`admin`）：
     ```text
-    ADMIN_USERNAME=您的用户名
-    ADMIN_PASSWORD=您的新密码
+    ADMIN_USERNAME=admin
+    ADMIN_PASSWORD=admin
     ```
 3.  运行初始化脚本（脚本会优先读取 `.env` 中的配置）：
     ```bash
