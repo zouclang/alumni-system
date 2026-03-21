@@ -6,8 +6,9 @@ const DB_PATH = path.join(__dirname, '../data/alumni.db');
 const db = new Database(DB_PATH);
 
 async function initAdmin() {
-  const username = 'duters';
-  const password = 'szdut1949';
+  // Use environment variables or fallback to defaults
+  const username = process.env.ADMIN_USERNAME || 'duters';
+  const password = process.env.ADMIN_PASSWORD || 'szdut1949';
   const role = 'ADMIN';
   const status = 'APPROVED';
 

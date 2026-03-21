@@ -67,18 +67,27 @@ npx pm2 start npm --name "alumni-system" -- start
 ### 1. 更换会徽 (Logo)
 直接替换 `public/logo.png` 文件即可。建议图片为 PNG 格式，尺寸保持正方形以获得最佳显示效果。
 
-### 2. 修改管理员账号密码
-1. 打开 `scripts/init_admin.js` 文件。
-2. 修改第 9 行和第 10 行的 `username` 和 `password` 变量：
-   ```javascript
-   const username = '您的用户名';
-   const password = '您的新密码';
-   ```
-3. 在项目根目录下运行初始化脚本：
-   ```bash
-   node scripts/init_admin.js
-   ```
-   *注意：如果账号已存在，运行该脚本将更新其密码。*
+### 2. 修改管理员账号密码 (安全方式)
+为了防止账号密码上传到 GitHub，请使用环境变量：
+
+1.  在项目根目录下创建一个 `.env` 文件（该文件已被 `.gitignore` 忽略，不会上传）：
+    ```bash
+    cp .env.example .env
+    ```
+2.  编辑 `.env` 文件，填入您的私密账号和密码：
+    ```text
+    ADMIN_USERNAME=您的用户名
+    ADMIN_PASSWORD=您的新密码
+    ```
+3.  运行初始化脚本（脚本会优先读取 `.env` 中的配置）：
+    ```bash
+    # 如果您的 Node.js 版本 >= 20.6.0
+    node --env-file=.env scripts/init_admin.js
+    
+    # 或者手动指定的环境变量运行
+    ADMIN_USERNAME=您的用户名 ADMIN_PASSWORD=您的新密码 node scripts/init_admin.js
+    ```
+    *注意：如果该用户名在数据库中已存在，脚本将更新其密码；如果不存在则新建。*
 
 ### 3. 更换登录页背景
 替换 `public/login-bg.png` 即可。
