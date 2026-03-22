@@ -63,6 +63,7 @@ export default function AlumniDetailPage() {
   const [correctionContent, setCorrectionContent] = useState('');
   const [submittingCorrection, setSubmittingCorrection] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
@@ -75,8 +76,12 @@ export default function AlumniDetailPage() {
     }).finally(() => setLoading(false));
   }, [id]);
 
-  const handleDelete = async () => {
-    if (!confirm(`确认删除「${alumni?.name}」的记录？此操作不可撤销。`)) return;
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    setShowDeleteConfirm(false);
     setDeleting(true);
     console.log(`Attempting to delete alumni ID: ${id}`);
     try {
@@ -301,6 +306,35 @@ export default function AlumniDetailPage() {
                   disabled={!correctionContent.trim() || submittingCorrection}
                 >
                   {submittingCorrection ? '提交中...' : '提交建议'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title" style={{ color: '#ef4444' }}>⚠️ 确认删除</h2>
+              <button className="close-btn" onClick={() => setShowDeleteConfirm(false)}>✕</button>
+            </div>
+            <div style={{ padding: '24px' }}>
+              <p style={{ fontSize: '16px', color: '#1e293b', marginBottom: '8px', fontWeight: 600 }}>
+                确认要删除「{alumni.name}」的档案吗？
+              </p>
+              <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px', lineHeight: 1.5 }}>
+                此操作将永久移除该校友的所有历史记录（包括在校经历、关联申请等），且无法撤销。
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button className="btn btn-outline" onClick={() => setShowDeleteConfirm(false)}>取消</button>
+                <button 
+                  className="btn btn-danger" 
+                  onClick={confirmDelete}
+                  style={{ background: '#ef4444', color: 'white' }}
+                >
+                  确认删除
                 </button>
               </div>
             </div>
