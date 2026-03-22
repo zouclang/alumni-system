@@ -173,6 +173,7 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
   });
 
   const [saving, setSaving] = useState(false);
+  const [showDeleteUserConfirm, setShowDeleteUserConfirm] = useState(false);
   const [error, setError] = useState('');
   
   // Name duplication check state
@@ -410,34 +411,65 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
                         type="button"
                         className="btn btn-outline btn-sm delete-user-btn"
                         style={{ color: '#ef4444', borderColor: '#fee2e2' }}
-                        onClick={async () => {
-                          if (confirm('确定要删除该用户的登录账号吗？这将移除其登录权限，但保留此校友档案资料。')) {
-                            setSaving(true);
-                            try {
-                              const targetId = (initial as any)?.registration?.userId || (initial as any)?.userId;
-                              if (!targetId) {
-                                alert('错误：未找到相关的用户 ID');
-                                return;
-                              }
-                              const res = await fetch(`/api/admin/users/${targetId}`, { method: 'DELETE' });
-                              if (res.ok) {
-                                alert('账号已删除');
-                                onSaved();
-                              } else {
-                                alert('删除失败: ' + await res.text());
-                              }
-                            } catch (e) {
-                              alert('连接失败');
-                            }
-                            setSaving(false);
-                          }
-                        }}
+                        onClick={() => setShowDeleteUserConfirm(true)}
                       >
                         🗑️ 删除注册账号
                       </button>
                     )}
                   </div>
                 </div>
+
+                {showDeleteUserConfirm && (
+                  <div className="modal-overlay" style={{ zIndex: 1100 }}>
+                    <div className="modal-content" style={{ maxWidth: '400px', margin: 'auto' }}>
+                      <div className="modal-header">
+                        <h2 className="modal-title" style={{ color: '#ef4444' }}>⚠️ 确认删除账号</h2>
+                        <button type="button" className="close-btn" onClick={() => setShowDeleteUserConfirm(false)}>✕</button>
+                      </div>
+                      <div style={{ padding: '24px' }}>
+                        <p style={{ fontSize: '15px', color: '#1e293b', marginBottom: '12px', fontWeight: 600 }}>
+                          确定要强制删除该用户的登录账号吗？
+                        </p>
+                        <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px', lineHeight: 1.5 }}>
+                          这将移除其登录权限，但会**保留**此校友的档案资料。该操作不可撤销。
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                          <button type="button" className="btn btn-outline" onClick={() => setShowDeleteUserConfirm(false)}>取消</button>
+                          <button 
+                            type="button" 
+                            className="btn btn-danger" 
+                            style={{ background: '#ef4444', color: 'white' }}
+                            onClick={async () => {
+                              setShowDeleteUserConfirm(false);
+                              setSaving(true);
+                              try {
+                                const targetId = (initial as any)?.registration?.userId || (initial as any)?.userId;
+                                if (!targetId) {
+                                  alert('错误：未找到相关的用户 ID');
+                                  setSaving(false);
+                                  return;
+                                }
+                                const res = await fetch(`/api/admin/users/${targetId}`, { method: 'DELETE' });
+                                if (res.ok) {
+                                  alert('账号已删除');
+                                  onSaved();
+                                } else {
+                                  const errText = await res.text();
+                                  alert('删除失败: ' + errText);
+                                }
+                              } catch (e) {
+                                alert('连接失败');
+                              }
+                              setSaving(false);
+                            }}
+                          >
+                            确认删除
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
               <label className="form-label" style={{ color: '#0369a1', fontWeight: 600 }}>校友会职务 (仅管理员可见)</label>
               <select 
