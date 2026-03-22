@@ -161,17 +161,21 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     
     let deleted = false;
     const transaction = db.transaction(() => {
+      // Explicitly delete from related tables to ensure reliable deletion
       db.prepare('DELETE FROM school_experiences WHERE alumni_id = ?').run(id);
       db.prepare('DELETE FROM users WHERE alumni_id = ?').run(id);
+      db.prepare('DELETE FROM contact_requests WHERE target_alumni_id = ? OR requester_id IN (SELECT id FROM users WHERE alumni_id = ?)').run(id, id);
+      db.prepare('DELETE FROM correction_requests WHERE alumni_id = ? OR requester_id IN (SELECT id FROM users WHERE alumni_id = ?)').run(id, id);
       const res = db.prepare('DELETE FROM alumni WHERE id = ?').run(id);
       if (res.changes > 0) deleted = true;
     });
     
     transaction();
     
-    if (!deleted) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (!deleted) return NextResponse.json({ error: '未找到相关记录' }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error('DELETE /api/alumni/[id] error:', error);
     return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }

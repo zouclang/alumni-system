@@ -28,12 +28,11 @@ interface Alumni {
   dut_verified: string;
 }
 
-const REGIONS = ['工业园区','吴中区','姑苏区','高新区','相城区','吴江区','昆山','太仓','常熟','张家港'];
-const COLLEGES = ['MBA\\EMBA\\MEM','化工','机械','电信','建工','材料','经管','力学','软件','物理','能动','人文','建艺','电气','生工','数学'];
-const DEGREES = ['本科', '硕士', '博士', '博士后'];
-const GENDERS = ['男','女'];
-const CAREER_TYPES = ['职业经理（含高管、职员等）','自主创业（有公司）','其他（机关事业等）','退休','自由职业（无公司）'];
-const WECHAT_GROUPS = ['一群','二群','三群','四群','五群','昆山群','太仓群','常熟群','张家港群','经管一群','经管二群','软件分会'];
+const DEFAULT_REGIONS = ['工业园区','吴中区','姑苏区','高新区','相城区','吴江区','昆山','太仓','常熟','张家港'];
+const DEFAULT_COLLEGES = ['MBA\\EMBA\\MEM','化工','机械','电信','建工','材料','经管','力学','软件','物理','能动','人文','建艺','电气','生工','数学'];
+const DEFAULT_DEGREES = ['本科', '硕士', '博士', '博士后'];
+const DEFAULT_CAREER_TYPES = ['职业经理（含高管、职员等）','自主创业（有公司）','其他（机关事业等）','退休','自由职业（无公司）'];
+const DEFAULT_WECHAT_GROUPS = ['一群','二群','三群','四群','五群','昆山群','太仓群','常熟群','张家港群','经管一群','经管二群','软件分会'];
 
 function degreeColor(degree: string) {
   if (!degree) return 'badge-gray';
@@ -68,6 +67,13 @@ export default function HomePage() {
   const [completion, setCompletion] = useState<number>(0);
   const [eligibility, setEligibility] = useState<{ eligible: boolean; reason?: string }>({ eligible: false });
   const [currentUserAlumni, setCurrentUserAlumni] = useState<any>(null);
+  const [metadata, setMetadata] = useState({
+    regions: DEFAULT_REGIONS,
+    colleges: DEFAULT_COLLEGES,
+    degrees: DEFAULT_DEGREES,
+    careerTypes: DEFAULT_CAREER_TYPES,
+    wechatGroups: DEFAULT_WECHAT_GROUPS,
+  });
   
   // Contact request state
   const [requestingAlumni, setRequestingAlumni] = useState<any>(null);
@@ -121,7 +127,30 @@ export default function HomePage() {
     }
   }, [page, search, region, college, degree, gender, careerType, wechatGroup, isRegistered]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  const fetchMetadata = useCallback(() => {
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(stats => {
+        if (stats) {
+          setMetadata({
+            regions: stats.byRegion?.length ? stats.byRegion.map((r: any) => r.region) : DEFAULT_REGIONS,
+            colleges: stats.byCollege?.length ? stats.byCollege.map((c: any) => c.college) : DEFAULT_COLLEGES,
+            degrees: stats.byDegree?.length ? stats.byDegree.map((d: any) => d.degree) : DEFAULT_DEGREES,
+            careerTypes: stats.byCareerType?.length ? stats.byCareerType.map((c: any) => c.career_type) : DEFAULT_CAREER_TYPES,
+            wechatGroups: stats.byWechatGroup?.length ? stats.byWechatGroup.map((g: any) => g.group) : DEFAULT_WECHAT_GROUPS,
+          });
+        }
+      })
+      .catch(e => console.error('Error fetching metadata:', e));
+  }, []);
+
+  useEffect(() => { 
+    fetchData(); 
+  }, [fetchData]);
+
+  useEffect(() => {
+    fetchMetadata();
+  }, [fetchMetadata]);
 
   const handleFilterChange = () => { setPage(1); };
 
@@ -216,35 +245,35 @@ export default function HomePage() {
           <span className="filter-label">所在区域</span>
           <select className="filter-select" value={region} onChange={(e) => { setRegion(e.target.value); handleFilterChange(); }}>
             <option value="">全部</option>
-            {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+            {metadata.regions.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
         </div>
         <div className="filter-group">
           <span className="filter-label">学院</span>
           <select className="filter-select" value={college} onChange={(e) => { setCollege(e.target.value); handleFilterChange(); }}>
             <option value="">全部</option>
-            {COLLEGES.map((c) => <option key={c} value={c}>{c}</option>)}
+            {metadata.colleges.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div className="filter-group">
           <span className="filter-label">最高学历</span>
           <select className="filter-select" value={degree} onChange={(e) => { setDegree(e.target.value); handleFilterChange(); }}>
             <option value="">全部</option>
-            {DEGREES.map((d) => <option key={d} value={d}>{d}</option>)}
+            {metadata.degrees.map((d) => <option key={d} value={d}>{d}</option>)}
           </select>
         </div>
         <div className="filter-group">
           <span className="filter-label">事业类型</span>
           <select className="filter-select" value={careerType} onChange={(e) => { setCareerType(e.target.value); handleFilterChange(); }}>
             <option value="">全部</option>
-            {CAREER_TYPES.map((c) => <option key={c} value={c}>{c}</option>)}
+            {metadata.careerTypes.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div className="filter-group">
           <span className="filter-label">微信群</span>
           <select className="filter-select" value={wechatGroup} onChange={(e) => { setWechatGroup(e.target.value); handleFilterChange(); }}>
             <option value="">全部</option>
-            {WECHAT_GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}
+            {metadata.wechatGroups.map((g) => <option key={g} value={g}>{g}</option>)}
           </select>
         </div>
         {(isAdmin || user?.association_role) && (
@@ -449,14 +478,14 @@ export default function HomePage() {
       {showForm && (
         <AlumniForm
           onClose={() => setShowForm(false)}
-          onSaved={() => { setShowForm(false); fetchData(); }}
+          onSaved={() => { setShowForm(false); fetchData(); fetchMetadata(); }}
         />
       )}
 
       {showImport && (
         <ImportModal
           onClose={() => setShowImport(false)}
-          onImported={() => { setShowImport(false); fetchData(); }}
+          onImported={() => { setShowImport(false); fetchData(); fetchMetadata(); }}
         />
       )}
       
