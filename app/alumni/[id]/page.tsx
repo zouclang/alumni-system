@@ -78,12 +78,21 @@ export default function AlumniDetailPage() {
   const handleDelete = async () => {
     if (!confirm(`确认删除「${alumni?.name}」的记录？此操作不可撤销。`)) return;
     setDeleting(true);
-    const res = await fetch(`/api/alumni/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      router.push('/');
-    } else {
-      const err = await res.json();
-      alert(`删除失败: ${err.error || '未知错误'}`);
+    console.log(`Attempting to delete alumni ID: ${id}`);
+    try {
+      const res = await fetch(`/api/alumni/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        console.log('Delete successful, redirecting...');
+        router.push('/');
+      } else {
+        const err = await res.json().catch(() => ({ error: '服务器返回了不可读的错误' }));
+        console.error('Delete failed:', err);
+        alert(`删除失败: ${err.error || '未知错误'}`);
+        setDeleting(false);
+      }
+    } catch (e) {
+      console.error('Network or fetch error:', e);
+      alert('网络请求失败，请检查网络连接或刷新页面重试');
       setDeleting(false);
     }
   };
