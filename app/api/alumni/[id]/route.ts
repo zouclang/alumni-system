@@ -161,11 +161,16 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     
     let deleted = false;
     const transaction = db.transaction(() => {
-      // Explicitly delete from related tables to ensure reliable deletion
-      db.prepare('DELETE FROM school_experiences WHERE alumni_id = ?').run(id);
-      db.prepare('DELETE FROM users WHERE alumni_id = ?').run(id);
+      // Re-order deletion to handle children first, avoiding FK constraint violations
+      // 1. Delete requests that depend on users or the alumni themselves
       db.prepare('DELETE FROM contact_requests WHERE target_alumni_id = ? OR requester_id IN (SELECT id FROM users WHERE alumni_id = ?)').run(id, id);
       db.prepare('DELETE FROM correction_requests WHERE alumni_id = ? OR requester_id IN (SELECT id FROM users WHERE alumni_id = ?)').run(id, id);
+      
+      // 2. Delete experiences and user records
+      db.prepare('DELETE FROM school_experiences WHERE alumni_id = ?').run(id);
+      db.prepare('DELETE FROM users WHERE alumni_id = ?').run(id);
+      
+      // 3. Finally delete the alumni record
       const res = db.prepare('DELETE FROM alumni WHERE id = ?').run(id);
       if (res.changes > 0) deleted = true;
     });
