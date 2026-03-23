@@ -47,7 +47,10 @@ export async function GET(request: NextRequest) {
     const registered = searchParams.get('registered') || '';
 
     if (region) { conditions.push('region = ?'); params.push(region); }
-    if (college) { conditions.push('college_normalized = ?'); params.push(college); }
+    if (college) { 
+      conditions.push('(college_normalized = ? OR EXISTS (SELECT 1 FROM school_experiences WHERE alumni_id = a.id AND college = ?))'); 
+      params.push(college, college); 
+    }
     if (degree) { conditions.push('degree LIKE ?'); params.push(`%${degree}%`); }
     if (gender) { conditions.push('gender = ?'); params.push(gender); }
     if (careerType) { conditions.push('career_type = ?'); params.push(careerType); }
