@@ -49,12 +49,12 @@ export default function Sidebar() {
       .catch(() => {});
   };
 
-  const fetchUserUnreadCount = () => {
+  function fetchUserUnreadCount() {
     fetch(`/api/notifications/unread-count?t=${Date.now()}`)
       .then(res => res.json())
       .then(data => setUserUnreadCount(data.count || 0))
       .catch(() => {});
-  };
+  }
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
