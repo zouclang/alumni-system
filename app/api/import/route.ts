@@ -196,42 +196,74 @@ export async function POST(req: NextRequest) {
 
     let importedCount = 0;
     const transaction = db.transaction((data: any[][]) => {
+      // Find indices from header row
+      const headers = data[0] || [];
+      const colMap: Record<string, number> = {};
+      headers.forEach((h, i) => { if (typeof h === 'string') colMap[h.trim()] = i; });
+
+      const getVal = (row: any[], name: string, fallbackIdx: number) => {
+        if (name in colMap) return row[colMap[name]];
+        return row[fallbackIdx];
+      };
+
       // Skip header row
       for (let i = 1; i < data.length; i++) {
         const row = data[i];
-        const name = cleanValue(row[1]);
+        const nameRaw = getVal(row, '姓名', 1);
+        const name = cleanValue(nameRaw);
         if (!name) continue;
 
         const cleanedName = String(name).replace(/\d+$/, '');
-        const experiences = parseExperiences(cleanValue(row[4]) as string);
         
+        // 1. Check for granular stage columns first
+        const bCol = cleanValue(getVal(row, '本科学院', -1));
+        const bMaj = cleanValue(getVal(row, '本科专业', -1));
+        const mCol = cleanValue(getVal(row, '硕士学院', -1));
+        const mMaj = cleanValue(getVal(row, '硕士专业', -1));
+        const dCol = cleanValue(getVal(row, '博士学院', -1));
+        const dMaj = cleanValue(getVal(row, '博士专业', -1));
+
+        let experiences: any[] = [];
+        if (bCol || bMaj || mCol || mMaj || dCol || dMaj) {
+           let sort = 0;
+           if (bCol || bMaj) experiences.push({ stage: '本科', start_year: null, end_year: null, college: bCol, major: bMaj, sort_order: sort++ });
+           if (mCol || mMaj) experiences.push({ stage: '硕士', start_year: null, end_year: null, college: mCol, major: mMaj, sort_order: sort++ });
+           if (dCol || dMaj) experiences.push({ stage: '博士', start_year: null, end_year: null, college: dCol, major: dMaj, sort_order: sort++ });
+        } else {
+           // 2. Fallback to unified format
+           const expRaw = getVal(row, '在校经历', 4);
+           experiences = parseExperiences(cleanValue(expRaw) as string);
+        }
+
         // Derive defaults from the first experience segment if available
         const firstExp = experiences[0] || {};
+        
+        const wgRaw = getVal(row, '所在微信群', 8);
 
         const record = [
-          row[0], // seq_no
+          getVal(row, '序号', 0) || i, // seq_no
           cleanedName,
-          cleanValue(row[2]),   // has_duplicate_name
-          standardizeHometown(cleanValue(row[3]) as string), // hometown
-          cleanValue(row[4]),   // school_experience
-          firstExp.start_year || null, // enrollment_year
-          firstExp.end_year || null,   // graduation_year
-          firstExp.college || null,    // college
-          firstExp.college || null,    // college_normalized
-          firstExp.major || null,      // major
-          cleanValue(row[5]),  // degree (renamed to 最高学历（包含外校）)
-          cleanValue(row[6]),  // phone
-          cleanValue(row[7]),  // interests
-          cleanValue(row[8]) ? String(row[8]).replace(/、/g, ',') : null, // wechat_groups
-          cleanValue(row[9]),  // dut_verified
-          typeof row[10] === 'number' ? row[10] : null,  // birth_month
-          cleanValue(row[11]),  // gender
-          cleanValue(row[12]),  // region
-          cleanValue(row[13]),  // career_type
-          cleanValue(row[14]),  // company
-          cleanValue(row[15]),  // position
-          cleanValue(row[16]),  // industry
-          cleanValue(row[17]),  // social_roles
+          cleanValue(getVal(row, '是否重名', 2)),
+          standardizeHometown(cleanValue(getVal(row, '家乡', 3)) as string),
+          cleanValue(getVal(row, '在校经历', 4)), // legacy single string
+          firstExp.start_year || null,
+          firstExp.end_year || null,
+          firstExp.college || null,
+          firstExp.college || null,
+          firstExp.major || null,
+          cleanValue(getVal(row, '最高学历', 5)),
+          cleanValue(getVal(row, '联系电话', 6)),
+          cleanValue(getVal(row, '兴趣爱好', 7)),
+          cleanValue(wgRaw) ? String(wgRaw).replace(/、/g, ',') : null,
+          cleanValue(getVal(row, '大工人认证', 9)),
+          typeof getVal(row, '生日月份', 10) === 'number' ? getVal(row, '生日月份', 10) : null,
+          cleanValue(getVal(row, '性别', 11)),
+          cleanValue(getVal(row, '所在区域', 12)),
+          cleanValue(getVal(row, '事业类型', 13)),
+          cleanValue(getVal(row, '工作单位', 14)),
+          cleanValue(getVal(row, '职位', 15)),
+          cleanValue(getVal(row, '所属行业', 16)),
+          cleanValue(getVal(row, '社会职务', 17)),
           generatePinyin(cleanedName)
         ];
 
