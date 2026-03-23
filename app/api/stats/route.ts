@@ -18,7 +18,7 @@ export async function GET() {
     const byCollegeRows = db.prepare(`
       SELECT college, COUNT(*) as count FROM school_experiences
       WHERE college IS NOT NULL AND college != ''
-      GROUP BY college ORDER BY count DESC LIMIT 15
+      GROUP BY college ORDER BY count DESC
     `).all() as any[];
     
     // Group duplicates if needed (we'll just use the raw query directly)
