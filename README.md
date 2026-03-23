@@ -92,6 +92,27 @@ npx pm2 start npm --name "alumni-system" -- start
 ### 3. 更换登录页背景
 替换 `public/login-bg.png` 即可。
 
+## 🐳 Docker 部署 (推荐)
+
+项目已全面支持 Docker 容器化部署，内置了多阶段构建的轻量化 `Dockerfile`，并优化了 Next.js standalone 输出。同时配置了数据持久化挂载，确保 SQLite 数据安全。
+
+### 1. 使用 Docker Compose 一键运行（最简单）
+在项目根目录执行：
+```bash
+docker-compose up -d
+```
+系统将自动在 `3000` 端口启动，并由 `docker-compose` 守护进程保持运行。所有数据保存在此目录下的 `data/alumni.db` 中。
+
+### 2. 手动构建与运行
+如果不使用 docker-compose，可以使用原生 docker 命令：
+```bash
+# 构建镜像
+docker build -t alumni-system .
+
+# 运行容器 (映射 3000 端口，并挂载本地 data 目录)
+docker run -d -p 3000:3000 -v $(pwd)/data:/app/data --name alumni-system alumni-system
+```
+
 ## 📝 开发备注
 - 本系统数据库文件存储在本地，部署方便。
 - 生产环境下如果遇到登录 Cookie 失效，请检查 `app/api/auth/login/route.ts` 中的 `secure` 属性配置。

@@ -1,0 +1,14 @@
+Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+README.md
+.next
+.git
+.DS_Store
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/alumni.db
+data/*.db

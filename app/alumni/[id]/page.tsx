@@ -90,13 +90,21 @@ export default function AlumniDetailPage() {
         console.log('Delete successful, redirecting...');
         router.push('/');
       } else {
-        const err = await res.json().catch(() => ({ error: '服务器返回了不可读的错误' }));
-        console.error('Delete failed:', err);
-        alert(`删除失败: ${err.error || '未知错误'}`);
+        let errorMsg = '未找到记录或服务器繁忙 (404/500)';
+        try {
+          const err = await res.json();
+          errorMsg = err.error || errorMsg;
+          console.warn('Delete failed (API Error):', err);
+        } catch (e) {
+          const text = await res.text().catch(() => '');
+          console.warn('Delete failed (Non-JSON Error):', text);
+          if (text.includes('not found') || res.status === 404) errorMsg = '记录已被删除 (404)';
+        }
+        alert(`删除失败: ${errorMsg}`);
         setDeleting(false);
       }
     } catch (e) {
-      console.error('Network or fetch error:', e);
+      console.warn('Network or fetch error:', e);
       alert('网络请求失败，请检查网络连接或刷新页面重试');
       setDeleting(false);
     }
