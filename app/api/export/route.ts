@@ -48,7 +48,8 @@ export async function GET(request: NextRequest) {
       '生日月份', '性别', '所在区域', '事业类型', 
       '工作单位', '职位', '所属行业', '社会职务',
       // TEMPORARY FIELDS for template generation per user request
-      '本科学院', '本科专业', '硕士学院', '硕士专业', '博士学院', '博士专业'
+      '本科学院', '本科专业', '硕士学院', '硕士专业', '博士学院', '博士专业',
+      '未知学段学院', '未知学段专业'
     ];
     const csvRows = [headers.join(',')];
 
@@ -60,6 +61,7 @@ export async function GET(request: NextRequest) {
       let bCollege = '', bMajor = '';
       let mCollege = '', mMajor = '';
       let dCollege = '', dMajor = '';
+      let uCollege = '', uMajor = '';
 
       const expStrs = experiences.map(e => {
         const stage = e.stage || '';
@@ -71,6 +73,10 @@ export async function GET(request: NextRequest) {
         if (stage.includes('本') && !bCollege) { bCollege = college; bMajor = major; }
         else if ((stage.includes('硕') || stage.includes('研')) && !mCollege) { mCollege = college; mMajor = major; }
         else if (stage.includes('博') && !dCollege) { dCollege = college; dMajor = major; }
+        else if (!uCollege) { // Fallback for unknown/missing stages
+          uCollege = college;
+          uMajor = major;
+        }
 
         let header = stage;
         if (years !== '-') {
@@ -91,7 +97,8 @@ export async function GET(request: NextRequest) {
         row.phone, row.interests, row.wechat_groups, row.dut_verified,
         row.birth_month, row.gender, row.region, row.career_type,
         row.company, row.position, row.industry, row.social_roles,
-        bCollege, bMajor, mCollege, mMajor, dCollege, dMajor
+        bCollege, bMajor, mCollege, mMajor, dCollege, dMajor,
+        uCollege, uMajor
       ].map(v => {
         if (v === null || v === undefined) return '';
         const s = String(v);
