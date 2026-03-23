@@ -46,19 +46,32 @@ export async function GET(request: NextRequest) {
       '姓名', '是否重名', '家乡', '在校经历', '最高学历', 
       '联系电话', '兴趣爱好', '所在微信群', '大工人认证', 
       '生日月份', '性别', '所在区域', '事业类型', 
-      '工作单位', '职位', '所属行业', '社会职务'
+      '工作单位', '职位', '所属行业', '社会职务',
+      // TEMPORARY FIELDS for template generation per user request
+      '本科学院', '本科专业', '硕士学院', '硕士专业', '博士学院', '博士专业'
     ];
     const csvRows = [headers.join(',')];
 
     for (const row of rows) {
       // Get and format structured experiences matching the system's integrated format
       const experiences = expStmt.all(row.id) as any[];
+      
+      // Temporary variables for explicit stage extraction
+      let bCollege = '', bMajor = '';
+      let mCollege = '', mMajor = '';
+      let dCollege = '', dMajor = '';
+
       const expStrs = experiences.map(e => {
         const stage = e.stage || '';
         const years = `${e.start_year || ''}-${e.end_year || ''}`;
         const college = e.college || '';
         const major = e.major || '';
         
+        // Extract specific stages for the temporary fields
+        if (stage.includes('本') && !bCollege) { bCollege = college; bMajor = major; }
+        else if ((stage.includes('硕') || stage.includes('研')) && !mCollege) { mCollege = college; mMajor = major; }
+        else if (stage.includes('博') && !dCollege) { dCollege = college; dMajor = major; }
+
         let header = stage;
         if (years !== '-') {
           header = `${stage}:${years}`;
@@ -77,7 +90,8 @@ export async function GET(request: NextRequest) {
         row.name, row.has_duplicate_name, row.hometown, formattedExp, row.degree,
         row.phone, row.interests, row.wechat_groups, row.dut_verified,
         row.birth_month, row.gender, row.region, row.career_type,
-        row.company, row.position, row.industry, row.social_roles
+        row.company, row.position, row.industry, row.social_roles,
+        bCollege, bMajor, mCollege, mMajor, dCollege, dMajor
       ].map(v => {
         if (v === null || v === undefined) return '';
         const s = String(v);
