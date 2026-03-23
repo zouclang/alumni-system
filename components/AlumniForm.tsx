@@ -167,6 +167,16 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
   const [experiences, setExperiences] = useState<any[]>(() => {
     const existing = Array.isArray((initial as any)?.experiences) ? (initial as any).experiences : [];
     if (existing.length === 0) {
+      if (initial?.college || initial?.college_normalized || initial?.major || initial?.enrollment_year) {
+        return [{
+          stage: '',
+          start_year: initial.enrollment_year || '',
+          end_year: initial.graduation_year || '',
+          college: initial.college_normalized || initial.college || '',
+          major: initial.major || '',
+          sort_order: 0
+        }];
+      }
       return [{ stage: '', start_year: '', end_year: '', college: '', major: '', sort_order: 0 }];
     }
     return existing;
