@@ -5,12 +5,10 @@ import { generatePinyin, syncAllDuplicates } from '@/lib/name-utils';
 
 function cleanValue(val: any) {
   if (val === null || val === undefined) return null;
-  if (typeof val === 'string') {
-    const s = val.trim();
-    if (s === '' || s === 'None' || s.startsWith('=')) return null;
-    return s;
-  }
-  return val;
+  let s = String(val).trim();
+  if (s === '' || s === 'None' || s.startsWith('=')) return null;
+  if (s.endsWith('.0')) s = s.slice(0, -2);
+  return s;
 }
 
 function cleanYear(val: any) {

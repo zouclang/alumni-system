@@ -58,6 +58,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     const db = getDb();
     const body = await request.json();
+    const experiences = Array.isArray(body.experiences) ? body.experiences : [];
+    const firstExp = experiences[0] || {};
 
     const p = {
       id,
@@ -65,11 +67,12 @@ export async function PUT(request: NextRequest, { params }: Params) {
       has_duplicate_name: body.has_duplicate_name || null,
       hometown: body.hometown || null,
       school_experience: body.school_experience || null,
-      enrollment_year: body.enrollment_year || null,
-      graduation_year: body.graduation_year || null,
-      college: body.college || null,
-      college_normalized: body.college_normalized || null,
-      major: body.major || null,
+      // Mirror from first experience if scalar fields are missing
+      enrollment_year: body.enrollment_year || firstExp.start_year || null,
+      graduation_year: body.graduation_year || firstExp.end_year || null,
+      college: body.college || firstExp.college || null,
+      college_normalized: body.college_normalized || firstExp.college || null,
+      major: body.major || firstExp.major || null,
       degree: body.degree || null,
       phone: body.phone || null,
       interests: body.interests || null,

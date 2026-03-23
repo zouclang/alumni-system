@@ -59,7 +59,7 @@ export default function PermissionsPage() {
 
   const fetchPendingCounts = async () => {
     try {
-      const res = await fetch(`/api/admin/users/pending-count?detail=1&t=${Date.now()}`);
+      const res = await fetch(`/api/admin/users/pending-count?detail=1&t=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setPendingCounts({
@@ -76,7 +76,7 @@ export default function PermissionsPage() {
   const fetchUsers = async (skipLoading = false) => {
     if (!skipLoading) setLoading(true);
     try {
-      const res = await fetch(`/api/admin/users?status=PENDING&t=${Date.now()}`);
+      const res = await fetch(`/api/admin/users?status=PENDING&t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setUsers(data);
@@ -89,7 +89,7 @@ export default function PermissionsPage() {
 
   const fetchContactRequests = async (skipLoading = false) => {
     try {
-      const res = await fetch(`/api/contact-requests?status=PENDING&t=${Date.now()}`);
+      const res = await fetch(`/api/contact-requests?status=PENDING&t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setContactRequests(data);
@@ -100,7 +100,7 @@ export default function PermissionsPage() {
 
   const fetchCorrectionRequests = async (skipLoading = false) => {
     try {
-      const res = await fetch(`/api/corrections?status=PENDING&t=${Date.now()}`);
+      const res = await fetch(`/api/corrections?status=PENDING&t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setCorrectionRequests(data);
@@ -117,8 +117,10 @@ export default function PermissionsPage() {
         body: JSON.stringify({ userId, status }),
       });
       if (res.ok) {
-        fetchUsers();
-        fetchPendingCounts();
+        await Promise.all([
+          fetchUsers(),
+          fetchPendingCounts()
+        ]);
       }
     } catch (err) {
       alert('操作失败');
@@ -133,8 +135,10 @@ export default function PermissionsPage() {
         body: JSON.stringify({ status, adminRemark: remark }),
       });
       if (res.ok) {
-        fetchContactRequests();
-        fetchPendingCounts();
+        await Promise.all([
+          fetchContactRequests(),
+          fetchPendingCounts()
+        ]);
         setRejectingRequest(null);
         setRejectReason('');
       } else {
@@ -153,8 +157,10 @@ export default function PermissionsPage() {
         body: JSON.stringify({ status, adminRemark: remark }),
       });
       if (res.ok) {
-        fetchCorrectionRequests();
-        fetchPendingCounts();
+        await Promise.all([
+          fetchCorrectionRequests(),
+          fetchPendingCounts()
+        ]);
         setRejectingRequest(null);
         setRejectReason('');
       } else {

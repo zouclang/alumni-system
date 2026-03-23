@@ -41,21 +41,25 @@ export async function POST(request: NextRequest) {
       // New alumni registration
       const passwordHash = await bcrypt.hash(password, 10);
       
+      const experiences = Array.isArray(alumniData.experiences) ? alumniData.experiences : [];
+      const firstExp = experiences[0] || {};
+      
       const p = {
         name: alumniData.name || null,
         gender: alumniData.gender || null,
         hometown: alumniData.hometown || null,
         birth_month: alumniData.birth_month || null,
         region: alumniData.region || null,
-        enrollment_year: alumniData.enrollment_year || null,
-        graduation_year: alumniData.graduation_year || null,
-        college: alumniData.college || null,
-        college_normalized: alumniData.college_normalized || null,
-        major: alumniData.major || null,
+        // Mirror from first experience if scalar fields are missing
+        enrollment_year: alumniData.enrollment_year || firstExp.start_year || null,
+        graduation_year: alumniData.graduation_year || firstExp.end_year || null,
+        college: alumniData.college || firstExp.college || null,
+        college_normalized: alumniData.college_normalized || firstExp.college || null,
+        major: alumniData.major || firstExp.major || null,
         degree: alumniData.degree || null,
-        phone: phone || null,
-        wechat_id: alumniData.wechat_id || null,
-        qq: alumniData.qq || null,
+        phone: (phone || alumniData.phone || '').toString().endsWith('.0') ? (phone || alumniData.phone || '').toString().slice(0, -2) : (phone || alumniData.phone || null),
+        wechat_id: (alumniData.wechat_id || '').toString().endsWith('.0') ? alumniData.wechat_id.toString().slice(0, -2) : (alumniData.wechat_id || null),
+        qq: (alumniData.qq || '').toString().endsWith('.0') ? alumniData.qq.toString().slice(0, -2) : (alumniData.qq || null),
         company: alumniData.company || null,
         position: alumniData.position || null,
         industry: alumniData.industry || null,

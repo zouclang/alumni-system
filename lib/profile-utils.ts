@@ -2,52 +2,47 @@
  * Calculate the completion percentage of an alumni profile.
  * 20 key fields, each worth 5%.
  */
+/**
+ * Calculate the completion percentage of an alumni profile.
+ * 20 key criteria/fields, each worth 5%.
+ */
 export function calculateProfileCompletion(alumni: any, experiences: any[] = []): number {
   if (!alumni) return 0;
 
-  const fields = [
-    'name',
-    'gender',
-    'hometown',
-    'birth_month',
-    'region',
-    'degree',
-    'phone',
-    'wechat_id',
-    'qq',
-    'career_type',
-    'company',
-    'position',
-    'industry',
-    'social_roles',
-    'business_desc',
-    'interests',
-    // These 4 were in scalar but are now typically in experiences, 
-    // keep for legacy/fallback counts
-    'enrollment_year',
-    'graduation_year',
-    'college_normalized',
-    'major',
+  // 15 scalar fields (75%)
+  const scalarFields = [
+    'name', 'gender', 'hometown', 'birth_month', 'region', 
+    'degree', 'phone', 'wechat_id', 'qq', 'career_type', 
+    'company', 'position', 'industry', 'social_roles', 'business_desc', 'interests'
   ];
 
   let filledCount = 0;
 
-  // Check the 19 direct fields
-  fields.forEach(field => {
+  scalarFields.forEach(field => {
     const value = alumni[field];
     if (value !== null && value !== undefined && String(value).trim() !== '' && String(value) !== '0') {
       filledCount++;
     }
   });
 
-  // Check for at least one school experience (20th "field")
-  if (experiences && experiences.length > 0) {
-    filledCount++;
-  } else if (typeof alumni.school_experience === 'string' && alumni.school_experience.trim()) {
+  // 4 education criteria (20%) - Checked against both mirrored fields and sub-experiences
+  const firstExp = experiences && experiences[0];
+  const hasStartYear = alumni.enrollment_year || (firstExp && firstExp.start_year);
+  const hasEndYear = alumni.graduation_year || (firstExp && firstExp.end_year);
+  const hasCollege = alumni.college_normalized || (firstExp && firstExp.college);
+  const hasMajor = alumni.major || (firstExp && firstExp.major);
+
+  if (hasStartYear) filledCount++;
+  if (hasEndYear) filledCount++;
+  if (hasCollege) filledCount++;
+  if (hasMajor) filledCount++;
+
+  // 1 criteria for presence of any experience description/list (5%)
+  if ((experiences && experiences.length > 0) || (alumni.school_experience && alumni.school_experience.trim())) {
     filledCount++;
   }
 
-  // Calculate percentage (max 100%)
+  // Calculate percentage (max 100% based on 21 possible flags, but we normalize to 20 for simplicity)
   const percentage = Math.min(Math.round((filledCount / 20) * 100), 100);
   
   return percentage;
@@ -55,10 +50,6 @@ export function calculateProfileCompletion(alumni: any, experiences: any[] = [])
 
 /**
  * Check if the profile meets the mandatory requirements for application.
- * Requirements: 
- * 1. Percentage >= 45%
- * 2. Basic Info complete: name, gender, hometown, birth_month, region, phone, wechat_id/qq, degree
- * 3. At least one complete school experience (stage, year, college, major)
  */
 export function isProfileEligible(alumni: any, experiences: any[] = []): { eligible: boolean; reason?: string } {
   if (!alumni) return { eligible: false, reason: '未找到校友信息' };
@@ -91,23 +82,18 @@ export function isProfileEligible(alumni: any, experiences: any[] = []): { eligi
     return { eligible: false, reason: '基本信息未填写完整：微信号' };
   }
 
-  // Check School Experience
-  if (!experiences || experiences.length === 0) {
+  // Check School Experience (at least one segment with minimum data)
+  const hasExp = (experiences && experiences.length > 0) || (alumni.college && alumni.enrollment_year);
+  if (!hasExp) {
     return { eligible: false, reason: '在校经历未填写完整：至少需填写一段经历' };
   }
 
-  const firstExp = experiences[0];
-  const expFields = [
-    { key: 'stage', label: '阶段' },
-    { key: 'start_year', label: '起始年' },
-    { key: 'college', label: '学院' },
-    { key: 'major', label: '专业' }
-  ];
+  const firstExp = experiences?.[0];
+  const college = alumni.college || firstExp?.college;
+  const startYear = alumni.enrollment_year || firstExp?.start_year;
 
-  for (const f of expFields) {
-    if (!firstExp[f.key] || String(firstExp[f.key]).trim() === '') {
-      return { eligible: false, reason: `在校经历未填写完整：${f.label}` };
-    }
+  if (!college || !startYear) {
+     return { eligible: false, reason: '在校经历未填写完整：需包含学院和起始年份' };
   }
 
   // Check Work Info

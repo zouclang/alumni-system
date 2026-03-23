@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CityPicker from '@/components/CityPicker';
 
@@ -14,6 +14,8 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   
   // For 'new' registration
   const [alumniData, setAlumniData] = useState({
@@ -110,6 +112,30 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (step === 4 && phone.length >= 5 && selectedMatch) {
+      const timer = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/auth/register/verify-phone?id=${selectedMatch.id}&phone=${encodeURIComponent(phone)}`);
+          const data = await res.json();
+          if (data.match === false) {
+            setPhoneError(data.message);
+            setIsPhoneVerified(false);
+          } else {
+            setPhoneError('');
+            setIsPhoneVerified(true);
+          }
+        } catch (err) {
+          console.error('Verify error:', err);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    } else {
+      setPhoneError('');
+      setIsPhoneVerified(false);
+    }
+  }, [phone, step, selectedMatch]);
 
   return (
     <div className="register-container">
@@ -358,6 +384,7 @@ export default function RegisterPage() {
                 placeholder="请输入您的手机号"
                 required 
               />
+              {phoneError && <div style={{ color: '#f87171', fontSize: '12px', marginTop: '6px', textAlign: 'left' }}>{phoneError}</div>}
             </div>
             <div className="form-group">
               <label style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -385,7 +412,7 @@ export default function RegisterPage() {
               <label>确认密码</label>
               <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
             </div>
-            <button type="submit" className="register-button" disabled={loading}>
+            <button type="submit" className="register-button" disabled={loading || !!phoneError || !isPhoneVerified}>
               {loading ? '正在提交...' : '提交审核'}
             </button>
             <button type="button" className="back-btn" onClick={() => setStep(2)}>不，选错了</button>
@@ -487,6 +514,13 @@ export default function RegisterPage() {
           font-weight: 600;
           cursor: pointer;
           margin-top: 10px;
+          transition: all 0.2s;
+        }
+        .register-button:disabled {
+          background: #334155;
+          color: #94a3b8;
+          cursor: not-allowed;
+          opacity: 0.7;
         }
         
         .match-list { display: flex; flexDirection: column; gap: 12px; margin-bottom: 20px; }

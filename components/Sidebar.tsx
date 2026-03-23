@@ -43,7 +43,7 @@ export default function Sidebar() {
   }, [pathname]);
 
   const fetchPendingCount = () => {
-    fetch(`/api/admin/users/pending-count?t=${Date.now()}`)
+    fetch(`/api/admin/users/pending-count?t=${Date.now()}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => setPendingCount(data.count || 0))
       .catch(() => {});

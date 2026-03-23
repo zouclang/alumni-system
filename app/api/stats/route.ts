@@ -43,11 +43,11 @@ export async function GET() {
     `).all();
 
     const byEnrollmentYear = db.prepare(`
-      SELECT enrollment_year as year, COUNT(*) as count FROM alumni
-      WHERE enrollment_year IS NOT NULL 
-        AND enrollment_year != '' 
-        AND enrollment_year GLOB '[12][0-9][0-9][0-9]'
-      GROUP BY enrollment_year ORDER BY enrollment_year ASC
+      SELECT start_year as year, COUNT(*) as count FROM school_experiences
+      WHERE start_year IS NOT NULL 
+        AND start_year != '' 
+        AND (start_year GLOB '[1][0-9][0-9][0-9]' OR start_year GLOB '[2][0-9][0-9][0-9]')
+      GROUP BY start_year ORDER BY start_year ASC
     `).all();
 
     const byHometown = db.prepare(`
@@ -57,9 +57,11 @@ export async function GET() {
     `).all();
 
     const byGraduationYear = db.prepare(`
-      SELECT SUBSTR(graduation_year, 1, 4) as year, COUNT(*) as count FROM alumni
-      WHERE graduation_year IS NOT NULL AND graduation_year != ''
-      GROUP BY SUBSTR(graduation_year, 1, 4) ORDER BY year ASC
+      SELECT end_year as year, COUNT(*) as count FROM school_experiences
+      WHERE end_year IS NOT NULL 
+        AND end_year != '' 
+        AND (end_year GLOB '[1][0-9][0-9][0-9]' OR end_year GLOB '[2][0-9][0-9][0-9]')
+      GROUP BY end_year ORDER BY end_year ASC
     `).all();
 
     const wechatGroupsRaw = db.prepare(`

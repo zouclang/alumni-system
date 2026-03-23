@@ -26,12 +26,10 @@ function syncAllDuplicates(db) {
 
 function cleanValue(val) {
   if (val === null || val === undefined) return null;
-  if (typeof val === 'string') {
-    const s = val.trim();
-    if (s === '' || s === 'None' || s.startsWith('=')) return null;
-    return s;
-  }
-  return val;
+  let s = String(val).trim();
+  if (s === '' || s === 'None' || s.startsWith('=')) return null;
+  if (s.endsWith('.0')) s = s.slice(0, -2);
+  return s;
 }
 
 const DB_PATH = path.join(process.cwd(), 'data', 'alumni.db');
@@ -201,7 +199,7 @@ const transaction = db.transaction(() => {
       firstExp.start_year || null,
       firstExp.end_year || null,
       firstExp.college || null,
-      firstExp.college || null,
+      firstExp.college || null, // college_normalized
       firstExp.major || null,
       cleanValue(row[4]), // degree
       cleanValue(row[5]), // phone
