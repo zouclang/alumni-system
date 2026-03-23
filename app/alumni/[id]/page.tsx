@@ -246,7 +246,7 @@ export default function AlumniDetailPage() {
                   <span style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{exp.stage}</span>
                   {(exp.start_year || exp.end_year) && (
                     <span style={{ color: '#6b7280', fontWeight: 400, fontSize: '13px' }}>
-                      {exp.start_year || '?'} - {exp.end_year || '至今'}
+                      {exp.start_year || '?'}{exp.end_year ? ' - ' + exp.end_year : ''}
                     </span>
                   )}
                   <span style={{ color: '#4b5563', fontSize: '14px' }}>

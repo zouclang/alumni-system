@@ -357,7 +357,7 @@ export default function HomePage() {
                           {alumni.experiences.map((exp: any, i: number) => (
                             <div key={i} style={{ fontSize: '13px', color: '#4b5563' }}>
                               <span style={{ fontWeight: 500, color: '#111827' }}>{exp.stage}</span>
-                              {exp.start_year && ` ${exp.start_year}-${exp.end_year || '今'}`} 
+                              {(exp.start_year || exp.end_year) && ` ${exp.start_year || '?'}${exp.end_year ? '-' + exp.end_year : ''}`} 
                               {exp.college && ` · ${exp.college}`}
                               {exp.major && ` · ${exp.major}`}
                             </div>
