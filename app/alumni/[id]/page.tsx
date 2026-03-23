@@ -244,7 +244,11 @@ export default function AlumniDetailPage() {
                 <div style={{ position: 'absolute', left: '-31px', top: '4px', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#3b82f6', border: '2px solid white' }} />
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', alignItems: 'baseline' }}>
                   <span style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{exp.stage}</span>
-                  <span style={{ color: '#6b7280', fontWeight: 400, fontSize: '13px' }}>{exp.start_year || '?'} - {exp.end_year || '至今'}</span>
+                  {(exp.start_year || exp.end_year) && (
+                    <span style={{ color: '#6b7280', fontWeight: 400, fontSize: '13px' }}>
+                      {exp.start_year || '?'} - {exp.end_year || '至今'}
+                    </span>
+                  )}
                   <span style={{ color: '#4b5563', fontSize: '14px' }}>
                     {exp.college}{exp.major && ` · ${exp.major}`}
                   </span>
