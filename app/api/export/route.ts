@@ -41,13 +41,12 @@ export async function GET(request: NextRequest) {
     const rows = db.prepare(`SELECT * FROM alumni a ${where} ORDER BY a.pinyin_name ASC`).all(...params) as Record<string, unknown>[];
     const expStmt = db.prepare('SELECT * FROM school_experiences WHERE alumni_id = ? ORDER BY sort_order ASC');
 
-    // Build CSV matching the system form
+    // Build CSV matching the user requested limited columns
     const headers = [
-      '姓名', '性别', '家乡', '生日月份', '所在区域', 
-      '联系电话', '微信号', '大工人认证', '所在微信群', 
-      '在校经历',
-      '学院', '整理后学院', '专业', '最高学历', '入学时间', '毕业年份',
-      '工作单位', '职位', '事业类型', '所属行业', '个人/公司主要业务', '社会职务', '兴趣爱好'
+      '姓名', '是否重名', '家乡', '在校经历', '最高学历', 
+      '联系电话', '兴趣爱好', '所在微信群', '大工人认证', 
+      '生日月份', '性别', '所在区域', '事业类型', 
+      '工作单位', '职位', '所属行业', '社会职务'
     ];
     const csvRows = [headers.join(',')];
 
@@ -83,11 +82,10 @@ export async function GET(request: NextRequest) {
       }
 
       const values = [
-        row.name, row.gender, row.hometown, row.birth_month, row.region,
-        row.phone, row.wechat_id, row.dut_verified, row.wechat_groups,
-        formattedExp,
-        row.college, row.college_normalized, row.major, row.degree, row.enrollment_year, row.graduation_year,
-        row.company, row.position, row.career_type, row.industry, row.business_desc, row.social_roles, row.interests
+        row.name, row.has_duplicate_name, row.hometown, formattedExp, row.degree,
+        row.phone, row.interests, row.wechat_groups, row.dut_verified,
+        row.birth_month, row.gender, row.region, row.career_type,
+        row.company, row.position, row.industry, row.social_roles
       ].map(v => {
         if (v === null || v === undefined) return '';
         const s = String(v);
