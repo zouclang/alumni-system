@@ -227,41 +227,52 @@ export async function POST(req: NextRequest) {
 
         const expRaw = getVal(row, '在校经历', 4);
         const parsedExps = parseExperiences(cleanValue(expRaw) as string);
-        const getDates = (stg: string) => {
-           const match = parsedExps.find(e => {
-             const eStage = (e.stage || '').replace(/学士|硕士|博士|研|本|硕|博/, (matchStr: string) => {
-               if (['本', '学士'].includes(matchStr)) return '本科';
-               if (['硕', '研'].includes(matchStr)) return '硕士';
-               if (matchStr === '博') return '博士';
-               return matchStr;
-             });
-             return eStage === stg || (stg === '' && !e.stage);
-           });
-           return match ? { start: match.start_year, end: match.end_year } : { start: null, end: null };
-        };
+        const usedParsedIndices = new Set<number>();
 
         let experiences: any[] = [];
-        if (bCol || bMaj || mCol || mMaj || dCol || dMaj || uCol || uMaj) {
-           let sort = 0;
-           if (bCol || bMaj) {
-             const { start, end } = getDates('本科');
-             experiences.push({ stage: '本科', start_year: start, end_year: end, college: bCol, major: bMaj, sort_order: sort++ });
+        let sort = 0;
+
+        const explicitStages = [
+          { name: '本科', col: bCol, maj: bMaj },
+          { name: '硕士', col: mCol, maj: mMaj },
+          { name: '博士', col: dCol, maj: dMaj },
+          { name: '', col: uCol, maj: uMaj }
+        ];
+
+        explicitStages.forEach(ex => {
+           const parsedIdx = parsedExps.findIndex(p => {
+             const eStage = (p.stage || '').replace(/学士|硕士|博士|研|本|硕|博/, (mStr: string) => {
+               if (['本', '学士'].includes(mStr)) return '本科';
+               if (['硕', '研'].includes(mStr)) return '硕士';
+               if (mStr === '博') return '博士';
+               return mStr;
+             });
+             return eStage === ex.name || (ex.name === '' && !p.stage);
+           });
+
+           const p = parsedIdx !== -1 ? parsedExps[parsedIdx] : null;
+           if (ex.col || ex.maj || p) {
+             if (parsedIdx !== -1) usedParsedIndices.add(parsedIdx);
+             experiences.push({
+               stage: ex.name,
+               start_year: p ? p.start_year : null,
+               end_year: p ? p.end_year : null,
+               college: ex.col || (p ? p.college : null),
+               major: ex.maj || (p ? p.major : null),
+               sort_order: sort++
+             });
            }
-           if (mCol || mMaj) {
-             const { start, end } = getDates('硕士');
-             experiences.push({ stage: '硕士', start_year: start, end_year: end, college: mCol, major: mMaj, sort_order: sort++ });
+        });
+
+        // Add remaining parsed experiences
+        parsedExps.forEach((p, idx) => {
+           if (!usedParsedIndices.has(idx)) {
+             experiences.push({
+               ...p,
+               sort_order: sort++
+             });
            }
-           if (dCol || dMaj) {
-             const { start, end } = getDates('博士');
-             experiences.push({ stage: '博士', start_year: start, end_year: end, college: dCol, major: dMaj, sort_order: sort++ });
-           }
-           if (uCol || uMaj) {
-             const { start, end } = getDates('');
-             experiences.push({ stage: '', start_year: start, end_year: end, college: uCol, major: uMaj, sort_order: sort++ });
-           }
-        } else {
-           experiences = parsedExps;
-        }
+        });
 
         // Derive defaults from the first experience segment if available
         const firstExp = experiences[0] || {};

@@ -80,37 +80,47 @@ const insertExp = db.prepare(`
   VALUES (?, ?, ?, ?, ?, ?, ?)
 `);
 
-// Parse years from string like "【本科:1978-1982】"
-function extractStageYears(expStr, stageName) {
-  if (!expStr) return { start: null, end: null };
+// Parse years from string like "【本科:1978-1982】" or "【:2013-】"
+function parseRawExperiences(expStr) {
+  if (!expStr) return [];
   const segments = expStr.split('|');
-  for (const seg of segments) {
+  return segments.map((seg, i) => {
     const m = seg.match(/【(.*?)】/);
-    if (!m) continue;
-    const inner = m[1]; // e.g. "本科:1978-1982" or "本科" or "1978-1982"
-    // Does it belong to this stage?
-    // If it contains the stageName (e.g. "本"), or if we are aggressive we can check for other things.
-    let isMatch = false;
-    if (stageName === '本科' && (inner.includes('本') || inner.includes('学士'))) isMatch = true;
-    if (stageName === '硕士' && (inner.includes('硕') || inner.includes('研'))) isMatch = true;
-    if (stageName === '博士' && inner.includes('博')) isMatch = true;
-    
-    if (isMatch) {
+    let stage = '';
+    let start = null;
+    let end = null;
+    let rest = seg;
+    if (m) {
+      const inner = m[1];
+      rest = seg.replace(m[0], '').trim();
       const parts = inner.split(':');
-      const years = parts.length > 1 ? parts[1].trim() : parts[0].trim();
-      let start = null, end = null;
-      
-      const yearMatch = years.match(/(\d{4})/g);
-      if (yearMatch && yearMatch.length === 2) {
-        start = yearMatch[0];
-        end = yearMatch[1];
-      } else if (yearMatch && yearMatch.length === 1) {
-        start = yearMatch[0];
+      stage = parts[0] ? parts[0].trim() : '';
+      const years = parts[1] ? parts[1].trim() : '';
+      if (years.includes('-')) {
+        const yParts = years.split('-');
+        start = yParts[0]?.substring(0, 4) || null;
+        if (!start && yParts[0]) start = yParts[0]; // fallback
+        end = yParts[1]?.substring(0, 4) || null;
+        if (!end && yParts[1]) end = yParts[1];
+      } else {
+        const yr = years.match(/\d{4}/);
+        if (yr) start = yr[0];
       }
-      return { start, end };
     }
-  }
-  return { start: null, end: null };
+
+    const collegeParts = rest.split('-').map(s => s.trim());
+    const college = collegeParts[0] || null;
+    const major = collegeParts[1] || null;
+
+    // Normalize stage matching for the internal 'getDates' lookup
+    let normStage = stage;
+    if (stage.includes('本') || stage.includes('学士')) normStage = '本科';
+    else if (stage.includes('硕') || stage.includes('研')) normStage = '硕士';
+    else if (stage.includes('博')) normStage = '博士';
+    else if (stage === '') normStage = ''; // unknown
+
+    return { stage: normStage, start_year: start, end_year: end, college, major };
+  });
 }
 
 let importedCount = 0;
@@ -133,22 +143,43 @@ const transaction = db.transaction(() => {
 
     let experiences = [];
     let sort = 0;
+    const parsedExps = parseRawExperiences(expStr);
+    const usedParsedIndices = new Set();
 
-    if (bCol || bMaj) {
-      const { start, end } = extractStageYears(expStr, '本科');
-      experiences.push({ stage: '本科', start_year: start, end_year: end, college: bCol, major: bMaj, sort_order: sort++ });
-    }
-    if (mCol || mMaj) {
-      const { start, end } = extractStageYears(expStr, '硕士');
-      experiences.push({ stage: '硕士', start_year: start, end_year: end, college: mCol, major: mMaj, sort_order: sort++ });
-    }
-    if (dCol || dMaj) {
-      const { start, end } = extractStageYears(expStr, '博士');
-      experiences.push({ stage: '博士', start_year: start, end_year: end, college: dCol, major: dMaj, sort_order: sort++ });
-    }
-    if (uCol || uMaj) {
-      experiences.push({ stage: '', start_year: null, end_year: null, college: uCol, major: uMaj, sort_order: sort++ });
-    }
+    // Mapping for explicit columns
+    const explicitStages = [
+      { name: '本科', col: bCol, maj: bMaj },
+      { name: '硕士', col: mCol, maj: mMaj },
+      { name: '博士', col: dCol, maj: dMaj },
+      { name: '', col: uCol, maj: uMaj }
+    ];
+
+    explicitStages.forEach(ex => {
+       const parsedIdx = parsedExps.findIndex(p => p.stage === ex.name);
+       const p = parsedIdx !== -1 ? parsedExps[parsedIdx] : null;
+       
+       if (ex.col || ex.maj || p) {
+         if (parsedIdx !== -1) usedParsedIndices.add(parsedIdx);
+         experiences.push({
+           stage: ex.name,
+           start_year: p ? p.start_year : null,
+           end_year: p ? p.end_year : null,
+           college: ex.col || (p ? p.college : null),
+           major: ex.maj || (p ? p.major : null),
+           sort_order: sort++
+         });
+       }
+    });
+
+    // Add remaining parsed experiences that weren't matched to explicit columns
+    parsedExps.forEach((p, idx) => {
+       if (!usedParsedIndices.has(idx)) {
+         experiences.push({
+           ...p,
+           sort_order: idx + 10 // ensure they come after if appropriate, but sort order is relative
+         });
+       }
+    });
 
     const firstExp = experiences[0] || {};
     
