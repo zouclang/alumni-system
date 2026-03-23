@@ -72,14 +72,6 @@ export async function GET(request: NextRequest) {
         return `【${header}】${content}`.trim();
       });
       let formattedExp = expStrs.join('|');
-      
-      // Fallback: If no structured experiences, try assembling from legacy fields in the main table
-      if (!formattedExp && !row.college && !row.major) {
-          formattedExp = String(row.school_experience || '');
-      } else if (!formattedExp) {
-          // Just fall back to raw string if there's no structured exp, because we now have dedicated columns
-          formattedExp = String(row.school_experience || '');
-      }
 
       const values = [
         row.name, row.has_duplicate_name, row.hometown, formattedExp, row.degree,
