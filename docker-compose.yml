@@ -11,4 +11,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
+      # 首次部署时，若数据库为空，将自动用此账号密码创建管理员。
+      # 创建成功后，后续重启不会覆盖已有密码。
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin
     restart: unless-stopped

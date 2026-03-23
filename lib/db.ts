@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
+import bcrypt from 'bcryptjs';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'alumni.db');
 
@@ -18,8 +19,29 @@ export function getDb(): Database.Database {
     db.pragma('foreign_keys = ON');
 
     initializeSchema(db);
+    autoSeedAdmin(db);
   }
   return db;
+}
+
+function autoSeedAdmin(database: Database.Database) {
+  try {
+    const userCount = database.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
+    if (userCount.count === 0) {
+      const adminUser = process.env.ADMIN_USERNAME;
+      const adminPass = process.env.ADMIN_PASSWORD;
+      
+      if (adminUser && adminPass) {
+        const hash = bcrypt.hashSync(adminPass, 10);
+        database.prepare(
+          'INSERT INTO users (username, password_hash, role, status) VALUES (?, ?, ?, ?)'
+        ).run(adminUser, hash, 'ADMIN', 'APPROVED');
+        console.log(`[DB Initialization] Auto-created admin user: ${adminUser} from environment variables.`);
+      }
+    }
+  } catch (error) {
+    console.error('[DB Initialization] Failed to auto-seed admin:', error);
+  }
 }
 
 function initializeSchema(database: Database.Database) {
