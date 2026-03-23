@@ -225,17 +225,42 @@ export async function POST(req: NextRequest) {
         const uCol = cleanValue(getVal(row, '未知学段学院', -1));
         const uMaj = cleanValue(getVal(row, '未知学段专业', -1));
 
+        const expRaw = getVal(row, '在校经历', 4);
+        const parsedExps = parseExperiences(cleanValue(expRaw) as string);
+        const getDates = (stg: string) => {
+           const match = parsedExps.find(e => {
+             const eStage = (e.stage || '').replace(/学士|硕士|博士|研|本|硕|博/, (matchStr: string) => {
+               if (['本', '学士'].includes(matchStr)) return '本科';
+               if (['硕', '研'].includes(matchStr)) return '硕士';
+               if (matchStr === '博') return '博士';
+               return matchStr;
+             });
+             return eStage === stg || (stg === '' && !e.stage);
+           });
+           return match ? { start: match.start_year, end: match.end_year } : { start: null, end: null };
+        };
+
         let experiences: any[] = [];
         if (bCol || bMaj || mCol || mMaj || dCol || dMaj || uCol || uMaj) {
            let sort = 0;
-           if (bCol || bMaj) experiences.push({ stage: '本科', start_year: null, end_year: null, college: bCol, major: bMaj, sort_order: sort++ });
-           if (mCol || mMaj) experiences.push({ stage: '硕士', start_year: null, end_year: null, college: mCol, major: mMaj, sort_order: sort++ });
-           if (dCol || dMaj) experiences.push({ stage: '博士', start_year: null, end_year: null, college: dCol, major: dMaj, sort_order: sort++ });
-           if (uCol || uMaj) experiences.push({ stage: '', start_year: null, end_year: null, college: uCol, major: uMaj, sort_order: sort++ });
+           if (bCol || bMaj) {
+             const { start, end } = getDates('本科');
+             experiences.push({ stage: '本科', start_year: start, end_year: end, college: bCol, major: bMaj, sort_order: sort++ });
+           }
+           if (mCol || mMaj) {
+             const { start, end } = getDates('硕士');
+             experiences.push({ stage: '硕士', start_year: start, end_year: end, college: mCol, major: mMaj, sort_order: sort++ });
+           }
+           if (dCol || dMaj) {
+             const { start, end } = getDates('博士');
+             experiences.push({ stage: '博士', start_year: start, end_year: end, college: dCol, major: dMaj, sort_order: sort++ });
+           }
+           if (uCol || uMaj) {
+             const { start, end } = getDates('');
+             experiences.push({ stage: '', start_year: start, end_year: end, college: uCol, major: uMaj, sort_order: sort++ });
+           }
         } else {
-           // 2. Fallback to unified format
-           const expRaw = getVal(row, '在校经历', 4);
-           experiences = parseExperiences(cleanValue(expRaw) as string);
+           experiences = parsedExps;
         }
 
         // Derive defaults from the first experience segment if available
