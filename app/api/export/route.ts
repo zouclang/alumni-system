@@ -71,7 +71,27 @@ export async function GET(request: NextRequest) {
         
         return `【${header}】${content}`.trim();
       });
-      const formattedExp = expStrs.join('|') || row.school_experience; // Fallback to raw if empty
+      let formattedExp = expStrs.join('|');
+      
+      // Fallback: If no structured experiences, try assembling from legacy fields in the main table
+      if (!formattedExp) {
+        if (row.college || row.major || row.enrollment_year) {
+          const years = `${row.enrollment_year || ''}-${row.graduation_year || ''}`;
+          const header = years !== '-' ? `:${years}` : '';
+          const college = row.college || '';
+          const major = row.major || '';
+          const stage = row.degree || '学历';
+          
+          let content = college;
+          if (major) {
+            content = college ? `${college}-${major}` : major;
+          }
+          
+          formattedExp = `【${stage}${header}】${content}`.trim();
+        } else {
+          formattedExp = String(row.school_experience || '');
+        }
+      }
 
       const values = [
         row.name, row.gender, row.hometown, row.birth_month, row.region,
