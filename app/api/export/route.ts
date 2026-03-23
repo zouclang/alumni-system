@@ -44,8 +44,9 @@ export async function GET(request: NextRequest) {
     // Build CSV matching the system form
     const headers = [
       '姓名', '性别', '家乡', '生日月份', '所在区域', 
-      '联系电话', '微信号', '大工人认证', '最高学历', '所在微信群', 
-      '在校经历', 
+      '联系电话', '微信号', '大工人认证', '所在微信群', 
+      '在校经历',
+      '学院', '整理后学院', '专业', '最高学历', '入学时间', '毕业年份',
       '工作单位', '职位', '事业类型', '所属行业', '个人/公司主要业务', '社会职务', '兴趣爱好'
     ];
     const csvRows = [headers.join(',')];
@@ -74,29 +75,18 @@ export async function GET(request: NextRequest) {
       let formattedExp = expStrs.join('|');
       
       // Fallback: If no structured experiences, try assembling from legacy fields in the main table
-      if (!formattedExp) {
-        if (row.college || row.major || row.enrollment_year) {
-          const years = `${row.enrollment_year || ''}-${row.graduation_year || ''}`;
-          const header = years !== '-' ? `:${years}` : '';
-          const college = row.college || '';
-          const major = row.major || '';
-          const stage = row.degree || '学历';
-          
-          let content = college;
-          if (major) {
-            content = college ? `${college}-${major}` : major;
-          }
-          
-          formattedExp = `【${stage}${header}】${content}`.trim();
-        } else {
+      if (!formattedExp && !row.college && !row.major) {
           formattedExp = String(row.school_experience || '');
-        }
+      } else if (!formattedExp) {
+          // Just fall back to raw string if there's no structured exp, because we now have dedicated columns
+          formattedExp = String(row.school_experience || '');
       }
 
       const values = [
         row.name, row.gender, row.hometown, row.birth_month, row.region,
-        row.phone, row.wechat_id, row.dut_verified, row.degree, row.wechat_groups,
+        row.phone, row.wechat_id, row.dut_verified, row.wechat_groups,
         formattedExp,
+        row.college, row.college_normalized, row.major, row.degree, row.enrollment_year, row.graduation_year,
         row.company, row.position, row.career_type, row.industry, row.business_desc, row.social_roles, row.interests
       ].map(v => {
         if (v === null || v === undefined) return '';
