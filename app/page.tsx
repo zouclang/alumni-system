@@ -315,12 +315,10 @@ export default function HomePage() {
               <thead>
                 <tr>
                   <th>姓名</th>
-                  <th>最高学历</th>
                   <th>在校经历</th>
-                  <th>所在区域</th>
                   <th>公司/单位</th>
-                  <th>职务</th>
-                  <th>联系 / 群</th>
+                  <th>公司职务</th>
+                  <th>电话 / 所在群</th>
                 </tr>
               </thead>
               <tbody>
@@ -345,13 +343,6 @@ export default function HomePage() {
                       </div>
                     </td>
                     <td>
-                      {alumni.degree ? (
-                        <span className={`badge ${degreeColor(alumni.degree)}`}>
-                          {alumni.degree.replace(/\|/g, '/')}
-                        </span>
-                      ) : '—'}
-                    </td>
-                    <td>
                       {alumni.experiences && alumni.experiences.length > 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           {alumni.experiences.map((exp: any, i: number) => (
@@ -371,19 +362,14 @@ export default function HomePage() {
                       )}
                     </td>
                     <td>
-                      {alumni.region ? (
-                        <span className="badge badge-gray">{alumni.region}</span>
-                      ) : '—'}
-                    </td>
-                    <td>
                       <div className="table-name">{alumni.company || '—'}</div>
                     </td>
-                    <td>{alumni.position || '—'}</td>
+                    <td>{alumni.is_redacted ? <span style={{ color: '#94a3b8' }}>已隐藏</span> : (alumni.position || '—')}</td>
                     <td>
                       {alumni.is_redacted ? (
                         <button 
-                          className="btn btn-outline btn-sm" 
-                          style={{ fontSize: '11px', padding: '4px 8px' }}
+                          className="btn btn-primary btn-sm" 
+                          style={{ fontSize: '12px', padding: '4px 12px' }}
                           onClick={() => {
                             const isAdmin = user?.role === 'ADMIN';
                             const isCouncilMember = currentUserAlumni?.association_role && currentUserAlumni?.association_role !== '普通校友';
@@ -395,7 +381,7 @@ export default function HomePage() {
                             setRequestingAlumni(alumni);
                           }}
                         >
-                          🔒 申请对接
+                          🤝 申请对接
                         </button>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

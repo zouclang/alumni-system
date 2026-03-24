@@ -85,7 +85,7 @@ export default function CouncilPage() {
                   <th>在校经历</th>
                   <th>公司/单位</th>
                   <th>公司职务</th>
-                  <th>联系 / 群</th>
+                  <th>联系电话 / 所在群</th>
                 </tr>
               </thead>
               <tbody>
