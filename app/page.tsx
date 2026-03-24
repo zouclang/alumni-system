@@ -204,6 +204,7 @@ export default function HomePage() {
   });
 
   const isAdmin = user?.role === 'ADMIN';
+  const isPrivileged = isAdmin || (currentUserAlumni?.association_role && currentUserAlumni?.association_role !== '普通校友');
 
   return (
     <div className="fade-in">
@@ -316,6 +317,8 @@ export default function HomePage() {
                 <tr>
                   <th>姓名</th>
                   <th>在校经历</th>
+                  {isPrivileged && <th>所在区域</th>}
+                  {isPrivileged && <th>最高学历</th>}
                   <th>公司/单位</th>
                   <th>公司职务</th>
                   <th>电话 / 所在群</th>
@@ -361,6 +364,16 @@ export default function HomePage() {
                         </>
                       )}
                     </td>
+                    {isPrivileged && (
+                      <td>{alumni.region || '—'}</td>
+                    )}
+                    {isPrivileged && (
+                      <td>
+                        {alumni.degree ? (
+                          <span className={`badge ${degreeColor(alumni.degree)}`}>{alumni.degree}</span>
+                        ) : '—'}
+                      </td>
+                    )}
                     <td>
                       <div className="table-name">{alumni.company || '—'}</div>
                     </td>

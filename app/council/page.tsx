@@ -58,6 +58,7 @@ export default function CouncilPage() {
   };
 
   const isAdmin = user?.role === 'ADMIN';
+  const isPrivileged = isAdmin || (user?.association_role && user?.association_role !== '普通校友');
 
   return (
     <div className="fade-in">
@@ -83,6 +84,8 @@ export default function CouncilPage() {
                 <tr>
                   <th>姓名</th>
                   <th>在校经历</th>
+                  {isPrivileged && <th>所在区域</th>}
+                  {isPrivileged && <th>最高学历</th>}
                   <th>公司/单位</th>
                   <th>公司职务</th>
                   <th>联系电话 / 所在群</th>
@@ -125,6 +128,12 @@ export default function CouncilPage() {
                         </>
                       )}
                     </td>
+                    {isPrivileged && (
+                      <td>{alumni.region || '—'}</td>
+                    )}
+                    {isPrivileged && (
+                      <td>{alumni.degree || '—'}</td>
+                    )}
                     <td>
                       <div className="table-name">{alumni.company || '—'}</div>
                     </td>
