@@ -421,11 +421,11 @@ export default function RegisterPage() {
 
         {step === 5 && (
           <div className="register-success">
-            <div className="success-icon">✅</div>
-            <h2>提交成功</h2>
-            <p>您的注册请求已提交至管理员审核。</p>
-            <p>审核通过后，您即可使用真实姓名和密码登录系统。</p>
-            <button className="register-button" onClick={() => router.push('/login')}>返回登录页</button>
+            <div className="success-icon" style={{ fontSize: '64px', marginBottom: '24px' }}>✅</div>
+            <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>提交成功</h2>
+            <p style={{ fontSize: '16px', color: '#f3f4f6', marginBottom: '16px' }}>您的注册请求已提交至管理员审核。</p>
+            <p style={{ fontSize: '15px', color: '#9ca3af', lineHeight: 1.6 }}>审核通过后，您即可使用真实姓名和密码登录系统，并可在个人中心继续完善资料</p>
+            <button className="register-button" onClick={() => router.push('/login')} style={{ marginTop: '32px' }}>返回登录页</button>
           </div>
         )}
 
