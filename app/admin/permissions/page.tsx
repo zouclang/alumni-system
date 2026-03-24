@@ -117,10 +117,21 @@ export default function PermissionsPage() {
         body: JSON.stringify({ userId, status }),
       });
       if (res.ok) {
-        await Promise.all([
-          fetchUsers(),
-          fetchPendingCounts()
-        ]);
+        // 1. Optimistic update: remove the user from local list immediately
+        setUsers(prev => prev.filter(u => u.id !== userId));
+        
+        // 2. Optimistically update local counts for the tabs
+        setPendingCounts(prev => ({
+          ...prev,
+          registration: Math.max(0, prev.registration - 1)
+        }));
+        
+        // 3. Dispatch event for sidebar - Sidebar will fetch fresh data
+        // Small delay to ensure DB write is fully visible to subsequent API calls
+        setTimeout(() => {
+          fetchUsers(true);
+          fetchPendingCounts();
+        }, 300);
       }
     } catch (err) {
       alert('操作失败');
@@ -135,10 +146,21 @@ export default function PermissionsPage() {
         body: JSON.stringify({ status, adminRemark: remark }),
       });
       if (res.ok) {
-        await Promise.all([
-          fetchContactRequests(),
-          fetchPendingCounts()
-        ]);
+        // 1. Optimistic update
+        setContactRequests(prev => prev.filter(req => req.id !== requestId));
+        
+        // 2. Optimistic count update
+        setPendingCounts(prev => ({
+          ...prev,
+          contact: Math.max(0, prev.contact - 1)
+        }));
+        
+        // 3. Delayed background sync to avoid race conditions with DB
+        setTimeout(() => {
+          fetchContactRequests(true);
+          fetchPendingCounts();
+        }, 300);
+        
         setRejectingRequest(null);
         setRejectReason('');
       } else {
@@ -157,10 +179,21 @@ export default function PermissionsPage() {
         body: JSON.stringify({ status, adminRemark: remark }),
       });
       if (res.ok) {
-        await Promise.all([
-          fetchCorrectionRequests(),
-          fetchPendingCounts()
-        ]);
+        // 1. Optimistic update
+        setCorrectionRequests(prev => prev.filter(req => req.id !== requestId));
+        
+        // 2. Optimistic count update
+        setPendingCounts(prev => ({
+          ...prev,
+          correction: Math.max(0, prev.correction - 1)
+        }));
+        
+        // 3. Delayed background sync
+        setTimeout(() => {
+          fetchCorrectionRequests(true);
+          fetchPendingCounts();
+        }, 300);
+        
         setRejectingRequest(null);
         setRejectReason('');
       } else {
