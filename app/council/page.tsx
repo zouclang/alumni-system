@@ -128,7 +128,9 @@ export default function CouncilPage() {
                     <td>
                       <div className="table-name">{alumni.company || '—'}</div>
                     </td>
-                    <td>{alumni.position || '—'}</td>
+                    <td>
+                      {!alumni.position ? '-' : (alumni.is_redacted ? <span style={{ color: 'var(--text-muted)' }}>已隐藏</span> : alumni.position)}
+                    </td>
                     <td>
                       {alumni.is_redacted ? (
                         <button 

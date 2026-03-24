@@ -364,7 +364,9 @@ export default function HomePage() {
                     <td>
                       <div className="table-name">{alumni.company || '—'}</div>
                     </td>
-                    <td>{alumni.is_redacted ? <span style={{ color: '#94a3b8' }}>已隐藏</span> : (alumni.position || '—')}</td>
+                    <td>
+                      {!alumni.position ? '-' : (alumni.is_redacted ? <span style={{ color: '#94a3b8' }}>已隐藏</span> : alumni.position)}
+                    </td>
                     <td>
                       {alumni.is_redacted ? (
                         <button 
