@@ -142,8 +142,10 @@ function parseExperiences(expStr: string | null) {
       const years = parts[1]?.trim() || '';
       if (years.includes('-')) {
         const yParts = years.split('-');
-        start = yParts[0]?.substring(0, 4) || null;
-        end = yParts[1]?.substring(0, 4) || null;
+        const sPart = yParts[0]?.trim();
+        const ePart = yParts[1]?.trim();
+        start = sPart ? (sPart.match(/^\d{4}/)?.[0] || null) : null;
+        end = ePart ? (ePart.match(/^\d{4}/)?.[0] || null) : (years.includes('-') && years.trim().endsWith('-') ? '?' : null);
       } else {
         start = cleanYear(years);
       }
@@ -238,7 +240,8 @@ export async function POST(req: NextRequest) {
         ];
 
         explicitStages.forEach(ex => {
-           const parsedIdx = parsedExps.findIndex(p => {
+           let parsedIdx = parsedExps.findIndex((p, idx) => {
+             if (usedParsedIndices.has(idx)) return false;
              const eStage = (p.stage || '').replace(/学士|硕士|博士|研|本|硕|博/, (mStr: string) => {
                if (['本', '学士'].includes(mStr)) return '本科';
                if (['硕', '研'].includes(mStr)) return '硕士';
@@ -247,6 +250,12 @@ export async function POST(req: NextRequest) {
              });
              return eStage === ex.name || (ex.name === '' && !p.stage);
            });
+
+           // Heuristic: If '本科' column has data but no direct '本科' stage was parsed,
+           // match it to the first unused parsed experience that has no stage name.
+           if (parsedIdx === -1 && ex.name === '本科') {
+             parsedIdx = parsedExps.findIndex((p, idx) => !p.stage && !usedParsedIndices.has(idx));
+           }
 
            const p = parsedIdx !== -1 ? parsedExps[parsedIdx] : null;
            if (ex.col || ex.maj || p) {
