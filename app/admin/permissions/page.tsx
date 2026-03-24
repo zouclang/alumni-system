@@ -26,8 +26,7 @@ export default function PermissionsPage() {
 
   useEffect(() => {
     if (!hasAutoSwitched && loading === false) {
-      const pendingUsersCount = users.filter(u => u.status === 'PENDING' && u.role !== 'ADMIN').length;
-      if (pendingUsersCount === 0) {
+      if (users.length === 0) {
         if (contactRequests.length > 0) {
           setActiveTab('CONTACT');
           setHasAutoSwitched(true);
@@ -80,9 +79,10 @@ export default function PermissionsPage() {
       const res = await fetch(`/api/admin/users?status=PENDING&t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
-      // Filter out already processed IDs in this session to prevent "reappearing" on stale refetch
-      // Using String() to ensure robust comparison across potential type differences
-      const filtered = data.filter((u: any) => !processedIdsRef.current.has(`REG-${u.id}`));
+      // Filter out ADMIN users and already-processed IDs to prevent reappearance on stale refetch
+      const filtered = (data as any[]).filter((u: any) => 
+        u.role !== 'ADMIN' && !processedIdsRef.current.has(`REG-${u.id}`)
+      );
       setUsers(filtered);
     } catch (err) {
       setError('无法加载用户列表');
@@ -253,7 +253,8 @@ export default function PermissionsPage() {
     }
   };
 
-  const pendingUsers = users.filter(u => u.status === 'PENDING' && u.role !== 'ADMIN');
+  // users state now directly contains only pending non-admin registrations (filtered at fetch time)
+  const pendingUsers = users;
   
   return (
     <div className="permissions-page">
