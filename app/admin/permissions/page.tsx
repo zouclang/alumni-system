@@ -81,6 +81,7 @@ export default function PermissionsPage() {
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       // Filter out already processed IDs in this session to prevent "reappearing" on stale refetch
+      // Using String() to ensure robust comparison across potential type differences
       const filtered = data.filter((u: any) => !processedIdsRef.current.has(`REG-${u.id}`));
       setUsers(filtered);
     } catch (err) {
@@ -132,18 +133,20 @@ export default function PermissionsPage() {
           registration: Math.max(0, prev.registration - 1)
         }));
         
-        // 3. Dispatch event for sidebar - Sidebar will fetch fresh data
-        // Increased delay to ensure DB write is fully visible to subsequent API calls
+        // 3. Dispatch event for sidebar IMMEDIATELY - Sidebar has its own protective delay
+        window.dispatchEvent(new Event('pendingCountUpdate'));
+        
+        // 4. Background refetch with generous delay to ensure DB visibility
         setTimeout(() => {
           fetchUsers(true);
           fetchPendingCounts();
-        }, 800);
+        }, 1000);
         
         // Secondary fallback sync
         setTimeout(() => {
           fetchUsers(true);
           fetchPendingCounts();
-        }, 2000);
+        }, 2500);
       }
     } catch (err) {
       alert('操作失败');
@@ -168,17 +171,20 @@ export default function PermissionsPage() {
           contact: Math.max(0, prev.contact - 1)
         }));
         
-        // 3. Delayed background sync
+        // 3. Dispatch event IMMEDIATELY
+        window.dispatchEvent(new Event('pendingCountUpdate'));
+        
+        // 4. Delayed background sync
         setTimeout(() => {
           fetchContactRequests(true);
           fetchPendingCounts();
-        }, 800);
+        }, 1000);
         
         // Fallback sync
         setTimeout(() => {
           fetchContactRequests(true);
           fetchPendingCounts();
-        }, 2000);
+        }, 2500);
         
         setRejectingRequest(null);
         setRejectReason('');
@@ -208,17 +214,20 @@ export default function PermissionsPage() {
           correction: Math.max(0, prev.correction - 1)
         }));
         
-        // 3. Delayed background sync
+        // 3. Dispatch event IMMEDIATELY
+        window.dispatchEvent(new Event('pendingCountUpdate'));
+
+        // 4. Delayed background sync
         setTimeout(() => {
           fetchCorrectionRequests(true);
           fetchPendingCounts();
-        }, 800);
+        }, 1000);
 
         // Fallback sync
         setTimeout(() => {
           fetchCorrectionRequests(true);
           fetchPendingCounts();
-        }, 2000);
+        }, 2500);
         
         setRejectingRequest(null);
         setRejectReason('');
