@@ -56,7 +56,7 @@ export function isProfileEligible(alumni: any, experiences: any[] = []): { eligi
 
   const completion = calculateProfileCompletion(alumni, experiences);
   if (completion < COMPLETION_THRESHOLD) {
-    return { eligible: false, reason: `信息完整度不足 ${COMPLETION_THRESHOLD}%，无法对接，请完善个人信息！` };
+    return { eligible: false, reason: `信息完整度不足 ${COMPLETION_THRESHOLD}%，无对接权限！` };
   }
 
   // Check Basic Info
@@ -64,7 +64,6 @@ export function isProfileEligible(alumni: any, experiences: any[] = []): { eligi
     { key: 'name', label: '姓名' },
     { key: 'gender', label: '性别' },
     { key: 'hometown', label: '家乡' },
-    { key: 'birth_month', label: '生日月份' },
     { key: 'region', label: '所在区域' },
     { key: 'phone', label: '联系电话' },
     { key: 'degree', label: '最高学历' }
@@ -101,12 +100,12 @@ export function isProfileEligible(alumni: any, experiences: any[] = []): { eligi
   const company = alumni.company;
 
   if (!careerType && !company) {
-    return { eligible: false, reason: '工作信息填写不完整，无法获取对接权限' };
+    return { eligible: false, reason: '工作信息填写不完整，无法获取对接权限，请填入工作单位或事业类型选择退休或自由职业(无公司）' };
   }
 
   const topThreeTypes = ['职业经理（含高管、职员等）', '自主创业（有公司）', '其他（机关事业等）'];
   if (topThreeTypes.includes(careerType) && (!company || String(company).trim() === '')) {
-    return { eligible: false, reason: '工作信息填写不完整，无法获取对接权限' };
+    return { eligible: false, reason: '工作单位未填写，无法获取对接权限' };
   }
 
   return { eligible: true };
