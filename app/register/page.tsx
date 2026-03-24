@@ -202,6 +202,7 @@ export default function RegisterPage() {
             <button type="submit" className="register-button" disabled={loading}>
               {loading ? '查询中...' : '下一步'}
             </button>
+            <a href="/login" className="back-to-login">← 返回登录页</a>
           </form>
         )}
 
@@ -555,6 +556,18 @@ export default function RegisterPage() {
           color: #94a3b8;
           cursor: not-allowed;
           opacity: 0.7;
+        }
+        .back-to-login {
+          display: block;
+          text-align: center;
+          margin-top: 16px;
+          color: #94a3b8;
+          font-size: 14px;
+          text-decoration: none;
+          transition: color 0.2s;
+        }
+        .back-to-login:hover {
+          color: #60a5fa;
         }
         
         .match-list { display: flex; flexDirection: column; gap: 12px; margin-bottom: 20px; }
