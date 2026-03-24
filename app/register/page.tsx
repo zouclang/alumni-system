@@ -93,6 +93,38 @@ export default function RegisterPage() {
       ? { loginType: 'link', alumniId: selectedMatch.id, phone, password, wechat: alumniData.wechat_id }
       : { loginType: 'new', alumniData: { ...alumniData, name, experiences }, phone, password };
 
+    // Custom Validation for 'new' alumni
+    if (!selectedMatch) {
+      const validExp = experiences.find(exp => 
+        exp.stage && exp.start_year && exp.college && exp.major
+      );
+      if (!validExp) {
+        setError('请至少填写一段完整的在校经历（包含阶段、起始年份、学院和专业）');
+        setLoading(false);
+        // Scroll to experiences section
+        const expSection = document.querySelector('.exp-container');
+        if (expSection) expSection.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+
+      if (!alumniData.region) {
+        setError('请选择所在区域');
+        setLoading(false);
+        return;
+      }
+      if (!alumniData.career_type) {
+        setError('请选择事业类型');
+        setLoading(false);
+        return;
+      }
+    }
+
+    if (!alumniData.wechat_id) {
+      setError('请输入微信号');
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
@@ -209,7 +241,7 @@ export default function RegisterPage() {
             <h3 className="section-title">安全与核心信息</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label>电话</label>
+                <label>电话 <span className="req">*</span></label>
                 <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required />
               </div>
               <div className="form-group">
@@ -228,7 +260,7 @@ export default function RegisterPage() {
             <h3 className="section-title" style={{ marginTop: '32px' }}>基本信息</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label>性别</label>
+                <label>性别 <span className="req">*</span></label>
                 <select value={alumniData.gender} onChange={e => setAlumniData({...alumniData, gender: e.target.value})} required>
                   <option value="">请选择</option>
                   <option value="男">男</option>
@@ -246,8 +278,8 @@ export default function RegisterPage() {
                 </select>
               </div>
               <div className="form-group">
-                <label>所在区域 (苏州)</label>
-                <select value={alumniData.region} onChange={e => setAlumniData({...alumniData, region: e.target.value})}>
+                <label>所在区域 (苏州) <span className="req">*</span></label>
+                <select value={alumniData.region} onChange={e => setAlumniData({...alumniData, region: e.target.value})} required>
                   <option value="">请选择</option>
                   {['工业园区','吴中区','姑苏区','高新区','相城区','吴江区','昆山','太仓','常熟','张家港'].map(r => (
                     <option key={r} value={r}>{r}</option>
@@ -255,13 +287,14 @@ export default function RegisterPage() {
                 </select>
               </div>
               <div className="form-group">
-                <label>微信号</label>
+                <label>微信号 <span className="req">*</span></label>
                 <div style={{ position: 'relative' }}>
                   <input 
                     type="text" 
                     value={alumniData.wechat_id || ''} 
                     onChange={e => setAlumniData({...alumniData, wechat_id: e.target.value})} 
                     placeholder="微信号/手机号"
+                    required
                   />
                   <span 
                     onClick={() => setAlumniData({...alumniData, wechat_id: phone})} 
@@ -282,7 +315,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <h3 className="section-title" style={{ marginTop: '32px' }}>在校经历 (大工)</h3>
+            <h3 className="section-title" style={{ marginTop: '32px' }}>在校经历 (大工) <span className="req">*</span></h3>
             <div className="exp-container">
               {experiences.map((exp, i) => (
                 <div key={i} className="exp-item">
@@ -337,8 +370,8 @@ export default function RegisterPage() {
                 <input type="text" value={alumniData.industry} onChange={e => setAlumniData({...alumniData, industry: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>事业类型</label>
-                <select value={alumniData.career_type} onChange={e => setAlumniData({...alumniData, career_type: e.target.value})}>
+                <label>事业类型 <span className="req">*</span></label>
+                <select value={alumniData.career_type} onChange={e => setAlumniData({...alumniData, career_type: e.target.value})} required>
                   <option value="">请选择</option>
                   {['职业经理（含高管、职员等）','自主创业（有公司）','其他（机关事业等）','退休','自由职业（无公司）'].map(c => (
                     <option key={c} value={c}>{c}</option>
@@ -376,7 +409,7 @@ export default function RegisterPage() {
           <form onSubmit={handleFinalSubmit} className="register-form">
             <p className="step-desc">为了安全，请输入系统预留的手机号进行验证</p>
             <div className="form-group">
-              <label>手机号</label>
+              <label>手机号 <span className="req">*</span></label>
               <input 
                 type="tel" 
                 value={phone} 
@@ -388,7 +421,7 @@ export default function RegisterPage() {
             </div>
             <div className="form-group">
               <label style={{ display: 'flex', justifyContent: 'space-between' }}>
-                微信号
+                微信号 <span className="req">*</span>
                 <span 
                   onClick={() => setAlumniData({...alumniData, wechat_id: phone})} 
                   style={{ color: '#3b82f6', cursor: 'pointer', fontSize: '12px' }}
@@ -435,6 +468,7 @@ export default function RegisterPage() {
       </div>
 
       <style jsx>{`
+        .req { color: #f87171; margin-left: 4px; }
         .register-container {
           min-height: 100vh;
           display: flex;
