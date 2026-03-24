@@ -1,9 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
-import * as XLSX from 'xlsx';
-import { generatePinyin, syncAllDuplicates } from '@/lib/name-utils';
+const Database = require('better-sqlite3');
+const XLSX = require('xlsx');
+const path = require('path');
+const fs = require('fs');
+const { pinyin } = require('pinyin-pro');
 
-function cleanValue(val: any) {
+const DB_PATH = path.join(__dirname, '..', 'data', 'alumni.db');
+const EXCEL_PATH = '/Users/zoucl/Downloads/dut/loacal.xlsx';
+
+function cleanValue(val) {
   if (val === null || val === undefined) return null;
   let s = String(val).trim();
   if (s === '' || s === 'None' || s.startsWith('=')) return null;
@@ -11,22 +15,30 @@ function cleanValue(val: any) {
   return s;
 }
 
-function cleanYear(val: any) {
+function cleanYear(val) {
   if (val === null || val === undefined) return null;
   const s = String(val).trim();
   const m = s.match(/(\d{4})/);
   return m ? m[1] : null;
 }
 
-function standardizeHometown(val: string | null) {
+function generatePinyin(name) {
+  if (!name) return '';
+  return pinyin(name, { 
+    toneType: 'none', 
+    type: 'array', 
+    nonZh: 'consecutive' 
+  }).join('').toLowerCase();
+}
+
+function standardizeHometown(val) {
   if (!val) return val;
   const parts = val.split('-');
   let province = parts[0]?.trim();
   let rest = parts[1]?.trim() || '';
   if (!province || !rest) return val;
 
-  // 0. Standardize Province Suffix
-  const provinceSuffixes: Record<string, string> = {
+  const provinceSuffixes = {
     '北京': '北京市', '上海': '上海市', '天津': '天津市', '重庆': '重庆市',
     '内蒙古': '内蒙古自治区', '西藏': '西藏自治区', '宁夏': '宁夏回族自治区', '新疆': '新疆维吾尔自治区', '广西': '广西壮族自治区',
     '香港': '香港特别行政区', '澳门': '澳门特别行政区'
@@ -38,8 +50,7 @@ function standardizeHometown(val: string | null) {
     province = province + '省';
   }
 
-  // 1. Common county-to-prefectural mapping (Jiangsu focused as per user data)
-  const countyToPrefecture: Record<string, string> = {
+  const countyToPrefecture = {
     '昆山': '苏州', '常熟': '苏州', '张家港': '苏州', '太仓': '苏州', '吴江': '苏州', '吴中': '苏州', '相城': '苏州', '姑苏': '苏州', '虎丘': '苏州',
     '江阴': '无锡', '宜兴': '无锡', '滨湖': '无锡',
     '溧阳': '常州', '金坛': '常州', '武进': '常州',
@@ -55,7 +66,6 @@ function standardizeHometown(val: string | null) {
     '海城': '鞍山', '诸暨': '绍兴', '永康': '金华'
   };
 
-  // 2. Prefectural-level "Anchors" (Cities/Prefectures)
   const prefecturalCities = [
     '苏州', '无锡', '常州', '镇江', '泰州', '南通', '徐州', '盐城', '扬州', '连云港', '淮安', '宿迁', '南京',
     '大连', '沈阳', '鞍山', '抚顺', '本溪', '丹东', '锦州', '营口', '阜新', '辽阳', '盘锦', '铁岭', '朝阳', '葫芦岛',
@@ -85,7 +95,6 @@ function standardizeHometown(val: string | null) {
     '海口', '三亚', '三沙', '儋州'
   ];
 
-  // 3. Autonomous Prefectures and special suffixes
   const autonomousAndSpecial = [
     '延边', '黔西南', '黔东南', '黔南', '大理', '楚雄', '红河', '文山', 
     '西双版纳', '德宏', '怒江', '迪庆', '恩施', '湘西', '阿坝', '甘孜', 
@@ -93,8 +102,6 @@ function standardizeHometown(val: string | null) {
     '博尔塔拉', '巴音郭楞', '克孜勒苏', '伊犁', '兴安盟', '锡林郭勒盟', '阿拉善盟', '大兴安岭'
   ];
 
-  // Start checking
-  // Priority A: Known Prefectural Anchor within the string
   for (const anchor of prefecturalCities) {
     if (rest.includes(anchor)) {
       if (autonomousAndSpecial.includes(anchor)) {
@@ -106,7 +113,6 @@ function standardizeHometown(val: string | null) {
     }
   }
 
-  // Priority B: County-to-Prefectural mapping
   for (const county in countyToPrefecture) {
     if (rest.includes(county)) {
       rest = `${countyToPrefecture[county]}市`;
@@ -114,7 +120,6 @@ function standardizeHometown(val: string | null) {
     }
   }
 
-  // Fallback: If it's a direct city name without prefix, add '市' if not present
   if (rest && !rest.endsWith('市') && !rest.endsWith('州') && !rest.endsWith('盟') && !rest.endsWith('地区')) {
     rest = rest + '市';
   }
@@ -122,12 +127,11 @@ function standardizeHometown(val: string | null) {
   return `${province}-${rest}`;
 }
 
-function parseExperiences(expStr: string | null) {
+function parseExperiences(expStr) {
   if (!expStr) return [];
   const segments = expStr.split('|');
 
   return segments.map((seg, i) => {
-    // Stage and Years: 【学历:入学时间-毕业时间】
     const m = seg.match(/【(.*?)】/);
     let stage = '';
     let start = null;
@@ -151,7 +155,6 @@ function parseExperiences(expStr: string | null) {
       }
     }
 
-    // College and Major: 学院-专业
     const collegeParts = rest.split('-').map(s => s.trim());
     const college = collegeParts[0] || null;
     const major = collegeParts[1] || null;
@@ -160,113 +163,134 @@ function parseExperiences(expStr: string | null) {
   });
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    const formData = await req.formData();
-    const file = formData.get('file') as File;
-    if (!file) {
-      return NextResponse.json({ error: '未找到上传文件' }, { status: 400 });
-    }
+async function run() {
+  console.log(`Starting Database Reset and Re-import...`);
+  console.log(`DB Path: ${DB_PATH}`);
+  console.log(`Excel Path: ${EXCEL_PATH}`);
 
-    const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+  if (!fs.existsSync(EXCEL_PATH)) {
+    console.error(`Error: Excel file not found at ${EXCEL_PATH}`);
+    process.exit(1);
+  }
 
-    if (rows.length < 2) {
-      return NextResponse.json({ error: '文件内容为空或格式错误' }, { status: 400 });
-    }
+  const db = new Database(DB_PATH);
+  db.pragma('foreign_keys = ON');
 
-    const db = getDb();
-    const insertAlumni = db.prepare(`
-      INSERT INTO alumni (
-        seq_no, name, has_duplicate_name, hometown, school_experience,
-        enrollment_year, graduation_year, college, college_normalized, major,
-        degree, phone, interests, wechat_groups, dut_verified,
-        birth_month, gender, region, career_type, company, position,
-        industry, social_roles, pinyin_name
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    `);
+  // 1. Wipe Tables
+  console.log(`Wiping current data...`);
+  db.prepare(`DELETE FROM contact_requests`).run();
+  db.prepare(`DELETE FROM correction_requests`).run();
+  db.prepare(`DELETE FROM users WHERE role != 'ADMIN'`).run();
+  db.prepare(`DELETE FROM school_experiences`).run();
+  db.prepare(`DELETE FROM alumni`).run();
+  console.log(`Data wiped successfully.`);
 
-    const insertExp = db.prepare(`
-      INSERT INTO school_experiences (alumni_id, stage, start_year, end_year, college, major, sort_order)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
+  // 2. Read Excel
+  const workbook = XLSX.readFile(EXCEL_PATH);
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-    let importedCount = 0;
-    const transaction = db.transaction((data: any[][]) => {
-      // Find indices from header row
-      const headers = data[0] || [];
-      const colMap: Record<string, number> = {};
-      headers.forEach((h, i) => { if (typeof h === 'string') colMap[h.trim()] = i; });
+  if (rows.length < 2) {
+    console.error(`Error: Excel file is empty or missing headers.`);
+    process.exit(1);
+  }
 
-      const getVal = (row: any[], name: string, fallbackIdx: number) => {
-        if (name in colMap) return row[colMap[name]];
-        return row[fallbackIdx];
-      };
+  const headers = rows[0].map(h => (typeof h === 'string' ? h.trim() : h));
+  const colMap = {};
+  headers.forEach((h, i) => { if (h) colMap[h] = i; });
 
-      // Skip header row
-      for (let i = 1; i < data.length; i++) {
+  const getRowVal = (row, name, fallbackIdx) => {
+    if (name in colMap) return row[colMap[name]];
+    return row[fallbackIdx];
+  };
+
+  const insertAlumni = db.prepare(`
+    INSERT INTO alumni (
+      seq_no, name, has_duplicate_name, hometown, school_experience,
+      enrollment_year, graduation_year, college, college_normalized, major,
+      degree, phone, interests, wechat_groups, dut_verified,
+      birth_month, gender, region, career_type, company, position,
+      industry, social_roles, pinyin_name
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+  `);
+
+  const insertExp = db.prepare(`
+    INSERT INTO school_experiences (alumni_id, stage, start_year, end_year, college, major, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  let importedCount = 0;
+  const transaction = db.transaction((data) => {
+    for (let i = 1; i < data.length; i++) {
         const row = data[i];
-        const nameRaw = getVal(row, '姓名', 1);
+        const nameRaw = getRowVal(row, '姓名', 1);
         const name = cleanValue(nameRaw);
         if (!name) continue;
 
         const cleanedName = String(name).replace(/\d+$/, '');
         
-        const parsedExps = parseExperiences(cleanValue(getVal(row, '在校经历', 4)) as string);
-        let experiences = parsedExps.map((p, idx) => ({ ...p, sort_order: idx }));
+        // Use ONLY '在校经历' as requested
+        const expRaw = getRowVal(row, '在校经历', 4);
+        const parsedExps = parseExperiences(cleanValue(expRaw));
+        const experiences = parsedExps.map((p, idx) => ({ ...p, sort_order: idx }));
 
-        // Derive defaults from the first experience segment if available
         const firstExp = experiences[0] || {};
-        
-        const wgRaw = getVal(row, '所在微信群', 8);
+        const wgRaw = getRowVal(row, '所在微信群', 8);
 
         const record = [
-          getVal(row, '序号', 0) || i, // seq_no
+          getRowVal(row, '序号', 0) || i,
           cleanedName,
-          cleanValue(getVal(row, '是否重名', 2)),
-          standardizeHometown(cleanValue(getVal(row, '家乡', 3)) as string),
-          cleanValue(getVal(row, '在校经历', 4)), // legacy single string
+          cleanValue(getRowVal(row, '是否重名', 2)),
+          standardizeHometown(cleanValue(getRowVal(row, '家乡', 3))),
+          cleanValue(expRaw),
           firstExp.start_year || null,
           firstExp.end_year || null,
           firstExp.college || null,
           firstExp.college || null,
           firstExp.major || null,
-          cleanValue(getVal(row, '最高学历', 5)),
-          cleanValue(getVal(row, '联系电话', 6)),
-          cleanValue(getVal(row, '兴趣爱好', 7)),
+          cleanValue(getRowVal(row, '最高学历', 5)),
+          cleanValue(getRowVal(row, '联系电话', 6)),
+          cleanValue(getRowVal(row, '兴趣爱好', 7)),
           cleanValue(wgRaw) ? String(wgRaw).replace(/、/g, ',') : null,
-          cleanValue(getVal(row, '大工人认证', 9)),
-          typeof getVal(row, '生日月份', 10) === 'number' ? getVal(row, '生日月份', 10) : null,
-          cleanValue(getVal(row, '性别', 11)),
-          cleanValue(getVal(row, '所在区域', 12)),
-          cleanValue(getVal(row, '事业类型', 13)),
-          cleanValue(getVal(row, '工作单位', 14)),
-          cleanValue(getVal(row, '职位', 15)),
-          cleanValue(getVal(row, '所属行业', 16)),
-          cleanValue(getVal(row, '社会职务', 17)),
+          cleanValue(getRowVal(row, '大工人认证', 9)),
+          typeof getRowVal(row, '生日月份', 10) === 'number' ? getRowVal(row, '生日月份', 10) : null,
+          cleanValue(getRowVal(row, '性别', 11)),
+          cleanValue(getRowVal(row, '所在区域', 12)),
+          cleanValue(getRowVal(row, '事业类型', 13)),
+          cleanValue(getRowVal(row, '工作单位', 14)),
+          cleanValue(getRowVal(row, '职位', 15)),
+          cleanValue(getRowVal(row, '所属行业', 16)),
+          cleanValue(getRowVal(row, '社会职务', 17)),
           generatePinyin(cleanedName)
         ];
 
         const result = insertAlumni.run(...record);
-        const alumniId = result.lastInsertRowid as number;
+        const alumniId = result.lastInsertRowid;
         importedCount++;
 
         for (const exp of experiences) {
           insertExp.run(alumniId, exp.stage, exp.start_year, exp.end_year, exp.college, exp.major, exp.sort_order);
         }
-      }
-      // After all rows are in, sync duplicate status
-      syncAllDuplicates(db);
-    });
+    }
+    
+    // Final duplicate sync
+    console.log(`Synchronizing duplicate status...`);
+    db.prepare(`
+      UPDATE alumni SET has_duplicate_name = CASE 
+        WHEN (SELECT COUNT(*) FROM alumni WHERE name = alumni.name) > 1 THEN '是' 
+        ELSE NULL 
+      END
+    `).run();
+  });
 
-    transaction(rows);
+  transaction(rows);
 
-    return NextResponse.json({ success: true, count: importedCount });
-  } catch (error) {
-    console.error('Import error:', error);
-    return NextResponse.json({ error: String(error) }, { status: 500 });
-  }
+  console.log(`Successfully imported ${importedCount} records.`);
+  db.close();
 }
+
+run().catch(err => {
+  console.error(`Import failed:`, err);
+  process.exit(1);
+});
