@@ -10,6 +10,7 @@ export default function Sidebar() {
   const [user, setUser] = useState<{ role: string; username?: string; real_name?: string; realName?: string } | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [userUnreadCount, setUserUnreadCount] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -43,6 +44,11 @@ export default function Sidebar() {
         }
       })
       .catch(() => setUser(null));
+  }, [pathname]);
+
+  // Auto-close sidebar on route change (mobile)
+  useEffect(() => {
+    setSidebarOpen(false);
   }, [pathname]);
 
   const fetchPendingCount = () => {
@@ -88,7 +94,12 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="sidebar">
+    <>
+      <button className="hamburger-btn" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle menu">
+        {sidebarOpen ? '✕' : '☰'}
+      </button>
+      <div className={`sidebar-backdrop ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon" style={{ padding: '0', background: 'none' }}>
           <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%' }} />
@@ -245,5 +256,6 @@ export default function Sidebar() {
         }
       `}</style>
     </aside>
+    </>
   );
 }
