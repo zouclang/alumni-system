@@ -214,11 +214,11 @@ export default function HomePage() {
           <p className="page-subtitle">共 {total.toLocaleString()} 位校友</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-outline" onClick={handleExport}>
-            📥 导出 CSV
-          </button>
           {isAdmin && (
             <>
+              <button className="btn btn-outline" onClick={handleExport}>
+                📥 导出 CSV
+              </button>
               <button className="btn btn-outline" onClick={() => setShowImport(true)}>
                 📤 批量导入
               </button>
