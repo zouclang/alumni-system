@@ -13,8 +13,11 @@ export default function Sidebar() {
 
   useEffect(() => {
     const handleUpdate = () => {
-      if (user?.role === 'ADMIN') fetchPendingCount();
-      else if (user) fetchUserUnreadCount();
+      // Add a small delay to prevent fetching stale data right after an action
+      setTimeout(() => {
+        if (user?.role === 'ADMIN') fetchPendingCount();
+        else if (user) fetchUserUnreadCount();
+      }, 500);
     };
     window.addEventListener('pendingCountUpdate', handleUpdate);
     window.addEventListener('unreadCountUpdate', handleUpdate);

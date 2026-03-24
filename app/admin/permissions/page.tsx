@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import AlumniForm from '@/components/AlumniForm';
 
@@ -18,6 +18,7 @@ export default function PermissionsPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [hasAutoSwitched, setHasAutoSwitched] = useState(false);
   const [pendingCounts, setPendingCounts] = useState({ registration: 0, contact: 0, correction: 0 });
+  const processedIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     fetchAll();
@@ -79,7 +80,9 @@ export default function PermissionsPage() {
       const res = await fetch(`/api/admin/users?status=PENDING&t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
-      setUsers(data);
+      // Filter out already processed IDs in this session to prevent "reappearing" on stale refetch
+      const filtered = data.filter((u: any) => !processedIdsRef.current.has(`REG-${u.id}`));
+      setUsers(filtered);
     } catch (err) {
       setError('无法加载用户列表');
     } finally {
@@ -92,7 +95,8 @@ export default function PermissionsPage() {
       const res = await fetch(`/api/contact-requests?status=PENDING&t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
-      setContactRequests(data);
+      const filtered = data.filter((r: any) => !processedIdsRef.current.has(`CON-${r.id}`));
+      setContactRequests(filtered);
     } catch (err) {
       setError('无法加载对接申请');
     }
@@ -103,7 +107,8 @@ export default function PermissionsPage() {
       const res = await fetch(`/api/corrections?status=PENDING&t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
-      setCorrectionRequests(data);
+      const filtered = data.filter((r: any) => !processedIdsRef.current.has(`COR-${r.id}`));
+      setCorrectionRequests(filtered);
     } catch (err) {
       setError('无法加载纠正申请');
     }
@@ -118,6 +123,7 @@ export default function PermissionsPage() {
       });
       if (res.ok) {
         // 1. Optimistic update: remove the user from local list immediately
+        processedIdsRef.current.add(`REG-${userId}`);
         setUsers(prev => prev.filter(u => u.id !== userId));
         
         // 2. Optimistically update local counts for the tabs
@@ -127,11 +133,17 @@ export default function PermissionsPage() {
         }));
         
         // 3. Dispatch event for sidebar - Sidebar will fetch fresh data
-        // Small delay to ensure DB write is fully visible to subsequent API calls
+        // Increased delay to ensure DB write is fully visible to subsequent API calls
         setTimeout(() => {
           fetchUsers(true);
           fetchPendingCounts();
-        }, 300);
+        }, 800);
+        
+        // Secondary fallback sync
+        setTimeout(() => {
+          fetchUsers(true);
+          fetchPendingCounts();
+        }, 2000);
       }
     } catch (err) {
       alert('操作失败');
@@ -147,6 +159,7 @@ export default function PermissionsPage() {
       });
       if (res.ok) {
         // 1. Optimistic update
+        processedIdsRef.current.add(`CON-${requestId}`);
         setContactRequests(prev => prev.filter(req => req.id !== requestId));
         
         // 2. Optimistic count update
@@ -155,11 +168,17 @@ export default function PermissionsPage() {
           contact: Math.max(0, prev.contact - 1)
         }));
         
-        // 3. Delayed background sync to avoid race conditions with DB
+        // 3. Delayed background sync
         setTimeout(() => {
           fetchContactRequests(true);
           fetchPendingCounts();
-        }, 300);
+        }, 800);
+        
+        // Fallback sync
+        setTimeout(() => {
+          fetchContactRequests(true);
+          fetchPendingCounts();
+        }, 2000);
         
         setRejectingRequest(null);
         setRejectReason('');
@@ -180,6 +199,7 @@ export default function PermissionsPage() {
       });
       if (res.ok) {
         // 1. Optimistic update
+        processedIdsRef.current.add(`COR-${requestId}`);
         setCorrectionRequests(prev => prev.filter(req => req.id !== requestId));
         
         // 2. Optimistic count update
@@ -192,7 +212,13 @@ export default function PermissionsPage() {
         setTimeout(() => {
           fetchCorrectionRequests(true);
           fetchPendingCounts();
-        }, 300);
+        }, 800);
+
+        // Fallback sync
+        setTimeout(() => {
+          fetchCorrectionRequests(true);
+          fetchPendingCounts();
+        }, 2000);
         
         setRejectingRequest(null);
         setRejectReason('');
