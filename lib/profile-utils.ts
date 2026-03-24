@@ -56,7 +56,7 @@ export function isProfileEligible(alumni: any, experiences: any[] = []): { eligi
 
   const completion = calculateProfileCompletion(alumni, experiences);
   if (completion < COMPLETION_THRESHOLD) {
-    return { eligible: false, reason: `信息完整度不足 ${COMPLETION_THRESHOLD}%` };
+    return { eligible: false, reason: `信息完整度不足 ${COMPLETION_THRESHOLD}%，无法对接，请完善个人信息！` };
   }
 
   // Check Basic Info
