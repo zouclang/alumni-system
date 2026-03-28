@@ -20,16 +20,6 @@ RUN npm config set registry https://registry.npmmirror.com && npm ci
 FROM node:20-bookworm-slim AS builder
 WORKDIR /app
 
-# Optimize: Use Aliyun mirror for Debian
-RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources
-
-# We need build tools again
-RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
