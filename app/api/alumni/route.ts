@@ -18,7 +18,6 @@ export async function GET(request: NextRequest) {
 
     const isAdmin = session.role === 'ADMIN';
     const isCouncil = !!session.association_role;
-    const isUser = !isAdmin && !isCouncil;
 
     const db = getDb();
     const conditions: string[] = [];
@@ -91,13 +90,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Redaction logic for normal users
+    // Connection checks
     let approvedContactAlumniIds: Set<number> = new Set();
     if (alumniIds.length > 0) {
       const qs = alumniIds.map(() => '?').join(',');
-      // Bidirectional check:
-      // 1. Current user (requester) -> Target alumni
-      // 2. Target alumni (requester) -> Current user (as alumni)
       const approvedRequests = db.prepare(`
         SELECT 
           CASE 
@@ -116,9 +112,14 @@ export async function GET(request: NextRequest) {
       approvedContactAlumniIds = new Set(approvedRequests.map(r => r.connected_id));
     }
 
+    // Fetch viewer's own settings for reciprocal check (Admins and Council bypass)
+    const viewerId = session.alumniId;
+    const viewer = viewerId ? db.prepare('SELECT is_company_public, is_position_public, is_business_public, is_social_roles_public, is_education_public FROM alumni WHERE id = ?').get(viewerId) as any : null;
+    const isViewerCouncil = !!session.association_role;
+    const bypassReciprocal = isViewerCouncil || isAdmin;
+
     const data = rows.map((r: any) => {
       const isRecordApproved = approvedContactAlumniIds.has(r.id);
-      const isSelf = r.id === session.alumniId;
       
       const alumniData = {
         ...r,
@@ -127,52 +128,62 @@ export async function GET(request: NextRequest) {
 
       const isRegistered = !!r.is_registered;
 
-      // 2. Connection-based Masking (Unapproved Connections)
+      // Reciprocal/Connection-based Masking
       if (!isAdmin && session.alumniId !== r.id && !isRecordApproved) {
         if (isRegistered) {
-          if (!alumniData.is_company_public) alumniData.company = '******';
-          if (!alumniData.is_position_public) alumniData.position = '******';
-          if (!alumniData.is_business_public) alumniData.business_desc = '******';
-          if (!alumniData.is_social_roles_public) alumniData.social_roles = '******';
+          // Reciprocal checks
+          const canSeeCompany = bypassReciprocal || (alumniData.is_company_public && viewer?.is_company_public);
+          const canSeePosition = bypassReciprocal || (alumniData.is_position_public && viewer?.is_position_public);
+          const canSeeBusiness = bypassReciprocal || (alumniData.is_business_public && viewer?.is_business_public);
+          const canSeeSocial = bypassReciprocal || (alumniData.is_social_roles_public && viewer?.is_social_roles_public);
+          const canSeeEducation = bypassReciprocal || (alumniData.is_education_public && viewer?.is_education_public);
 
-          // School Experiences: Respect individual is_public toggles for non-connections
-          alumniData.experiences = (expsMap[r.id] || []).map(exp => ({
-            ...exp,
-            stage: exp.is_public ? exp.stage : '******',
-            start_year: exp.is_public ? exp.start_year : '****',
-            end_year: exp.is_public ? exp.end_year : '****',
-            college: exp.is_public ? exp.college : '******',
-            major: exp.is_public ? exp.major : '******',
-          }));
+          if (!canSeeCompany) alumniData.company = '******';
+          if (!canSeePosition) alumniData.position = '******';
+          if (!canSeeBusiness) alumniData.business_desc = '******';
+          if (!canSeeSocial) alumniData.social_roles = '******';
+          
+          if (!canSeeEducation) {
+            alumniData.degree = '******';
+            alumniData.enrollment_year = '******';
+            alumniData.graduation_year = '******';
+            alumniData.college = '******';
+            alumniData.college_normalized = '******';
+            alumniData.major = '******';
+            alumniData.experiences = (expsMap[r.id] || []).map(() => ({
+              stage: '******',
+              start_year: '****',
+              end_year: '****',
+              college: '******',
+              major: '******',
+            }));
+          } else {
+            // Reciprocal is ON, respect individual target toggles
+            alumniData.experiences = (expsMap[r.id] || []).map(exp => ({
+              ...exp,
+              stage: exp.is_public ? exp.stage : '******',
+              start_year: exp.is_public ? exp.start_year : '****',
+              end_year: exp.is_public ? exp.end_year : '****',
+              college: exp.is_public ? exp.college : '******',
+              major: exp.is_public ? exp.major : '******',
+            }));
+          }
         }
 
-        // Phone, WeChat, Birth Month, Interests are always masked for non-connections
+        // Sensitive contact/PII fields always masked for non-connections
         alumniData.phone = '******';
         alumniData.wechat_id = '******';
         alumniData.qq = '******';
         alumniData.birth_month = '******';
         alumniData.interests = '******';
         alumniData.dut_verified = '******';
-
-        // Always Mask sensitive fields for non-registered/non-approved users
         alumniData.wechat_groups = '******';
         alumniData.hometown = '******';
         alumniData.region = '******';
-        
-        if (isRegistered) {
-          alumniData.degree = '******';
-        }
-
-        // For Unregistered: Experiences are public by default
-        if (!isRegistered) {
-          alumniData.experiences = expsMap[r.id] || [];
-        }
 
         alumniData.is_redacted = true;
       } else {
         alumniData.is_redacted = false;
-        
-        // If approved or self, show all experiences (registered or not)
         alumniData.experiences = expsMap[r.id] || [];
       }
 
@@ -235,6 +246,7 @@ export async function POST(request: NextRequest) {
       is_position_public: body.is_position_public !== undefined ? (body.is_position_public ? 1 : 0) : 1,
       is_business_public: body.is_business_public !== undefined ? (body.is_business_public ? 1 : 0) : 1,
       is_social_roles_public: body.is_social_roles_public !== undefined ? (body.is_social_roles_public ? 1 : 0) : 1,
+      is_education_public: body.is_education_public !== undefined ? (body.is_education_public ? 1 : 0) : 1,
     };
 
     const insertAlumni = db.prepare(`
@@ -243,13 +255,13 @@ export async function POST(request: NextRequest) {
         enrollment_year, graduation_year, college, college_normalized, major,
         degree, phone, interests, qq, wechat_id, dut_verified, birth_month,
         gender, region, career_type, company, position, industry, social_roles, business_desc, wechat_groups, pinyin_name, association_role,
-        is_company_public, is_position_public, is_business_public, is_social_roles_public
+        is_company_public, is_position_public, is_business_public, is_social_roles_public, is_education_public
       ) VALUES (
         @name, @hometown, @school_experience,
         @enrollment_year, @graduation_year, @college, @college_normalized, @major,
         @degree, @phone, @interests, @qq, @wechat_id, @dut_verified, @birth_month,
         @gender, @region, @career_type, @company, @position, @industry, @social_roles, @business_desc, @wechat_groups, @pinyin_name, @association_role,
-        @is_company_public, @is_position_public, @is_business_public, @is_social_roles_public
+        @is_company_public, @is_position_public, @is_business_public, @is_social_roles_public, @is_education_public
       )
     `);
 
@@ -282,4 +294,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
-

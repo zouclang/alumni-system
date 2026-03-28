@@ -78,6 +78,7 @@ function initializeSchema(database: Database.Database) {
       is_position_public INTEGER DEFAULT 1,
       is_business_public INTEGER DEFAULT 1,
       is_social_roles_public INTEGER DEFAULT 1,
+      is_education_public INTEGER DEFAULT 1,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       pinyin_name TEXT,
       association_role TEXT,
@@ -93,6 +94,7 @@ function initializeSchema(database: Database.Database) {
       college TEXT,
       major TEXT,
       sort_order INTEGER DEFAULT 0,
+      is_public INTEGER DEFAULT 0,
       FOREIGN KEY (alumni_id) REFERENCES alumni(id) ON DELETE CASCADE
     );
 
@@ -219,4 +221,5 @@ function initializeSchema(database: Database.Database) {
   // Migration for processor tracking
   try { database.exec("ALTER TABLE contact_requests ADD COLUMN processed_by_user_id INTEGER;"); } catch(e) {}
   try { database.exec("ALTER TABLE correction_requests ADD COLUMN processed_by_user_id INTEGER;"); } catch(e) {}
+  try { database.exec("ALTER TABLE alumni ADD COLUMN is_education_public INTEGER DEFAULT 1;"); } catch(e) {}
 }

@@ -52,42 +52,69 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
     const isRegistered = row.registration?.isRegistered;
 
-    // 2. Comprehensive Masking for Unapproved Connections
+    // 2. Comprehensive Masking for Unapproved Connections (Applying Reciprocal Logic)
     if (!isAdmin && !isSelf && !isApproved) {
+      // Fetch viewer's own settings for reciprocal check (Admins and Council see all)
+      const viewerId = session.alumniId;
+      const viewer = viewerId ? db.prepare('SELECT is_company_public, is_position_public, is_business_public, is_social_roles_public, is_education_public FROM alumni WHERE id = ?').get(viewerId) as any : null;
+      
+      const isViewerCouncil = !!session.association_role;
+      const bypassReciprocal = isViewerCouncil || isAdmin;
+
       if (isRegistered) {
-        if (!row.is_company_public) row.company = '******';
-        if (!row.is_position_public) row.position = '******';
-        if (!row.is_business_public) row.business_desc = '******';
-        if (!row.is_social_roles_public) row.social_roles = '******';
+        // Reciprocal checks: must BOTH have it public to see it (unless bypass)
+        const canSeeCompany = bypassReciprocal || (row.is_company_public && viewer?.is_company_public);
+        const canSeePosition = bypassReciprocal || (row.is_position_public && viewer?.is_position_public);
+        const canSeeBusiness = bypassReciprocal || (row.is_business_public && viewer?.is_business_public);
+        const canSeeSocial = bypassReciprocal || (row.is_social_roles_public && viewer?.is_social_roles_public);
+        const canSeeEducation = bypassReciprocal || (row.is_education_public && viewer?.is_education_public);
+
+        if (!canSeeCompany) row.company = '******';
+        if (!canSeePosition) row.position = '******';
+        if (!canSeeBusiness) row.business_desc = '******';
+        if (!canSeeSocial) row.social_roles = '******';
+
+        // Mask education if not reciprocal
+        if (!canSeeEducation) {
+          row.degree = '******';
+          row.enrollment_year = '******';
+          row.graduation_year = '******';
+          row.college = '******';
+          row.college_normalized = '******';
+          row.major = '******';
+          row.school_experience = '******';
+          row.experiences = row.experiences.map((exp: any) => ({
+            ...exp,
+            stage: '******',
+            start_year: '****',
+            end_year: '****',
+            college: '******',
+            major: '******',
+          }));
+        } else {
+          // If reciprocal Education is ON, still respect individual is_public toggles of the target
+          row.experiences = row.experiences.map((exp: any) => ({
+            ...exp,
+            stage: exp.is_public ? exp.stage : '******',
+            start_year: exp.is_public ? exp.start_year : '****',
+            end_year: exp.is_public ? exp.end_year : '****',
+            college: exp.is_public ? exp.college : '******',
+            major: exp.is_public ? exp.major : '******',
+          }));
+        }
       }
 
-      // Mask sensitive/contact info
+      // Always mask sensitive contact info for non-connections
       row.phone = '******';
       row.wechat_id = '******';
       row.qq = '******';
       row.wechat_groups = '******';
       
-      // Mask personal/educational details
-      row.career_type = '******';
+      // Additional PII masking
       row.birth_month = '****';
-      row.major = '******';
-      
-      if (isRegistered) {
-        row.degree = '******';
-        row.enrollment_year = '******';
-        row.graduation_year = '******';
-        row.college = '******';
-        row.college_normalized = '******';
-
-        // Experiences: Respect individual is_public toggles for non-connections
-        row.experiences = row.experiences.map((exp: any) => ({
-          ...exp,
-          stage: exp.is_public ? exp.stage : '******',
-          start_year: exp.is_public ? exp.start_year : '****',
-          end_year: exp.is_public ? exp.end_year : '****',
-          college: exp.is_public ? exp.college : '******',
-          major: exp.is_public ? exp.major : '******',
-        }));
+      if (!isRegistered) {
+        row.career_type = '******';
+        row.major = '******';
       }
       
       row.is_redacted = true;
@@ -154,6 +181,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
       is_position_public: body.is_position_public !== undefined ? (body.is_position_public ? 1 : 0) : 1,
       is_business_public: body.is_business_public !== undefined ? (body.is_business_public ? 1 : 0) : 1,
       is_social_roles_public: body.is_social_roles_public !== undefined ? (body.is_social_roles_public ? 1 : 0) : 1,
+      is_education_public: body.is_education_public !== undefined ? (body.is_education_public ? 1 : 0) : 1,
       wechat_groups: body.wechat_groups || null,
       association_role: body.association_role || null,
       pinyin_name: generatePinyin(body.name),
@@ -175,7 +203,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
         gender = @gender, region = @region, career_type = @career_type,
         company = @company, position = @position, industry = @industry,
         social_roles = @social_roles, business_desc = @business_desc, wechat_groups = @wechat_groups, association_role = @association_role, pinyin_name = @pinyin_name, 
-        is_company_public = @is_company_public, is_position_public = @is_position_public, is_business_public = @is_business_public, is_social_roles_public = @is_social_roles_public,
+        is_company_public = @is_company_public, is_position_public = @is_position_public, is_business_public = @is_business_public, is_social_roles_public = @is_social_roles_public, is_education_public = @is_education_public,
         updated_at = CURRENT_TIMESTAMP
       WHERE id = @id
     `);

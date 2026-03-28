@@ -164,6 +164,7 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
     is_position_public: initial?.id ? !!initial.is_position_public : true,
     is_business_public: initial?.is_business_public !== undefined ? !!initial.is_business_public : true,
     is_social_roles_public: initial?.id ? !!initial.is_social_roles_public : true,
+    is_education_public: initial?.id ? !!initial.is_education_public : true,
   });
 
   // Track dynamic experiences
@@ -291,7 +292,13 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
           )}
         </div>
 
-        <h3 style={{ fontSize: '15px', fontWeight: 600, marginTop: '24px', marginBottom: '16px', color: '#1f2937', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>在校经历</h3>
+        <h3 style={{ fontSize: '15px', fontWeight: 600, marginTop: '24px', marginBottom: '16px', color: '#1f2937', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>在校经历</span>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px', color: '#64748b', fontWeight: 'normal' }}>
+            <input type="checkbox" checked={form.is_education_public} onChange={(e) => set('is_education_public', e.target.checked)} style={{ width: '18px', height: '18px' }} />
+            是否对外展示
+          </label>
+        </h3>
         
         {/* Dynamic Experiences */}
         <div style={{ marginBottom: '16px', backgroundColor: '#f9fafb', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
