@@ -23,7 +23,10 @@ export async function GET() {
         '' as requester_name,
         u.status as status,
         u.updated_at as updated_at,
-        '' as remark
+        '' as remark,
+        '管理员' as processor_name,
+        NULL as processor_id,
+        u.alumni_id as target_alumni_id
       FROM users u
       JOIN alumni a ON u.alumni_id = a.id
       WHERE u.status != 'PENDING' AND u.role != 'ADMIN'
@@ -37,11 +40,16 @@ export async function GET() {
         ra.name as requester_name,
         cr.status as status,
         cr.updated_at as updated_at,
-        cr.admin_remark as remark
+        cr.admin_remark as remark,
+        COALESCE(pa.name, '管理员') as processor_name,
+        cr.processed_by_user_id as processor_id,
+        cr.target_alumni_id as target_alumni_id
       FROM contact_requests cr
       JOIN alumni ta ON cr.target_alumni_id = ta.id
       JOIN users ru ON cr.requester_id = ru.id
       JOIN alumni ra ON ru.alumni_id = ra.id
+      LEFT JOIN users pu ON cr.processed_by_user_id = pu.id
+      LEFT JOIN alumni pa ON pu.alumni_id = pa.id
       WHERE cr.status != 'PENDING'
 
       UNION ALL
@@ -53,11 +61,16 @@ export async function GET() {
         ra.name as requester_name,
         cor.status as status,
         cor.updated_at as updated_at,
-        cor.admin_remark as remark
+        cor.admin_remark as remark,
+        COALESCE(pa.name, '管理员') as processor_name,
+        cor.processed_by_user_id as processor_id,
+        cor.alumni_id as target_alumni_id
       FROM correction_requests cor
       JOIN alumni ta ON cor.alumni_id = ta.id
       JOIN users ru ON cor.requester_id = ru.id
       JOIN alumni ra ON ru.alumni_id = ra.id
+      LEFT JOIN users pu ON cor.processed_by_user_id = pu.id
+      LEFT JOIN alumni pa ON pu.alumni_id = pa.id
       WHERE cor.status != 'PENDING'
 
       ORDER BY updated_at DESC

@@ -19,6 +19,22 @@ export default function PermissionsPage() {
   const [hasAutoSwitched, setHasAutoSwitched] = useState(false);
   const [pendingCounts, setPendingCounts] = useState({ registration: 0, contact: 0, correction: 0 });
   const processedIdsRef = useRef<Set<string>>(new Set());
+  
+  const formatDateTime = (dateStr: string) => {
+    if (!dateStr) return '—';
+    try {
+      const isoStr = dateStr.includes(' ') && !dateStr.includes('Z') && !dateStr.includes('+')
+        ? dateStr.replace(' ', 'T') + 'Z' 
+        : dateStr.includes('T') && !dateStr.includes('Z') && !dateStr.includes('+')
+          ? dateStr + 'Z'
+          : dateStr;
+      const d = new Date(isoStr);
+      return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+ streams:
 
   useEffect(() => {
     fetchAll();
@@ -310,7 +326,7 @@ export default function PermissionsPage() {
                     <div className="user-sub">
                       {u.college || '未填写学院'} · {u.enrollment_year ? `${u.enrollment_year}级` : '未填写年级'}
                     </div>
-                    <div className="user-time">申请时间: {new Date(u.created_at).toLocaleString()}</div>
+                    <div className="user-time">申请时间: {formatDateTime(u.created_at)}</div>
                   </div>
                   <div className="user-actions">
                     <button onClick={() => handleStatusUpdate(u.id, 'APPROVED')} className="action-btn approve">批准</button>
@@ -342,7 +358,7 @@ export default function PermissionsPage() {
                       <span className="reason-label">对接理由：</span>
                       {req.reason}
                     </div>
-                    <div className="user-time" style={{ marginTop: '8px' }}>提交时间: {new Date(req.created_at).toLocaleString()}</div>
+                    <div className="user-time" style={{ marginTop: '8px' }}>提交时间: {formatDateTime(req.created_at)}</div>
                   </div>
                   <div className="user-actions" style={{ marginLeft: '20px' }}>
                     <button onClick={() => handleContactAudit(req.id, 'APPROVED')} className="action-btn approve">通过</button>
@@ -374,7 +390,7 @@ export default function PermissionsPage() {
                       <span className="reason-label">纠正内容：</span>
                       {req.content}
                     </div>
-                    <div className="user-time" style={{ marginTop: '8px' }}>提交时间: {new Date(req.created_at).toLocaleString()}</div>
+                    <div className="user-time" style={{ marginTop: '8px' }}>提交时间: {formatDateTime(req.created_at)}</div>
                   </div>
                   <div className="user-actions" style={{ marginLeft: '20px' }}>
                     <button onClick={() => handleCorrectionAudit(req.id, 'APPROVED')} className="action-btn approve">通过</button>

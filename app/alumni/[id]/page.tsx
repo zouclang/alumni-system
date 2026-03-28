@@ -41,12 +41,20 @@ interface Alumni {
   }[];
 }
 
-function DetailItem({ label, value, nodeValue }: { label: string; value?: string | number | null; nodeValue?: React.ReactNode }) {
+function formatMaskedValue(value: any) {
+  if (typeof value === 'string' && (value.includes('***') || value.includes('****'))) {
+    return <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '13px' }}>已隐藏</span>;
+  }
+  return value || '—';
+}
+
+function DetailItem({ label, value, nodeValue, fullWidth }: { label: string; value?: string | number | null; nodeValue?: React.ReactNode; fullWidth?: boolean }) {
+  const isMasked = typeof value === 'string' && (value.includes('***') || value.includes('****'));
   return (
-    <div>
+    <div style={fullWidth ? { gridColumn: '1 / -1' } : {}}>
       <div className="detail-item-label">{label}</div>
-      <div className={`detail-item-value ${(!value && !nodeValue) ? 'empty' : ''}`}>
-        {nodeValue || value || '—'}
+      <div className={`detail-item-value ${(!value && !nodeValue) ? 'empty' : ''} ${isMasked ? 'masked' : ''}`}>
+        {nodeValue ? nodeValue : (isMasked ? <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '13px' }}>已隐藏</span> : (value || '—'))}
       </div>
     </div>
   );
@@ -146,18 +154,10 @@ export default function AlumniDetailPage() {
   const isCouncil = !!session?.association_role;
   const isSelf = session?.alumniId === parseInt(id);
   const canEdit = isAdmin || isSelf; // Council cannot edit others
-  const canCorrect = (isCouncil || (alumni.is_redacted === false)) && !isSelf;
+  const canCorrect = isCouncil && !isAdmin && !isSelf;
 
-  if (!isAdmin && !isCouncil && !isSelf) {
-    return (
-      <div className="empty-state">
-        <div className="empty-icon">🔒</div>
-        <div className="empty-text">无权访问</div>
-        <div className="empty-sub">普通成员仅限在通讯录列表查看校友基础及授权信息</div>
-        <button className="btn btn-outline" onClick={() => router.push('/')} style={{ marginTop: '20px' }}>返回通讯录</button>
-      </div>
-    );
-  }
+  // Removed strict lock to allow "Clicking name can enter details page"
+  // Masking is handled at field-level via API and DetailItem
 
   return (
     <div className="fade-in">
@@ -184,9 +184,11 @@ export default function AlumniDetailPage() {
             )}
           </div>
           <p className="page-subtitle" style={{ marginTop: '8px' }}>
-            {alumni.experiences && alumni.experiences.length > 0 
-              ? alumni.experiences.map((e: any) => `${e.stage} ${e.college}`).join(' · ')
-              : `${alumni.college_normalized || ''} ${alumni.degree || ''} ${alumni.enrollment_year ? alumni.enrollment_year+'届' : ''}`}
+            {alumni.is_redacted 
+              ? '大连理工大学校友'
+              : (alumni.experiences && alumni.experiences.length > 0 
+                  ? alumni.experiences.map((e: any) => `${e.stage} ${e.college}`).join(' · ')
+                  : `${alumni.college_normalized || alumni.college || ''} ${alumni.degree || ''} ${alumni.enrollment_year ? alumni.enrollment_year+'届' : ''}`).replace(/\*+/g, '已隐藏')}
           </p>
         </div>
         <div className="header-actions">
@@ -211,24 +213,37 @@ export default function AlumniDetailPage() {
         <div className="detail-section-title">基本信息</div>
         <div className="detail-grid">
           <DetailItem label="姓名" value={alumni.name} />
-          <DetailItem label="性别" value={alumni.gender} />
-          <DetailItem label="家乡" value={alumni.hometown} />
-          <DetailItem label="生日月份" value={alumni.birth_month} />
-          <DetailItem label="所在区域" value={alumni.region} />
-          <DetailItem label="兴趣爱好" value={alumni.interests} />
+          
+          {(isAdmin || isCouncil || isSelf) && (
+            <>
+              <DetailItem label="性别" value={alumni.gender} />
+              <DetailItem label="家乡" value={alumni.hometown} />
+              <DetailItem label="生日月份" value={alumni.birth_month} />
+              <DetailItem label="所在区域" value={alumni.region} />
+              <DetailItem label="兴趣爱好" value={alumni.interests} />
+            </>
+          )}
+
           <DetailItem label="微信号" value={alumni.wechat_id} />
           <DetailItem label="联系电话" value={alumni.phone} />
-          <DetailItem label="最高学历" value={alumni.degree} />
+          
+          {(isAdmin || isCouncil || isSelf) && (
+            <DetailItem label="最高学历" value={alumni.degree} />
+          )}
+
           <DetailItem 
             label="所在微信群" 
             nodeValue={
-              alumni.wechat_groups ? (
+              !alumni.wechat_groups ? null :
+              (alumni.wechat_groups.includes('***') || alumni.wechat_groups.includes('****')) ? (
+                <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '13px' }}>已隐藏</span>
+              ) : (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                   {alumni.wechat_groups.split(',').filter(Boolean).map((g: string) => (
                     <span key={g} style={{ background: '#e0e7ff', color: '#3730a3', padding: '2px 8px', borderRadius: '12px', fontSize: '13px', whiteSpace: 'nowrap' }}>{g}</span>
                   ))}
                 </div>
-              ) : null
+              )
             }
           />
         </div>
@@ -236,36 +251,54 @@ export default function AlumniDetailPage() {
 
       {/* Education */}
       <div className="card card-body detail-section">
-        <div className="detail-section-title">教育背景</div>
-        {alumni.experiences && alumni.experiences.length > 0 ? (
-          <div className="timeline" style={{ marginTop: '16px', marginLeft: '12px', borderLeft: '2px solid #e5e7eb', paddingLeft: '24px', position: 'relative' }}>
-            {alumni.experiences.map((exp: any, i: number) => (
-              <div key={i} style={{ position: 'relative', marginBottom: '24px' }}>
-                <div style={{ position: 'absolute', left: '-31px', top: '4px', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#3b82f6', border: '2px solid white' }} />
+        <div className="detail-section-title">教育经历</div>
+        <div className="timeline" style={{ marginTop: '16px', marginLeft: '12px', borderLeft: '2px solid #e5e7eb', paddingLeft: '24px', position: 'relative' }}>
+          {(alumni.experiences && alumni.experiences.length > 0) ? (
+            alumni.experiences.map((exp: any, i: number) => {
+              const isHidden = typeof exp.stage === 'string' && exp.stage.includes('***');
+              return (
+                <div key={i} style={{ position: 'relative', marginBottom: '24px' }}>
+                  <div style={{ position: 'absolute', left: '-31px', top: '4px', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#3b82f6', border: '2px solid white' }} />
+                  {isHidden ? (
+                    <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '13px' }}>已隐藏</span>
+                  ) : (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', alignItems: 'baseline' }}>
+                      <span style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{exp.stage}</span>
+                      {(exp.start_year || exp.end_year) && (
+                        <span style={{ color: '#6b7280', fontWeight: 400, fontSize: '13px' }}>
+                          {exp.start_year || '?'} - {exp.end_year || '?'}
+                        </span>
+                      )}
+                      <span style={{ color: '#4b5563', fontSize: '14px' }}>
+                        {exp.college}{exp.major && <> · {exp.major}</>}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div style={{ position: 'relative', marginBottom: '24px' }}>
+              <div style={{ position: 'absolute', left: '-31px', top: '4px', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#3b82f6', border: '2px solid white' }} />
+              {(typeof alumni.degree === 'string' && alumni.degree.includes('***')) ? (
+                <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '13px' }}>已隐藏</span>
+              ) : (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', alignItems: 'baseline' }}>
-                  <span style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{exp.stage}</span>
-                  {(exp.start_year || exp.end_year) && (
+                  <span style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{alumni.degree || '—'}</span>
+                  {(alumni.enrollment_year || alumni.graduation_year) && (
                     <span style={{ color: '#6b7280', fontWeight: 400, fontSize: '13px' }}>
-                      {exp.start_year || '?'} - {exp.end_year || '?'}
+                      {alumni.enrollment_year || '?'} - {alumni.graduation_year || '?'}
                     </span>
                   )}
                   <span style={{ color: '#4b5563', fontSize: '14px' }}>
-                    {exp.college}{exp.major && ` · ${exp.major}`}
+                    {alumni.college_normalized || alumni.college || '—'}
+                    {(alumni.major) && <> · {alumni.major}</>}
                   </span>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="detail-grid" style={{ marginTop: '16px' }}>
-            <DetailItem label="学院" value={alumni.college} />
-            <DetailItem label="整理后学院" value={alumni.college_normalized} />
-            <DetailItem label="专业" value={alumni.major} />
-            <DetailItem label="最高学历" value={alumni.degree} />
-            <DetailItem label="入学时间" value={alumni.enrollment_year} />
-            <DetailItem label="毕业年份" value={alumni.graduation_year} />
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Career */}
@@ -276,10 +309,15 @@ export default function AlumniDetailPage() {
           <DetailItem label="职位" value={alumni.position} />
           <DetailItem label="事业类型" value={alumni.career_type} />
           <DetailItem label="所属行业" value={alumni.industry} />
-          <div className="detail-item span-2">
-            <div className="detail-label">主营背景/业务介绍</div>
-            <div className="detail-value" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{alumni.business_desc || '-'}</div>
-          </div>
+          <DetailItem 
+            label="个人或公司主要业务介绍" 
+            fullWidth
+            nodeValue={
+              <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                {(alumni.is_redacted && !alumni.is_business_public) ? <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '13px' }}>已隐藏</span> : (alumni.business_desc || '—')}
+              </div>
+            }
+          />
           <DetailItem label="社会职务" value={alumni.social_roles} />
         </div>
       </div>

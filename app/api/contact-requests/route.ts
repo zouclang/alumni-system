@@ -32,23 +32,29 @@ export async function GET(request: NextRequest) {
         params.push(status);
       }
       query += ' ORDER BY cr.created_at DESC';
+      
+      const requests = db.prepare(query).all(...params);
+      return NextResponse.json(requests);
     } else {
-      query = `
+      const outgoing = db.prepare(`
         SELECT cr.*, a.name as target_name, a.phone as target_phone, a.wechat_groups as target_wechat_group
         FROM contact_requests cr
         JOIN alumni a ON cr.target_alumni_id = a.id
         WHERE cr.requester_id = ?
-      `;
-      params.push(session.userId);
-      if (status) {
-        query += ' AND cr.status = ?';
-        params.push(status);
-      }
-      query += ' ORDER BY cr.created_at DESC';
-    }
+        ORDER BY cr.created_at DESC
+      `).all(session.userId);
 
-    const requests = db.prepare(query).all(...params);
-    return NextResponse.json(requests);
+      const incoming = session.alumniId ? db.prepare(`
+        SELECT cr.*, a.name as requester_name, a.id as requester_alumni_id
+        FROM contact_requests cr
+        JOIN users u ON cr.requester_id = u.id
+        JOIN alumni a ON u.alumni_id = a.id
+        WHERE cr.target_alumni_id = ?
+        ORDER BY cr.created_at DESC
+      `).all(session.alumniId) : [];
+
+      return NextResponse.json({ outgoing, incoming });
+    }
   } catch (error) {
     console.error('GET /api/contact-requests error:', error);
     return NextResponse.json({ error: String(error) }, { status: 500 });

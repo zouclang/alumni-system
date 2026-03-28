@@ -22,9 +22,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const db = getDb();
     const result = db.prepare(`
       UPDATE correction_requests 
-      SET status = ?, admin_remark = ?, updated_at = CURRENT_TIMESTAMP
+      SET status = ?, admin_remark = ?, processed_by_user_id = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(status, adminRemark || null, id);
+    `).run(status, adminRemark || null, session.userId, id);
 
     if (result.changes === 0) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });

@@ -6,7 +6,7 @@ import Link from 'next/link';
 function genderBadge(gender: string) {
   if (gender === '男') return '👨';
   if (gender === '女') return '👩';
-  return '❓';
+  return '';
 }
 
 export default function CouncilPage() {
@@ -92,56 +92,75 @@ export default function CouncilPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.map((alumni: any) => (
-                  <tr key={alumni.id}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {isAdmin || user?.association_role ? (
-                          <Link href={`/alumni/${alumni.id}`} className="name-link" style={{ whiteSpace: 'nowrap' }}>
-                            {genderBadge(alumni.gender)} {alumni.name}
+                {data.map((alumni: any) => {
+                  const renderMasked = (value: string | null) => {
+                    if (!value || value === '—') return '—';
+                    if (typeof value === 'string' && value.includes('***')) {
+                      return <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' }}>已隐藏</span>;
+                    }
+                    return value;
+                  };
+
+                  return (
+                    <tr key={alumni.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Link href={`/alumni/${alumni.id}`} className="hover:underline">
+                            <span style={{ fontWeight: 600, color: 'var(--blue-dark)', fontSize: '15px' }}>
+                              {genderBadge(alumni.gender)} {alumni.name}
+                            </span>
                           </Link>
-                        ) : (
-                          <span style={{ whiteSpace: 'nowrap', color: 'var(--text-primary)', fontWeight: 600 }}>
-                            {genderBadge(alumni.gender)} {alumni.name}
-                          </span>
-                        )}
-                        <span className="badge badge-purple" style={{ fontSize: '10px', padding: '1px 6px' }}>
-                          {alumni.association_role}
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      {alumni.experiences && alumni.experiences.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          {alumni.experiences.map((exp: any, i: number) => (
-                            <div key={i} style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                              <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{exp.stage}</span>
-                              {exp.start_year && ` ${exp.start_year}-${exp.end_year || '今'}`} 
-                              {exp.college && ` · ${exp.college}`}
-                            </div>
-                          ))}
+                          {alumni.association_role && alumni.association_role !== '—' && (
+                            <span className="badge badge-purple" style={{ fontSize: '10px', padding: '1px 6px' }}>
+                              {alumni.association_role}
+                            </span>
+                          )}
                         </div>
-                      ) : (
-                        <>
+                      </td>
+                      <td>
+                        {alumni.is_redacted ? (
+                           <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' }}>已隐藏</span>
+                        ) : alumni.experiences && alumni.experiences.length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {alumni.experiences.map((exp: any, i: number) => {
+                              const isHidden = typeof exp.stage === 'string' && exp.stage.includes('***');
+                              return (
+                                <div key={i} style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                  {isHidden ? (
+                                    <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' }}>已隐藏</span>
+                                  ) : (
+                                    <>
+                                      <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{exp.stage}</span>
+                                      {(exp.start_year || exp.end_year) && ` ${exp.start_year || '?'}-${exp.end_year || '?'}`} 
+                                      {exp.college && ` · ${exp.college}`}
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
                           <div className="table-name">{alumni.college_normalized || '—'}</div>
-                          <div className="table-sub">{alumni.major || ''}</div>
-                        </>
+                        )}
+                      </td>
+                      {isPrivileged && (
+                        <td>{renderMasked(alumni.region)}</td>
                       )}
-                    </td>
-                    {isPrivileged && (
-                      <td>{alumni.region || '—'}</td>
-                    )}
-                    {isPrivileged && (
-                      <td>{alumni.degree || '—'}</td>
-                    )}
+                      {isPrivileged && (
+                        <td>
+                          {alumni.degree ? (
+                             alumni.degree.includes('***') ? renderMasked(alumni.degree) : <span className={`badge badge-gray`} style={{fontSize: '11px'}}>{alumni.degree}</span>
+                          ) : '—'}
+                        </td>
+                      )}
+                      <td>
+                        <div className="table-name">{renderMasked(alumni.company)}</div>
+                      </td>
+                      <td>
+                        {renderMasked(alumni.position)}
+                      </td>
                     <td>
-                      <div className="table-name">{alumni.company || '—'}</div>
-                    </td>
-                    <td>
-                      {!alumni.position ? '—' : (alumni.is_redacted ? <span style={{ color: 'var(--text-muted)' }}>已隐藏</span> : alumni.position)}
-                    </td>
-                    <td>
-                      {alumni.is_redacted ? (
+                      {(alumni.phone && alumni.phone.includes('***') && alumni.id !== user?.alumniId) ? (
                         <button 
                           className="btn btn-primary btn-sm" 
                           style={{ fontSize: '12px', padding: '4px 12px' }}
@@ -151,19 +170,20 @@ export default function CouncilPage() {
                         </button>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <div style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--text-muted)', fontSize: '12px'}}>📞</span> {alumni.phone || '—'}</div>
+                          <div style={{ whiteSpace: 'nowrap' }}><span style={{color: 'var(--text-muted)', fontSize: '12px'}}>📞</span> {renderMasked(alumni.phone)}</div>
                           {alumni.wechat_groups && (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
                               {alumni.wechat_groups.split(',').filter(Boolean).slice(0, 2).map((g: string) => (
-                                <span key={g} className="badge badge-blue" style={{ padding: '2px 6px', fontSize: '11px', whiteSpace: 'nowrap' }}>{g}</span>
+                                <span key={g} className="badge badge-blue" style={{ padding: '2px 6px', fontSize: '11px', whiteSpace: 'nowrap' }}>{renderMasked(g)}</span>
                               ))}
                             </div>
                           )}
                         </div>
                       )}
                     </td>
-                  </tr>
-                ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -183,7 +203,7 @@ export default function CouncilPage() {
               </button>
             </div>
             <div style={{ padding: '20px' }}>
-              <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+              <p style={{ fontSize: '14px', color: '#cbd5e1', marginBottom: '16px' }}>
                 您正在申请与 <strong>{requestingAlumni.name}</strong> 对接。请提供您的对接理由，管理员审核通过后将向您展示联系方式。
               </p>
               <textarea
@@ -224,16 +244,19 @@ export default function CouncilPage() {
           animation: fadeIn 0.3s ease-out;
         }
         .modal-content {
-          background: #ffffff;
-          border-radius: 20px;
+          background: rgba(30, 41, 59, 0.9);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 24px;
           width: 90%;
           box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
           overflow: hidden;
           animation: slideUp 0.3s ease-out;
+          color: #f1f5f9;
         }
         .modal-header {
           padding: 16px 20px;
-          border-bottom: 1px solid #f1f5f9;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -241,13 +264,13 @@ export default function CouncilPage() {
         .modal-title {
           font-size: 18px;
           font-weight: 600;
-          color: #000;
+          color: #ffffff;
         }
         .close-btn {
           border: none;
           background: none;
           cursor: pointer;
-          color: #64748b;
+          color: #94a3b8;
           padding: 4px;
           border-radius: 8px;
           transition: all 0.2s;
@@ -256,21 +279,39 @@ export default function CouncilPage() {
           justify-content: center;
         }
         .close-btn:hover {
-          background: #f1f5f9;
-          color: #0f172a;
+          background: rgba(255, 255, 255, 0.1);
+          color: #ffffff;
         }
         .form-textarea {
           width: 100%;
           padding: 12px;
-          border: 1px solid #e2e8f0;
+          background: rgba(15, 23, 42, 0.6);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 12px;
           font-size: 14px;
-          transition: all 0.2s;
+          color: #ffffff;
+          outline: none;
+          transition: border-color 0.2s;
         }
         .form-textarea:focus {
           outline: none;
           border-color: #3b82f6;
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+          background: rgba(15, 23, 42, 0.8);
+        }
+        .btn-outline {
+          background: #ffffff !important;
+          color: #1e293b !important;
+          border: none !important;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .btn-outline:hover {
+          background: #f1f5f9 !important;
+          transform: translateY(-1px);
+        }
+        .btn-primary:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

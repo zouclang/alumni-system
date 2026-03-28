@@ -12,8 +12,11 @@ export async function GET(_request: NextRequest) {
     const db = getDb();
     const userId = session.userId;
 
-    // Count APPROVED or REJECTED requests that haven't been notified to the user
-    // Note: status != 'PENDING' covers both APPROVED and REJECTED
+    // Get alumni_id for the current user to check incoming requests
+    const userRow = db.prepare('SELECT alumni_id FROM users WHERE id = ?').get(userId) as { alumni_id: number };
+    const alumniId = userRow?.alumni_id;
+
+    // 1. Processed outgoing requests (requester was notified = 0)
     const contactCount = (db.prepare(`
       SELECT COUNT(*) as count 
       FROM contact_requests 
@@ -26,7 +29,22 @@ export async function GET(_request: NextRequest) {
       WHERE requester_id = ? AND status != 'PENDING' AND user_notified = 0
     `).get(userId) as { count: number }).count;
 
-    return NextResponse.json({ count: contactCount + correctionCount });
+    // 2. Pending incoming requests (requester is someone else, target is ME)
+    let pendingIncomingCount = 0;
+    if (alumniId) {
+      pendingIncomingCount = (db.prepare(`
+        SELECT COUNT(*) as count 
+        FROM contact_requests 
+        WHERE target_alumni_id = ? AND status = 'PENDING'
+      `).get(alumniId) as { count: number }).count;
+    }
+
+    const processedTotal = contactCount + correctionCount;
+    return NextResponse.json({ 
+      count: processedTotal + pendingIncomingCount,
+      processed: processedTotal,
+      pendingIncoming: pendingIncomingCount
+    });
   } catch (error) {
     console.error('GET /api/notifications/unread-count error:', error);
     return NextResponse.json({ error: String(error) }, { status: 500 });

@@ -50,7 +50,6 @@ function initializeSchema(database: Database.Database) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       seq_no INTEGER,
       name TEXT NOT NULL,
-      has_duplicate_name TEXT,
       hometown TEXT,
       school_experience TEXT,
       enrollment_year TEXT,
@@ -75,6 +74,10 @@ function initializeSchema(database: Database.Database) {
       wechat_groups TEXT,
       social_roles TEXT,
       business_desc TEXT,
+      is_company_public INTEGER DEFAULT 1,
+      is_position_public INTEGER DEFAULT 1,
+      is_business_public INTEGER DEFAULT 1,
+      is_social_roles_public INTEGER DEFAULT 1,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       pinyin_name TEXT,
       association_role TEXT,
@@ -129,8 +132,10 @@ function initializeSchema(database: Database.Database) {
       admin_remark TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      processed_by_user_id INTEGER,
       FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (target_alumni_id) REFERENCES alumni(id) ON DELETE CASCADE
+      FOREIGN KEY (target_alumni_id) REFERENCES alumni(id) ON DELETE CASCADE,
+      FOREIGN KEY (processed_by_user_id) REFERENCES users(id) ON DELETE SET NULL
     );
 
     CREATE TABLE IF NOT EXISTS correction_requests (
@@ -142,8 +147,10 @@ function initializeSchema(database: Database.Database) {
       admin_remark TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      processed_by_user_id INTEGER,
       FOREIGN KEY (alumni_id) REFERENCES alumni(id) ON DELETE CASCADE,
-      FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE
+      FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (processed_by_user_id) REFERENCES users(id) ON DELETE SET NULL
     );
   `);
 
@@ -202,4 +209,14 @@ function initializeSchema(database: Database.Database) {
   try {
     database.exec("ALTER TABLE correction_requests ADD COLUMN user_notified INTEGER DEFAULT 0;");
   } catch(e) {}
+
+  try { database.exec("ALTER TABLE alumni ADD COLUMN is_company_public INTEGER DEFAULT 1;"); } catch(e) {}
+  try { database.exec("ALTER TABLE alumni ADD COLUMN is_position_public INTEGER DEFAULT 1;"); } catch(e) {}
+  try { database.exec("ALTER TABLE alumni ADD COLUMN is_business_public INTEGER DEFAULT 1;"); } catch(e) {}
+  try { database.exec("ALTER TABLE school_experiences ADD COLUMN is_public INTEGER DEFAULT 0;"); } catch(e) {}
+  try { database.exec("ALTER TABLE alumni ADD COLUMN is_social_roles_public INTEGER DEFAULT 1;"); } catch(e) {}
+  
+  // Migration for processor tracking
+  try { database.exec("ALTER TABLE contact_requests ADD COLUMN processed_by_user_id INTEGER;"); } catch(e) {}
+  try { database.exec("ALTER TABLE correction_requests ADD COLUMN processed_by_user_id INTEGER;"); } catch(e) {}
 }

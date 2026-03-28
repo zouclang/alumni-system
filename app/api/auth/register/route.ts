@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import bcrypt from 'bcryptjs';
-import { generatePinyin, syncDuplicateStatus } from '@/lib/name-utils';
+import { generatePinyin } from '@/lib/name-utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,6 +66,10 @@ export async function POST(request: NextRequest) {
         career_type: alumniData.career_type || null,
         social_roles: alumniData.social_roles || null,
         business_desc: alumniData.business_desc || null,
+        is_company_public: alumniData.is_company_public !== undefined ? (alumniData.is_company_public ? 1 : 0) : 1,
+        is_position_public: alumniData.is_position_public !== undefined ? (alumniData.is_position_public ? 1 : 0) : 1,
+        is_business_public: alumniData.is_business_public !== undefined ? (alumniData.is_business_public ? 1 : 0) : 1,
+        is_social_roles_public: alumniData.is_social_roles_public !== undefined ? (alumniData.is_social_roles_public ? 1 : 0) : 1,
         interests: alumniData.interests || null,
         status: 'PENDING',
         pinyin_name: generatePinyin(alumniData.name),
@@ -77,12 +81,14 @@ export async function POST(request: NextRequest) {
             name, gender, hometown, birth_month, region,
             enrollment_year, graduation_year, college, college_normalized, major,
             degree, phone, wechat_id, qq, company, position, industry,
-            career_type, social_roles, business_desc, interests, status, pinyin_name
+            career_type, social_roles, business_desc, interests, status, pinyin_name,
+            is_company_public, is_position_public, is_business_public, is_social_roles_public
           ) VALUES (
             @name, @gender, @hometown, @birth_month, @region,
             @enrollment_year, @graduation_year, @college, @college_normalized, @major,
             @degree, @phone, @wechat_id, @qq, @company, @position, @industry,
-            @career_type, @social_roles, @business_desc, @interests, @status, @pinyin_name
+            @career_type, @social_roles, @business_desc, @interests, @status, @pinyin_name,
+            @is_company_public, @is_position_public, @is_business_public, @is_social_roles_public
           )
         `).run(p);
 
@@ -91,11 +97,20 @@ export async function POST(request: NextRequest) {
         // Insert school experiences
         if (Array.isArray(alumniData.experiences)) {
           const insertExp = db.prepare(`
-            INSERT INTO school_experiences (alumni_id, stage, start_year, end_year, college, major, sort_order)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO school_experiences (alumni_id, stage, start_year, end_year, college, major, sort_order, is_public)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
           `);
           alumniData.experiences.forEach((exp: any, i: number) => {
-            insertExp.run(newAlumniId, exp.stage || null, exp.start_year || null, exp.end_year || null, exp.college || null, exp.major || null, i);
+            insertExp.run(
+              newAlumniId, 
+              exp.stage || null, 
+              exp.start_year || null, 
+              exp.end_year || null, 
+              exp.college || null, 
+              exp.major || null, 
+              i,
+              exp.is_public ? 1 : 0
+            );
           });
         }
 
@@ -104,7 +119,7 @@ export async function POST(request: NextRequest) {
           VALUES (?, ?, 'USER', 'PENDING')
         `).run(newAlumniId, passwordHash);
 
-        if (p.name) syncDuplicateStatus(db, p.name);
+      // No synchronization of duplicate status needed
       })();
     }
 

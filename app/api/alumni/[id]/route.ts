@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { generatePinyin, syncDuplicateStatus } from '@/lib/name-utils';
+import { generatePinyin } from '@/lib/name-utils';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -13,11 +13,24 @@ export async function GET(_req: NextRequest, { params }: Params) {
     const { id } = await params;
     const db = getDb();
     
-    // Check permission: Admin and Council can see all. User can only see self.
-    const isCouncilOrAdmin = session.role === 'ADMIN' || (session.role === 'USER' && !!session.association_role);
-    if (!isCouncilOrAdmin && session.alumniId !== parseInt(id)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    // Updated permission: Admin and Council see all. 
+    // Regular users can now enter detail pages for anyone, but data is masked.
+    const isAdmin = session.role === 'ADMIN';
+    const isCouncil = !!session.association_role;
+    const isSelf = session.alumniId === parseInt(id);
+    
+    // Check if this record is approved for the current user
+    const approvedConnection = db.prepare(`
+      SELECT cr.id FROM contact_requests cr
+      JOIN users u ON cr.requester_id = u.id
+      WHERE cr.status = 'APPROVED'
+      AND (
+        (u.alumni_id = ? AND cr.target_alumni_id = ?)
+        OR
+        (cr.target_alumni_id = ? AND u.alumni_id = ?)
+      )
+    `).get(session.alumniId, id, session.alumniId, id);
+    const isApproved = !!approvedConnection;
 
     const row = db.prepare('SELECT * FROM alumni WHERE id = ?').get(id) as any;
     if (!row) return NextResponse.json({ error: 'Not Found' }, { status: 404 });
@@ -35,6 +48,56 @@ export async function GET(_req: NextRequest, { params }: Params) {
       };
     } else {
       row.registration = { isRegistered: false };
+    }
+
+    const isRegistered = row.registration?.isRegistered;
+
+    // 2. Comprehensive Masking for Unapproved Connections
+    if (!isAdmin && !isSelf && !isApproved) {
+      if (isRegistered) {
+        if (!row.is_company_public) row.company = '******';
+        if (!row.is_position_public) row.position = '******';
+        if (!row.is_business_public) row.business_desc = '******';
+        if (!row.is_social_roles_public) row.social_roles = '******';
+      }
+
+      // Mask sensitive/contact info
+      row.phone = '******';
+      row.wechat_id = '******';
+      row.qq = '******';
+      row.wechat_groups = '******';
+      
+      // Mask personal/educational details
+      row.career_type = '******';
+      row.birth_month = '****';
+      row.major = '******';
+      
+      if (isRegistered) {
+        row.degree = '******';
+        row.enrollment_year = '******';
+        row.graduation_year = '******';
+        row.college = '******';
+        row.college_normalized = '******';
+
+        // Experiences: Respect individual is_public toggles for non-connections
+        row.experiences = row.experiences.map((exp: any) => ({
+          ...exp,
+          stage: exp.is_public ? exp.stage : '******',
+          start_year: exp.is_public ? exp.start_year : '****',
+          end_year: exp.is_public ? exp.end_year : '****',
+          college: exp.is_public ? exp.college : '******',
+          major: exp.is_public ? exp.major : '******',
+        }));
+      }
+      
+      row.is_redacted = true;
+    } else {
+      row.is_redacted = false;
+    }
+
+    // Interests: Only admins and self see this.
+    if (!isAdmin && !isSelf) {
+      row.interests = '******';
     }
 
     return NextResponse.json(row);
@@ -64,7 +127,6 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const p = {
       id,
       name: body.name || null,
-      has_duplicate_name: body.has_duplicate_name || null,
       hometown: body.hometown || null,
       school_experience: body.school_experience || null,
       // Mirror from first experience if scalar fields are missing
@@ -88,12 +150,16 @@ export async function PUT(request: NextRequest, { params }: Params) {
       industry: body.industry || null,
       social_roles: body.social_roles || null,
       business_desc: body.business_desc || null,
+      is_company_public: body.is_company_public !== undefined ? (body.is_company_public ? 1 : 0) : 1,
+      is_position_public: body.is_position_public !== undefined ? (body.is_position_public ? 1 : 0) : 1,
+      is_business_public: body.is_business_public !== undefined ? (body.is_business_public ? 1 : 0) : 1,
+      is_social_roles_public: body.is_social_roles_public !== undefined ? (body.is_social_roles_public ? 1 : 0) : 1,
       wechat_groups: body.wechat_groups || null,
       association_role: body.association_role || null,
       pinyin_name: generatePinyin(body.name),
     };
 
-    // Non-admins cannot change association_role or status
+    // Non-admins cannot change association_role
     if (!isAdmin) {
       const current = db.prepare('SELECT association_role, status FROM alumni WHERE id = ?').get(id) as any;
       p.association_role = current?.association_role || null;
@@ -108,14 +174,16 @@ export async function PUT(request: NextRequest, { params }: Params) {
         dut_verified = @dut_verified, birth_month = @birth_month,
         gender = @gender, region = @region, career_type = @career_type,
         company = @company, position = @position, industry = @industry,
-        social_roles = @social_roles, business_desc = @business_desc, wechat_groups = @wechat_groups, association_role = @association_role, pinyin_name = @pinyin_name, updated_at = CURRENT_TIMESTAMP
+        social_roles = @social_roles, business_desc = @business_desc, wechat_groups = @wechat_groups, association_role = @association_role, pinyin_name = @pinyin_name, 
+        is_company_public = @is_company_public, is_position_public = @is_position_public, is_business_public = @is_business_public, is_social_roles_public = @is_social_roles_public,
+        updated_at = CURRENT_TIMESTAMP
       WHERE id = @id
     `);
 
     const deleteExp = db.prepare('DELETE FROM school_experiences WHERE alumni_id = ?');
     const insertExp = db.prepare(`
-      INSERT INTO school_experiences (alumni_id, stage, start_year, end_year, college, major, sort_order)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO school_experiences (alumni_id, stage, start_year, end_year, college, major, sort_order, is_public)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     let updated: any = null;
@@ -126,25 +194,15 @@ export async function PUT(request: NextRequest, { params }: Params) {
       
       if (Array.isArray(experiences)) {
         experiences.forEach((exp: any, i: number) => {
-          insertExp.run(params.id, exp.stage || null, exp.start_year || null, exp.end_year || null, exp.college || null, exp.major || null, i);
+          insertExp.run(params.id, exp.stage || null, exp.start_year || null, exp.end_year || null, exp.college || null, exp.major || null, i, exp.is_public ? 1 : 0);
         });
       }
       
       updated = db.prepare('SELECT * FROM alumni WHERE id = ?').get(params.id);
       updated.experiences = db.prepare('SELECT * FROM school_experiences WHERE alumni_id = ? ORDER BY sort_order ASC').all(params.id);
-      
-      // Sync duplicate status for the new name
-      if (params.name) syncDuplicateStatus(db, params.name);
     });
 
-    const oldName = db.prepare('SELECT name FROM alumni WHERE id = ?').get(id) as { name: string } | undefined;
-    
     transaction(p, body.experiences || []);
-
-    // If name changed, sync status for the old name too
-    if (oldName?.name && oldName.name !== p.name) {
-      syncDuplicateStatus(db, oldName.name);
-    }
 
     return NextResponse.json(updated);
   } catch (error) {

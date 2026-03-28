@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import AlumniForm from '@/components/AlumniForm';
 import { calculateProfileCompletion, COMPLETION_THRESHOLD, isProfileEligible } from '@/lib/profile-utils';
 
@@ -18,7 +19,23 @@ export default function ProfilePage() {
   const [passSuccess, setPassSuccess] = useState('');
   const router = useRouter();
 
-  const [contactRequests, setContactRequests] = useState<any[]>([]);
+  const [contactRequests, setContactRequests] = useState<{ outgoing: any[], incoming: any[] }>({ outgoing: [], incoming: [] });
+  
+  const formatDateTime = (dateStr: string) => {
+    if (!dateStr) return '—';
+    try {
+      // Force UTC interpretation for SQLite timestamps like "2024-03-28 06:47:00"
+      const isoStr = dateStr.includes(' ') && !dateStr.includes('Z') && !dateStr.includes('+')
+        ? dateStr.replace(' ', 'T') + 'Z' 
+        : dateStr.includes('T') && !dateStr.includes('Z') && !dateStr.includes('+')
+          ? dateStr + 'Z'
+          : dateStr;
+      const d = new Date(isoStr);
+      return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -75,6 +92,33 @@ export default function ProfilePage() {
         }
       }
     } catch (err) { console.error(err); }
+  };
+
+  const handleRequestAction = async (requestId: number, status: 'APPROVED' | 'REJECTED') => {
+    if (!confirm(`确定要${status === 'APPROVED' ? '通过' : '拒绝'}该申请吗？`)) return;
+    
+    try {
+      const res = await fetch(`/api/contact-requests/${requestId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if (res.ok) {
+        // Refresh local data and sync sidebar
+        window.dispatchEvent(new Event('unreadCountUpdate'));
+        fetchRequests(); 
+        if (status === 'APPROVED') {
+          alert('已通过该对接申请，对方现在可以查看您的联系方式。');
+        } else {
+          alert('已拒绝该对接申请。');
+        }
+      } else {
+        const error = await res.json();
+        alert(error.error || '操作失败');
+      }
+    } catch (err) {
+      alert('网络错误');
+    }
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -175,8 +219,15 @@ export default function ProfilePage() {
           {user?.role !== 'ADMIN' && (
             <button className={`nav-tab ${currentView === 'info' ? 'active' : ''}`} onClick={() => setCurrentView('info')}>详细资料</button>
           )}
-          <button className={`nav-tab ${currentView === 'requests' ? 'active' : ''}`} onClick={() => setCurrentView('requests')}>
-            {user?.role === 'ADMIN' ? '审批日志' : '对接申请'}
+          <button className={`nav-tab ${currentView === 'requests' ? 'active' : ''}`} onClick={() => { setCurrentView('requests'); fetchRequests(); }}>
+            {user?.role === 'ADMIN' ? '审批日志' : (
+              <span className="tab-label-with-badge">
+                对接申请
+                {contactRequests.incoming.filter((r: any) => r.status === 'PENDING').length > 0 && (
+                  <span className="tab-badge-mini">{contactRequests.incoming.filter((r: any) => r.status === 'PENDING').length}</span>
+                )}
+              </span>
+            )}
           </button>
           <button className={`nav-tab ${currentView === 'password' ? 'active' : ''}`} onClick={() => setCurrentView('password')}>安全设置</button>
         </div>
@@ -246,7 +297,7 @@ export default function ProfilePage() {
             <div className="requests-view animate-fade-in">
               {user?.role !== 'ADMIN' && (
                 <div className="view-title-row">
-                  <h2>🤝 我的对接申请</h2>
+                  <h2>🤝 对接申请管理</h2>
                 </div>
               )}
               
@@ -279,46 +330,98 @@ export default function ProfilePage() {
                           </div>
                         </div>
                         <div className="log-right">
-                          <span className={`status-pill-mini ${log.status.toLowerCase()}`}>
-                            {log.status === 'APPROVED' ? '已通过' : '已拒绝'}
-                          </span>
-                          <span className="log-time-mini">{new Date(log.updated_at).toLocaleDateString()} {new Date(log.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          <div className="log-processor-meta">
+                            {log.processor_name && (
+                              <span className={`log-processor-badge ${log.processor_id === log.target_alumni_id ? 'self' : 'admin'}`}>
+                                {log.processor_id === log.target_alumni_id ? '校友自主审批' : `由 ${log.processor_name} 审批`}
+                              </span>
+                            )}
+                          </div>
+                          <div className="log-status-time">
+                            <span className={`status-pill-mini ${log.status.toLowerCase()}`}>
+                              {log.status === 'APPROVED' ? '已通过' : '已拒绝'}
+                            </span>
+                            <span className="log-time-mini">{formatDateTime(log.updated_at)}</span>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 )
-              ) : contactRequests.length === 0 ? (
-                <div className="empty-requests">
-                  <p>暂无对接申请记录</p>
-                </div>
               ) : (
-                <div className="request-list">
-                  {contactRequests.map((req: any) => (
-                    <div key={req.id} className={`request-item ${req.status.toLowerCase()}`}>
-                      <div className="request-header">
-                        <span className="target-name">对接校友: {req.target_name}</span>
-                        <span className={`status-pill ${req.status.toLowerCase()}`}>
-                          {req.status === 'PENDING' ? '待审核' : req.status === 'APPROVED' ? '已通过' : req.status === '拒绝' ? '已拒绝' : req.status}
-                        </span>
-                      </div>
-                      <div className="request-body">
-                        <div className="reason-text"><strong>申请理由:</strong> {req.reason}</div>
-                        {req.status === 'APPROVED' && (
-                          <div className="contact-reveal">
-                            <div className="reveal-item">📞 电话: <strong>{req.phone}</strong></div>
-                            <div className="reveal-item">💬 所在微信群: <strong>{req.wechat_groups || '—'}</strong></div>
-                          </div>
-                        )}
-                        {req.status === 'REJECTED' && req.admin_remark && (
-                          <div className="reject-remark">
-                            <strong>拒绝理由:</strong> {req.admin_remark}
-                          </div>
-                        )}
-                      </div>
-                      <div className="request-time">提交于 {new Date(req.created_at).toLocaleString()}</div>
+                <div className="dual-request-columns">
+                  {/* Outgoing Requests */}
+                  <div className="request-column">
+                    <div className="column-header">
+                      <h3>📤 我发出的申请 ({contactRequests.outgoing.length})</h3>
                     </div>
-                  ))}
+                    {contactRequests.outgoing.length === 0 ? (
+                      <div className="empty-requests-inline">暂无发出的申请</div>
+                    ) : (
+                      <div className="request-list-compact">
+                        {contactRequests.outgoing.map((req: any) => (
+                          <div key={req.id} className={`request-item-compact ${req.status.toLowerCase()}`}>
+                            <div className="req-header-compact">
+                              <Link href={`/alumni/${req.target_alumni_id}`} className="target-link">
+                                {req.target_name} 🔗
+                              </Link>
+                              <span className={`status-pill-mini ${req.status.toLowerCase()}`}>
+                                {req.status === 'PENDING' ? '待审核' : req.status === 'APPROVED' ? '已通过' : '已拒绝'}
+                              </span>
+                            </div>
+                            <div className="req-body-compact">
+                              <div className="reason-text-compact">理由: {req.reason}</div>
+                              {req.status === 'APPROVED' && (
+                                <div className="contact-reveal-compact">
+                                  <div>📞 {req.target_phone}</div>
+                                  <div>💬 {req.target_wechat_group || '—'}</div>
+                                </div>
+                              )}
+                            </div>
+                            <div className="req-time-compact">{formatDateTime(req.created_at)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Incoming Requests */}
+                  <div className="request-column">
+                    <div className="column-header">
+                      <h3>📥 我收到的申请 ({contactRequests.incoming.length})</h3>
+                    </div>
+                    {contactRequests.incoming.length === 0 ? (
+                      <div className="empty-requests-inline">暂无收到的申请</div>
+                    ) : (
+                      <div className="request-list-compact">
+                        {contactRequests.incoming.map((req: any) => (
+                          <div key={req.id} className={`request-item-compact ${req.status.toLowerCase()}`}>
+                            <div className="req-header-compact">
+                              <Link href={`/alumni/${req.requester_alumni_id}`} className="target-link">
+                                {req.requester_name} 🔗
+                              </Link>
+                              <div className="req-status-actions">
+                                {req.status === 'PENDING' ? (
+                                  <div className="action-buttons-mini">
+                                    <button className="btn-approve-mini" onClick={() => handleRequestAction(req.id, 'APPROVED')}>通过</button>
+                                    <button className="btn-reject-mini" onClick={() => handleRequestAction(req.id, 'REJECTED')}>拒绝</button>
+                                  </div>
+                                ) : (
+                                  <span className={`status-pill-mini ${req.status.toLowerCase()}`}>
+                                    {req.status === 'APPROVED' ? '已通过' : '已拒绝'}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="req-body-compact">
+                              <div className="reason-text-compact">理由: {req.reason}</div>
+                            </div>
+                            <div className="req-time-compact">{formatDateTime(req.created_at)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -455,6 +558,26 @@ export default function ProfilePage() {
           position: relative;
           transition: all 0.2s;
         }
+        .tab-label-with-badge { position: relative; display: inline-block; }
+        .tab-badge-mini {
+          position: absolute;
+          top: -10px;
+          right: -15px;
+          background: #ef4444;
+          color: white;
+          font-size: 10px;
+          font-weight: 700;
+          min-width: 16px;
+          height: 16px;
+          border-radius: 100px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 4px;
+          box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+          border: 1.5px solid white;
+          pointer-events: none;
+        }
         .nav-tab:hover { color: #1e293b; }
         .nav-tab.active { color: #2563eb; }
         .nav-tab.active::after {
@@ -542,8 +665,20 @@ export default function ProfilePage() {
           box-shadow: 0 4px 12px rgba(0,0,0,0.03);
         }
         .log-left { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0; }
-        .log-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+        .log-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+        .log-status-time { display: flex; align-items: center; gap: 12px; }
         
+        .log-processor-badge { 
+          font-size: 10px; 
+          padding: 1px 6px; 
+          border-radius: 4px; 
+          background: #f1f5f9;
+          color: #64748b;
+          border: 1px solid #e2e8f0;
+        }
+        .log-processor-badge.self { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+        .log-processor-badge.admin { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+
         .log-type-tag-compact { min-width: 40px; }
         .type-pill-mini {
           font-size: 10px;
@@ -581,68 +716,93 @@ export default function ProfilePage() {
         .status-pill-mini.approved { background: #d1fae5; color: #065f46; }
         .status-pill-mini.rejected { background: #fee2e2; color: #991b1b; }
         
-        .log-time-mini { font-size: 11px; color: #94a3b8; min-width: 110px; text-align: right; }
+        .log-time-mini { font-size: 11px; color: #94a3b8; }
         
-        .empty-requests {
-          padding: 60px 0;
-          text-align: center;
-          color: #94a3b8;
+        .dual-request-columns {
+          display: flex;
+          gap: 30px;
         }
-
-        .request-list {
+        .request-column {
+          flex: 1;
+          min-width: 0;
+        }
+        .column-header h3 {
+          font-size: 15px;
+          color: #475569;
+          margin-bottom: 20px;
+          font-weight: 700;
+        }
+        .request-list-compact {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 12px;
         }
-        .request-item {
-          padding: 20px;
-          border-radius: 16px;
+        .request-item-compact {
+          padding: 15px;
           background: #f8fafc;
+          border-radius: 12px;
           border: 1px solid #e2e8f0;
+          transition: all 0.2s;
         }
-        .request-item.approved { border-left: 4px solid #10b981; background: #f0fdf4; }
-        .request-item.rejected { border-left: 4px solid #ef4444; background: #fef2f2; }
-        .request-item.pending { border-left: 4px solid #f59e0b; }
-
-        .request-header {
+        .request-item-compact:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+          border-color: #cbd5e1;
+        }
+        .request-item-compact.approved { border-left: 4px solid #10b981; }
+        .request-item-compact.rejected { border-left: 4px solid #ef4444; }
+        .request-item-compact.pending { border-left: 4px solid #f59e0b; }
+        
+        .req-header-compact {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
         }
-        .target-name { font-weight: 700; color: #1e293b; font-size: 16px; }
-        .status-pill {
-          font-size: 11px;
+        .action-buttons-mini { display: flex; gap: 6px; }
+        .btn-approve-mini, .btn-reject-mini {
+          padding: 4px 10px; border-radius: 6px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-approve-mini { background: #10b981; color: white; }
+        .btn-approve-mini:hover { background: #059669; transform: translateY(-1px); }
+        .btn-reject-mini { background: #ef4444; color: white; }
+        .btn-reject-mini:hover { background: #dc2626; transform: translateY(-1px); }
+        .target-link {
           font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 100px;
+          color: #1a56db;
+          font-size: 14px;
         }
-        .status-pill.pending { background: #fef3c7; color: #92400e; }
-        .status-pill.approved { background: #d1fae5; color: #065f46; }
-        .status-pill.rejected { background: #fee2e2; color: #991b1b; }
-
-        .request-body { margin-bottom: 12px; }
-        .reason-text { font-size: 14px; color: #475569; line-height: 1.5; }
-        .contact-reveal {
-          margin-top: 15px;
-          padding: 15px;
-          background: white;
-          border-radius: 12px;
+        .target-link:hover { text-decoration: underline; }
+        
+        .req-body-compact { margin-bottom: 8px; }
+        .reason-text-compact { font-size: 13px; color: #475569; line-height: 1.5; }
+        .contact-reveal-compact {
+          margin-top: 10px;
+          padding: 10px;
+          background: #ffffff;
+          border-radius: 8px;
           border: 1px solid #d1fae5;
+          font-size: 13px;
+          color: #065f46;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 4px;
         }
-        .reveal-item { font-size: 14px; color: #065f46; }
-        .reject-remark {
-          margin-top: 12px;
-          padding: 10px;
-          background: #fee2e2;
-          color: #991b1b;
-          border-radius: 8px;
+        .req-time-compact { font-size: 11px; color: #94a3b8; text-align: right; }
+        .empty-requests-inline {
+          padding: 30px;
+          text-align: center;
+          color: #94a3b8;
+          font-style: italic;
           font-size: 13px;
+          background: #f8fafc;
+          border-radius: 12px;
+          border: 1px dashed #cbd5e1;
         }
-        .request-time { font-size: 12px; color: #94a3b8; text-align: right; }
+        
+        @media (max-width: 768px) {
+          .dual-request-columns { flex-direction: column; }
+        }
 
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }

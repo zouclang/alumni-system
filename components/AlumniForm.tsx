@@ -136,7 +136,6 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
   // Track scalar fields
     const [form, setForm] = useState({
     name: String(initial?.name || ''),
-    has_duplicate_name: String(initial?.has_duplicate_name || ''),
     gender: String(initial?.gender || ''),
     hometown: String(initial?.hometown || ''),
     enrollment_year: String(initial?.enrollment_year || ''),
@@ -161,6 +160,10 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
     business_desc: String(initial?.business_desc || ''),
     wechat_groups: String(initial?.wechat_groups || ''),
     association_role: String(initial?.association_role || ''),
+    is_company_public: initial?.id ? !!initial.is_company_public : true,
+    is_position_public: initial?.id ? !!initial.is_position_public : true,
+    is_business_public: initial?.is_business_public !== undefined ? !!initial.is_business_public : true,
+    is_social_roles_public: initial?.id ? !!initial.is_social_roles_public : true,
   });
 
   // Track dynamic experiences
@@ -176,31 +179,10 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
   const [showDeleteUserConfirm, setShowDeleteUserConfirm] = useState(false);
   const [error, setError] = useState('');
   
-  // Name duplication check state
-  const [duplicateCheckQuery, setDuplicateCheckQuery] = useState('');
-  const [duplicateMatches, setDuplicateMatches] = useState<any[]>([]);
-  const [checkingName, setCheckingName] = useState(false);
 
-  useEffect(() => {
-    if (!form.name || form.name.trim().length < 2 || isEdit) {
-      setDuplicateMatches([]);
-      return;
-    }
-    const delayDebounceFn = setTimeout(() => {
-      setCheckingName(true);
-      fetch(`/api/alumni?search=${encodeURIComponent(form.name.trim())}&pageSize=5`)
-        .then(res => res.json())
-        .then(data => {
-          setDuplicateMatches(data.data || []);
-        })
-        .finally(() => setCheckingName(false));
-    }, 500);
-    return () => clearTimeout(delayDebounceFn);
-  }, [form.name, isEdit]);
+  const set = (name: string, value: any) => setForm((f) => ({ ...f, [name]: value }));
 
-  const set = (name: string, value: string) => setForm((f) => ({ ...f, [name]: value }));
-
-  const updateExp = (index: number, field: string, value: string) => {
+  const updateExp = (index: number, field: string, value: any) => {
     const newExps = [...experiences];
     newExps[index] = { ...newExps[index], [field]: value };
     setExperiences(newExps);
@@ -245,41 +227,17 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
       <div className={inline ? 'inline-form-body' : 'modal-body'}>
         {error && <div style={{ color: 'var(--red)', marginBottom: '12px', fontSize: '13px' }}>{error}</div>}
         
+        <div style={{ background: '#f0f9ff', padding: '12px 16px', borderRadius: '12px', marginBottom: '20px', border: '1px solid #e0f2fe', display: 'flex', alignItems: 'center', gap: '8px', color: '#0369a1', fontSize: '13px' }}>
+          ℹ️ 以下基本信息不对外展示，仅用于校友会数据统计
+        </div>
+        
         <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '16px', color: '#1f2937', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>基本信息</h3>
         
-        {/* Duplicate Match Warning */}
-        {duplicateMatches.length > 0 && !isEdit && (
-          <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', padding: '12px', borderRadius: '6px', marginBottom: '16px' }}>
-            <div style={{ fontSize: '14px', color: '#92400e', fontWeight: 500, marginBottom: '8px' }}>⚠️ 发现系统中已存在同名校友，您可以选择直接编辑已有记录：</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {duplicateMatches.map(m => (
-                <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: '8px 12px', borderRadius: '4px', border: '1px solid #fef3c7' }}>
-                  <div style={{ fontSize: '13px', color: '#b45309' }}>
-                    <span style={{ fontWeight: 600 }}>{m.name}</span> 
-                    {m.college && ` · ${m.college}`}
-                    {m.enrollment_year && ` · ${m.enrollment_year}级`}
-                    {m.experiences && m.experiences.length > 0 ? (
-                      <div style={{ marginTop: '4px', color: '#92400e', fontSize: '12px', opacity: 0.8 }}>
-                        在校: {m.experiences.map((e: any) => `${e.stage || ''}${e.college || ''}`).join(' / ')}
-                      </div>
-                    ) : m.school_experience ? (
-                      <div style={{ marginTop: '4px', color: '#92400e', fontSize: '12px', opacity: 0.8 }}>
-                        在校: {m.school_experience}
-                      </div>
-                    ) : null}
-                  </div>
-                  <a href={`/alumni/${m.id}`} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline" style={{ borderColor: '#fcd34d', color: '#b45309' }}>去编辑该校友</a>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="form-grid">
           <div className="form-group">
-            <label className="form-label required" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <label className="form-label required">
               姓名
-              {checkingName && <span style={{ fontSize: '12px', color: '#3b82f6', fontWeight: 'normal' }}>正在检查重名...</span>}
             </label>
             <input
               className="form-input"
@@ -292,10 +250,17 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
           <CityPicker value={form.hometown} onChange={(v: string) => set('hometown', v)} />
           <SelectField label="生日月份" name="birth_month" value={form.birth_month} onChange={set} options={MONTHS} />
           <SelectField label="所在区域" name="region" value={form.region} onChange={set} options={REGIONS} />
-          <Field label="联系电话" name="phone" value={form.phone} onChange={set} type="tel" />
+          <div className="form-group">
+            <label className="form-label required">
+              联系电话 
+              <span style={{ color: '#ef4444', fontSize: '12px', fontWeight: 'normal', display: 'block' }}>授权对接后可向对接人展示</span>
+            </label>
+            <input className="form-input" type="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} required />
+          </div>
           <div className="form-group">
             <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               微信号
+              <span style={{ color: '#ef4444', fontSize: '12px', fontWeight: 'normal' }}>授权对接后可向对接人展示</span>
               <button 
                 type="button" 
                 onClick={() => set('wechat_id', form.phone)}
@@ -310,18 +275,16 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
               onChange={(e) => set('wechat_id', e.target.value)}
             />
           </div>
-          {currentUser?.role === 'ADMIN' && (
-            <SelectField label="大工人认证" name="dut_verified" value={form.dut_verified} onChange={set} options={YES_NO} />
-          )}
           <div className="form-group">
-            <label className="form-label">
-              最高学历
-              <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'normal', display: 'block', marginTop: '2px' }}>(不限于大工，可填外校获取的更高学历)</span>
-            </label>
+            <label className="form-label">最高学历</label>
             <select className="form-select" name="degree" value={form.degree} onChange={(e) => set('degree', e.target.value)}>
               <option value="">请选择</option>
               {DEGREES.map((o) => <option key={o} value={o}>{o}</option>)}
             </select>
+          </div>
+          <div className="form-group span-2">
+            <label className="form-label">个人兴趣爱好</label>
+            <textarea className="form-textarea" rows={2} value={form.interests} onChange={(e) => set('interests', e.target.value)} />
           </div>
           {currentUser?.role === 'ADMIN' && (
              <WechatGroupInput value={form.wechat_groups} onChange={(v) => set('wechat_groups', v)} />
@@ -368,6 +331,10 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
                     <label className="form-label">专业</label>
                     <input className="form-input" value={exp.major || ''} onChange={(e) => updateExp(i, 'major', e.target.value)} />
                   </div>
+                  <div className="form-group" style={{ marginBottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <label className="form-label" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>是否对外展示</label>
+                    <input type="checkbox" checked={!!exp.is_public} onChange={(e) => updateExp(i, 'is_public', e.target.checked ? 1 : 0)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} title="是否对外展示这段教育经历" />
+                  </div>
                   <button type="button" onClick={() => removeExp(i)} className="btn btn-danger" style={{ padding: '8px' }}>🗑</button>
                 </div>
               ))}
@@ -378,22 +345,54 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
 
         <h3 style={{ fontSize: '15px', fontWeight: 600, marginTop: '24px', marginBottom: '16px', color: '#1f2937', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>工作与社会活动</h3>
         <div className="form-grid">
-          <Field label="工作单位" name="company" value={form.company} onChange={set} />
-          <Field label="职位" name="position" value={form.position} onChange={set} />
+          <div className="form-group">
+            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              工作单位
+              <span style={{ color: '#22c55e', fontSize: '11px', fontWeight: 'normal' }}>默认公开，便于链接资源</span>
+            </label>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input className="form-input" value={form.company} onChange={(e) => set('company', e.target.value)} style={{ flex: 1 }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                <input type="checkbox" checked={form.is_company_public} onChange={(e) => set('is_company_public', e.target.checked)} style={{ width: '18px', height: '18px' }} />
+                是否对外展示
+              </label>
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">职位</label>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input className="form-input" value={form.position} onChange={(e) => set('position', e.target.value)} style={{ flex: 1 }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                <input type="checkbox" checked={form.is_position_public} onChange={(e) => set('is_position_public', e.target.checked)} style={{ width: '18px', height: '18px' }} />
+                是否对外展示
+              </label>
+            </div>
+          </div>
           <SelectField label="事业类型" name="career_type" value={form.career_type} onChange={set} options={CAREER_TYPES} />
           <Field label="所属行业" name="industry" value={form.industry} onChange={set} />
           <div className="form-group span-2">
-            <label className="form-label">个人或公司主要业务介绍</label>
+            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>个人或公司主要业务介绍 <span style={{ color: '#22c55e', fontSize: '11px', fontWeight: 'normal' }}>默认公开</span></span>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px', color: '#64748b', fontWeight: 'normal' }}>
+                <input type="checkbox" checked={form.is_business_public} onChange={(e) => set('is_business_public', e.target.checked)} style={{ width: '18px', height: '18px' }} />
+                是否对外展示
+              </label>
+            </label>
             <textarea className="form-textarea" rows={3} value={form.business_desc} onChange={(e) => set('business_desc', e.target.value)} />
           </div>
           <div className="form-group span-2">
-            <label className="form-label">社会职务</label>
+            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>社会职务 <span style={{ color: '#22c55e', fontSize: '11px', fontWeight: 'normal', marginLeft: '8px' }}>默认展示</span></span>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px', color: '#64748b', fontWeight: 'normal' }}>
+                <input type="checkbox" checked={form.is_social_roles_public} onChange={(e) => set('is_social_roles_public', e.target.checked)} style={{ width: '18px', height: '18px' }} />
+                是否对外展示
+              </label>
+            </label>
             <textarea className="form-textarea" rows={2} value={form.social_roles} onChange={(e) => set('social_roles', e.target.value)} />
           </div>
-          <div className="form-group span-2">
-            <label className="form-label">兴趣爱好</label>
-            <textarea className="form-textarea" rows={2} value={form.interests} onChange={(e) => set('interests', e.target.value)} />
-          </div>
+          {currentUser?.role === 'ADMIN' && (
+            <SelectField label="大工人认证" name="dut_verified" value={form.dut_verified} onChange={set} options={YES_NO} />
+          )}
 
           {isEdit && currentUser?.role === 'ADMIN' && (
             <div style={{ gridColumn: '1 / -1', marginTop: '16px', borderTop: '1px dashed #e5e7eb', paddingTop: '16px' }}>

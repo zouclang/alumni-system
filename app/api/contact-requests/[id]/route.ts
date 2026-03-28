@@ -8,7 +8,7 @@ export async function PATCH(
 ) {
   try {
     const session = await getSession();
-    if (!session || session.role !== 'ADMIN') {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -19,11 +19,20 @@ export async function PATCH(
     }
 
     const db = getDb();
+    const existing = db.prepare('SELECT target_alumni_id FROM contact_requests WHERE id = ?').get(id) as any;
+    if (!existing) {
+      return NextResponse.json({ error: 'Request not found' }, { status: 404 });
+    }
+
+    // Allow ADMIN or Target Alumni
+    if (session.role !== 'ADMIN' && session.alumniId !== existing.target_alumni_id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
     const result = db.prepare(`
       UPDATE contact_requests 
-      SET status = ?, admin_remark = ?, updated_at = CURRENT_TIMESTAMP
+      SET status = ?, admin_remark = ?, processed_by_user_id = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(status, adminRemark || null, id);
+    `).run(status, adminRemark || null, session.userId, id);
 
     if (result.changes === 0) {
       return NextResponse.json({ error: 'Request not found' }, { status: 404 });

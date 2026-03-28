@@ -207,12 +207,12 @@ async function run() {
 
   const insertAlumni = db.prepare(`
     INSERT INTO alumni (
-      seq_no, name, has_duplicate_name, hometown, school_experience,
+      seq_no, name, hometown, school_experience,
       enrollment_year, graduation_year, college, college_normalized, major,
       degree, phone, interests, wechat_groups, dut_verified,
       birth_month, gender, region, career_type, company, position,
       industry, social_roles, pinyin_name
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `);
 
   const insertExp = db.prepare(`
@@ -241,7 +241,6 @@ async function run() {
         const record = [
           getRowVal(row, '序号', 0) || i,
           cleanedName,
-          cleanValue(getRowVal(row, '是否重名', 2)),
           standardizeHometown(cleanValue(getRowVal(row, '家乡', 3))),
           cleanValue(expRaw),
           firstExp.start_year || null,
@@ -274,14 +273,7 @@ async function run() {
         }
     }
     
-    // Final duplicate sync
-    console.log(`Synchronizing duplicate status...`);
-    db.prepare(`
-      UPDATE alumni SET has_duplicate_name = CASE 
-        WHEN (SELECT COUNT(*) FROM alumni WHERE name = alumni.name) > 1 THEN '是' 
-        ELSE NULL 
-      END
-    `).run();
+    console.log(`Import complete.`);
   });
 
   transaction(rows);

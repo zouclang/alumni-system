@@ -45,7 +45,7 @@ function degreeColor(degree: string) {
 function genderBadge(gender: string) {
   if (gender === '男') return '👨';
   if (gender === '女') return '👩';
-  return '❓';
+  return '';
 }
 
 export default function HomePage() {
@@ -237,18 +237,20 @@ export default function HomePage() {
           <input
             className="search-input"
             type="text"
-            placeholder="姓名、公司、职位、电话..."
+            placeholder="姓名、公司..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); handleFilterChange(); }}
           />
         </div>
-        <div className="filter-group">
-          <span className="filter-label">所在区域</span>
-          <select className="filter-select" value={region} onChange={(e) => { setRegion(e.target.value); handleFilterChange(); }}>
-            <option value="">全部</option>
-            {metadata.regions.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-        </div>
+        {isPrivileged && (
+          <div className="filter-group">
+            <span className="filter-label">所在区域</span>
+            <select className="filter-select" value={region} onChange={(e) => { setRegion(e.target.value); handleFilterChange(); }}>
+              <option value="">全部</option>
+              {metadata.regions.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+        )}
         <div className="filter-group">
           <span className="filter-label">学院</span>
           <select className="filter-select" value={college} onChange={(e) => { setCollege(e.target.value); handleFilterChange(); }}>
@@ -256,27 +258,31 @@ export default function HomePage() {
             {metadata.colleges.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-        <div className="filter-group">
-          <span className="filter-label">最高学历</span>
-          <select className="filter-select" value={degree} onChange={(e) => { setDegree(e.target.value); handleFilterChange(); }}>
-            <option value="">全部</option>
-            {metadata.degrees.map((d) => <option key={d} value={d}>{d}</option>)}
-          </select>
-        </div>
-        <div className="filter-group">
-          <span className="filter-label">事业类型</span>
-          <select className="filter-select" value={careerType} onChange={(e) => { setCareerType(e.target.value); handleFilterChange(); }}>
-            <option value="">全部</option>
-            {metadata.careerTypes.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <div className="filter-group">
-          <span className="filter-label">微信群</span>
-          <select className="filter-select" value={wechatGroup} onChange={(e) => { setWechatGroup(e.target.value); handleFilterChange(); }}>
-            <option value="">全部</option>
-            {metadata.wechatGroups.map((g) => <option key={g} value={g}>{g}</option>)}
-          </select>
-        </div>
+        {isPrivileged && (
+          <>
+            <div className="filter-group">
+              <span className="filter-label">最高学历</span>
+              <select className="filter-select" value={degree} onChange={(e) => { setDegree(e.target.value); handleFilterChange(); }}>
+                <option value="">全部</option>
+                {metadata.degrees.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div className="filter-group">
+              <span className="filter-label">事业类型</span>
+              <select className="filter-select" value={careerType} onChange={(e) => { setCareerType(e.target.value); handleFilterChange(); }}>
+                <option value="">全部</option>
+                {metadata.careerTypes.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="filter-group">
+              <span className="filter-label">微信群</span>
+              <select className="filter-select" value={wechatGroup} onChange={(e) => { setWechatGroup(e.target.value); handleFilterChange(); }}>
+                <option value="">全部</option>
+                {metadata.wechatGroups.map((g) => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </div>
+          </>
+        )}
         {(isAdmin || user?.association_role) && (
           <div className="filter-group">
             <span className="filter-label">注册状态</span>
@@ -325,17 +331,27 @@ export default function HomePage() {
                 </tr>
               </thead>
               <tbody>
-                {data.map((alumni: any) => (
-                  <tr key={alumni.id}>
+                {data.map((alumni: any) => {
+                  const renderMasked = (value: string | null) => {
+                    if (!value || value === '—') return '—';
+                    if (typeof value === 'string' && value.includes('***')) {
+                      return <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' }}>已隐藏</span>;
+                    }
+                    return value;
+                  };
+
+                  return (
+                    <tr key={alumni.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {isAdmin || user?.association_role ? (
-                          <Link href={`/alumni/${alumni.id}`} className="name-link" style={{ whiteSpace: 'nowrap' }}>
+                        <Link href={`/alumni/${alumni.id}`} className="hover:underline">
+                          <span style={{ fontWeight: 600, color: 'var(--blue-dark)', fontSize: '15px' }}>
                             {genderBadge(alumni.gender)} {alumni.name}
-                          </Link>
-                        ) : (
-                          <span style={{ whiteSpace: 'nowrap', color: '#111827', fontWeight: 600 }}>
-                            {genderBadge(alumni.gender)} {alumni.name}
+                          </span>
+                        </Link>
+                        {alumni.association_role && alumni.association_role !== '—' && (
+                          <span className="badge badge-purple" style={{ fontSize: '10px', padding: '1px 6px' }}>
+                            {alumni.association_role}
                           </span>
                         )}
                         {isAdmin && alumni.is_registered === 1 && (
@@ -348,37 +364,60 @@ export default function HomePage() {
                     <td>
                       {alumni.experiences && alumni.experiences.length > 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          {alumni.experiences.map((exp: any, i: number) => (
-                            <div key={i} style={{ fontSize: '13px', color: '#4b5563' }}>
-                              <span style={{ fontWeight: 500, color: '#111827' }}>{exp.stage}</span>
-                              {(exp.start_year || exp.end_year) && ` ${exp.start_year || '?'}-${exp.end_year || '?'}`} 
-                              {exp.college && ` · ${exp.college}`}
-                              {exp.major && ` · ${exp.major}`}
-                            </div>
-                          ))}
+                          {alumni.experiences.map((exp: any, i: number) => {
+                            const isHidden = typeof exp.stage === 'string' && exp.stage.includes('***');
+                            return (
+                              <div key={i} style={{ fontSize: '13px', color: '#4b5563' }}>
+                                {isHidden ? (
+                                  <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' }}>已隐藏</span>
+                                ) : (
+                                  <>
+                                    <span style={{ fontWeight: 500, color: '#111827' }}>{exp.stage}</span>
+                                    {(exp.start_year || exp.end_year) && ` ${exp.start_year || '?'}-${exp.end_year || '?'}`} 
+                                    {exp.college && ` · ${exp.college}`}
+                                    {exp.major && ` · ${exp.major}`}
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         <>
-                          <div className="table-name">{alumni.college_normalized || '—'}</div>
-                          <div className="table-sub">{alumni.major || ''}</div>
+                          {((typeof alumni.degree === 'string' && alumni.degree.includes('***')) || (typeof alumni.college_normalized === 'string' && alumni.college_normalized.includes('***'))) ? (
+                             <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' }}>已隐藏</span>
+                          ) : (
+                            <>
+                              <div className="table-name">{alumni.degree || alumni.college_normalized || '—'}</div>
+                              <div className="table-sub">
+                                {alumni.college_normalized && (alumni.degree ? alumni.college_normalized + ' ' : '')}
+                                {alumni.major && `· ${alumni.major}`}
+                                {(alumni.enrollment_year || alumni.graduation_year) && (
+                                  <span style={{ marginLeft: '8px', opacity: 0.8 }}>
+                                    {alumni.enrollment_year || '?'}-{alumni.graduation_year || '?'}
+                                  </span>
+                                )}
+                              </div>
+                            </>
+                          )}
                         </>
                       )}
                     </td>
                     {isPrivileged && (
-                      <td>{alumni.region || '—'}</td>
+                      <td>{renderMasked(alumni.region)}</td>
                     )}
                     {isPrivileged && (
                       <td>
                         {alumni.degree ? (
-                          <span className={`badge ${degreeColor(alumni.degree)}`}>{alumni.degree}</span>
+                          alumni.degree.includes('***') ? renderMasked(alumni.degree) : <span className={`badge ${degreeColor(alumni.degree)}`}>{alumni.degree}</span>
                         ) : '—'}
                       </td>
                     )}
                     <td>
-                      <div className="table-name">{alumni.company || '—'}</div>
+                      <div className="table-name">{renderMasked(alumni.company)}</div>
                     </td>
                     <td>
-                      {!alumni.position ? '—' : (alumni.is_redacted ? <span style={{ color: '#94a3b8' }}>已隐藏</span> : alumni.position)}
+                      {renderMasked(alumni.position)}
                     </td>
                     <td>
                       {alumni.is_redacted ? (
@@ -412,7 +451,8 @@ export default function HomePage() {
                       )}
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           )}
@@ -451,7 +491,7 @@ export default function HomePage() {
               </button>
             </div>
             <div style={{ padding: '20px' }}>
-              <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '16px' }}>
+              <p style={{ fontSize: '14px', color: '#cbd5e1', marginBottom: '16px' }}>
                 您正在申请与 <strong>{requestingAlumni.name}</strong> 对接。请提供您的对接理由，管理员审核通过后将向您展示联系方式。
               </p>
               <textarea

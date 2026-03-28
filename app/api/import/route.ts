@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import * as XLSX from 'xlsx';
-import { generatePinyin, syncAllDuplicates } from '@/lib/name-utils';
+import { generatePinyin } from '@/lib/name-utils';
 
 function cleanValue(val: any) {
   if (val === null || val === undefined) return null;
@@ -181,12 +181,12 @@ export async function POST(req: NextRequest) {
     const db = getDb();
     const insertAlumni = db.prepare(`
       INSERT INTO alumni (
-        seq_no, name, has_duplicate_name, hometown, school_experience,
+        seq_no, name, hometown, school_experience,
         enrollment_year, graduation_year, college, college_normalized, major,
         degree, phone, interests, wechat_groups, dut_verified,
         birth_month, gender, region, career_type, company, position,
         industry, social_roles, pinyin_name
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `);
 
     const insertExp = db.prepare(`
@@ -226,27 +226,26 @@ export async function POST(req: NextRequest) {
         const record = [
           getVal(row, '序号', 0) || i, // seq_no
           cleanedName,
-          cleanValue(getVal(row, '是否重名', 2)),
-          standardizeHometown(cleanValue(getVal(row, '家乡', 3)) as string),
-          cleanValue(getVal(row, '在校经历', 4)), // legacy single string
+          standardizeHometown(cleanValue(getVal(row, '家乡', 2)) as string),
+          cleanValue(getVal(row, '在校经历', 3)), // legacy single string
           firstExp.start_year || null,
           firstExp.end_year || null,
           firstExp.college || null,
           firstExp.college || null,
           firstExp.major || null,
-          cleanValue(getVal(row, '最高学历', 5)),
-          cleanValue(getVal(row, '联系电话', 6)),
-          cleanValue(getVal(row, '兴趣爱好', 7)),
+          cleanValue(getVal(row, '最高学历', 4)),
+          cleanValue(getVal(row, '联系电话', 5)),
+          cleanValue(getVal(row, '兴趣爱好', 6)),
           cleanValue(wgRaw) ? String(wgRaw).replace(/、/g, ',') : null,
-          cleanValue(getVal(row, '大工人认证', 9)),
-          typeof getVal(row, '生日月份', 10) === 'number' ? getVal(row, '生日月份', 10) : null,
-          cleanValue(getVal(row, '性别', 11)),
-          cleanValue(getVal(row, '所在区域', 12)),
-          cleanValue(getVal(row, '事业类型', 13)),
-          cleanValue(getVal(row, '工作单位', 14)),
-          cleanValue(getVal(row, '职位', 15)),
-          cleanValue(getVal(row, '所属行业', 16)),
-          cleanValue(getVal(row, '社会职务', 17)),
+          cleanValue(getVal(row, '大工人认证', 8)),
+          typeof getVal(row, '生日月份', 9) === 'number' ? getVal(row, '生日月份', 9) : null,
+          cleanValue(getVal(row, '性别', 10)),
+          cleanValue(getVal(row, '所在区域', 11)),
+          cleanValue(getVal(row, '事业类型', 12)),
+          cleanValue(getVal(row, '工作单位', 13)),
+          cleanValue(getVal(row, '职位', 14)),
+          cleanValue(getVal(row, '所属行业', 15)),
+          cleanValue(getVal(row, '社会职务', 16)),
           generatePinyin(cleanedName)
         ];
 
@@ -258,8 +257,7 @@ export async function POST(req: NextRequest) {
           insertExp.run(alumniId, exp.stage, exp.start_year, exp.end_year, exp.college, exp.major, exp.sort_order);
         }
       }
-      // After all rows are in, sync duplicate status
-      syncAllDuplicates(db);
+      // syncAllDuplicates is no longer needed
     });
 
     transaction(rows);

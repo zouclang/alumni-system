@@ -34,6 +34,10 @@ export default function RegisterPage() {
     social_roles: '',
     interests: '',
     wechat_id: '',
+    is_company_public: true,
+    is_position_public: true,
+    is_business_public: true,
+    is_social_roles_public: true,
   });
   
   const [experiences, setExperiences] = useState([
@@ -44,7 +48,7 @@ export default function RegisterPage() {
 
   const addExp = () => setExperiences([...experiences, { stage: '', start_year: '', end_year: '', college: '', major: '', sort_order: experiences.length }]);
   const removeExp = (i: number) => setExperiences(experiences.filter((_, idx) => idx !== i));
-  const updateExp = (i: number, field: string, val: string) => {
+  const updateExp = (i: number, field: string, val: any) => {
     const next = [...experiences];
     next[i] = { ...next[i], [field]: val };
     setExperiences(next);
@@ -101,7 +105,6 @@ export default function RegisterPage() {
       if (!validExp) {
         setError('请至少填写一段完整的在校经历（包含阶段、起始年份、学院和专业）');
         setLoading(false);
-        // Scroll to experiences section
         const expSection = document.querySelector('.exp-container');
         if (expSection) expSection.scrollIntoView({ behavior: 'smooth' });
         return;
@@ -242,11 +245,29 @@ export default function RegisterPage() {
             <h3 className="section-title">安全与核心信息</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label>电话 <span className="req">*</span></label>
+                <label>电话 <span className="req">*</span> <span style={{ color: '#f87171', fontSize: '11px', display: 'block' }}>授权对接后可向对接人展示</span></label>
                 <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required />
               </div>
               <div className="form-group">
-                {/* Placeholder */}
+                <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  微信号 <span className="req">*</span>
+                  <span style={{ color: '#f87171', fontSize: '11px' }}>授权对接后可向对接人展示</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type="text" 
+                    value={alumniData.wechat_id || ''} 
+                    onChange={e => setAlumniData({...alumniData, wechat_id: e.target.value})} 
+                    placeholder="微信号/手机号"
+                    required
+                  />
+                  <span 
+                    onClick={() => setAlumniData({...alumniData, wechat_id: phone})} 
+                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#3b82f6', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}
+                  >
+                    同手机号
+                  </span>
+                </div>
               </div>
               <div className="form-group">
                 <label>设置登录密码</label>
@@ -256,6 +277,13 @@ export default function RegisterPage() {
                 <label>确认密码</label>
                 <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
               </div>
+              
+            </div>
+            
+            <div className="form-group full" style={{ background: 'rgba(251, 191, 36, 0.1)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(251, 191, 36, 0.2)', marginBottom: '24px' }}>
+              <p style={{ color: '#fbbf24', fontSize: '13px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                ℹ️ 以下基本信息仅用于校友会数据统计，不对外展示
+              </p>
             </div>
 
             <h3 className="section-title" style={{ marginTop: '32px' }}>基本信息</h3>
@@ -288,24 +316,6 @@ export default function RegisterPage() {
                 </select>
               </div>
               <div className="form-group">
-                <label>微信号 <span className="req">*</span></label>
-                <div style={{ position: 'relative' }}>
-                  <input 
-                    type="text" 
-                    value={alumniData.wechat_id || ''} 
-                    onChange={e => setAlumniData({...alumniData, wechat_id: e.target.value})} 
-                    placeholder="微信号/手机号"
-                    required
-                  />
-                  <span 
-                    onClick={() => setAlumniData({...alumniData, wechat_id: phone})} 
-                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#3b82f6', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}
-                  >
-                    同手机号
-                  </span>
-                </div>
-              </div>
-              <div className="form-group">
                 <label>最高学历</label>
                 <select value={alumniData.degree} onChange={e => setAlumniData({...alumniData, degree: e.target.value})}>
                   <option value="">请选择</option>
@@ -313,6 +323,10 @@ export default function RegisterPage() {
                     <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
+              </div>
+              <div className="form-group full">
+                <label>兴趣爱好 <span style={{ color: '#94a3b8', fontSize: '11px', marginLeft: '8px' }}>仅管理员可见</span></label>
+                <textarea rows={2} value={alumniData.interests} onChange={e => setAlumniData({...alumniData, interests: e.target.value})} placeholder="例如：网球、登山、创业等" />
               </div>
             </div>
 
@@ -347,6 +361,10 @@ export default function RegisterPage() {
                       <label>专业</label>
                       <input type="text" placeholder="所属专业" value={exp.major} onChange={e => updateExp(i, 'major', e.target.value)} />
                     </div>
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <label style={{ fontSize: '11px', marginBottom: '4px' }}>对外展示</label>
+                      <input type="checkbox" checked={!!(exp as any).is_public} onChange={e => updateExp(i, 'is_public', e.target.checked ? 1 : 0)} style={{ width: '20px', height: '20px' }} />
+                    </div>
                   </div>
                   {experiences.length > 1 && (
                     <button type="button" className="remove-exp" onClick={() => removeExp(i)}>移除此段经历</button>
@@ -356,15 +374,25 @@ export default function RegisterPage() {
               <button type="button" className="add-exp" onClick={addExp}>+ 添加在校经历阶段</button>
             </div>
 
-            <h3 className="section-title" style={{ marginTop: '32px' }}>工作与社会活动</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label>工作单位</label>
-                <input type="text" value={alumniData.company} onChange={e => setAlumniData({...alumniData, company: e.target.value})} />
+                <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  工作单位
+                  <span style={{ color: '#22c55e', fontSize: '11px' }}>默认公开，便于链接资源</span>
+                </label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input type="text" value={alumniData.company} onChange={e => setAlumniData({...alumniData, company: e.target.value})} style={{ flex: 1 }} />
+                  <input type="checkbox" checked={alumniData.is_company_public} onChange={e => setAlumniData({...alumniData, is_company_public: e.target.checked})} style={{ width: '20px', height: '20px' }} />
+                </div>
               </div>
               <div className="form-group">
-                <label>职位</label>
-                <input type="text" value={alumniData.position} onChange={e => setAlumniData({...alumniData, position: e.target.value})} />
+                <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  职位
+                </label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input type="text" value={alumniData.position} onChange={e => setAlumniData({...alumniData, position: e.target.value})} style={{ flex: 1 }} />
+                  <input type="checkbox" checked={alumniData.is_position_public} onChange={e => setAlumniData({...alumniData, is_position_public: e.target.checked})} style={{ width: '20px', height: '20px' }} />
+                </div>
               </div>
               <div className="form-group">
                 <label>所属行业</label>
@@ -380,20 +408,18 @@ export default function RegisterPage() {
                 </select>
               </div>
               <div className="form-group full">
-                <label>社会职务</label>
-                <textarea rows={2} value={alumniData.social_roles} onChange={e => setAlumniData({...alumniData, social_roles: e.target.value})} placeholder="例如：行业协会职务、政协委员等" />
-              </div>
-              <div className="form-group full">
-                <label>个人或公司主要业务介绍</label>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>个人或公司主要业务介绍 <span style={{ color: '#22c55e', fontSize: '11px', marginLeft: '8px' }}>默认公开</span></span>
+                  <input type="checkbox" checked={alumniData.is_business_public} onChange={e => setAlumniData({...alumniData, is_business_public: e.target.checked})} style={{ width: '20px', height: '20px' }} />
+                </label>
                 <textarea rows={3} value={alumniData.business_desc} onChange={e => setAlumniData({...alumniData, business_desc: e.target.value})} placeholder="请简述您的主要业务方向，方便校友对接合作" />
               </div>
-            </div>
-
-            <h3 className="section-title" style={{ marginTop: '32px' }}>个人详情</h3>
-            <div className="form-grid">
               <div className="form-group full">
-                <label>兴趣爱好</label>
-                <textarea rows={2} value={alumniData.interests} onChange={e => setAlumniData({...alumniData, interests: e.target.value})} placeholder="例如：网球、登山、创业等" />
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>社会职务 <span style={{ color: '#22c55e', fontSize: '11px', marginLeft: '8px' }}>默认展示</span></span>
+                  <input type="checkbox" checked={alumniData.is_social_roles_public} onChange={e => setAlumniData({...alumniData, is_social_roles_public: e.target.checked})} style={{ width: '20px', height: '20px' }} />
+                </label>
+                <textarea rows={2} value={alumniData.social_roles} onChange={e => setAlumniData({...alumniData, social_roles: e.target.value})} placeholder="例如：行业协会职务、政协委员等" />
               </div>
             </div>
 

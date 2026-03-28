@@ -25,16 +25,17 @@ export async function GET(request: NextRequest) {
     const params: (string | number)[] = [];
 
     // All registered users can browse now as per new requirement
-    // Admins see all, others see only APPROVED alumni records
+    // Admins see all, others see only APPROVED alumni records 
+    // OR records that have an APPROVED user account
     if (!isAdmin) {
-      conditions.push("status = 'APPROVED'");
+      conditions.push("(a.status = 'APPROVED' OR EXISTS (SELECT 1 FROM users u WHERE u.alumni_id = a.id AND u.status = 'APPROVED'))");
     }
 
     if (search) {
-      // Support searching by name, pinyin, company, position, phone, etc.
-      conditions.push('(name LIKE ? OR pinyin_name LIKE ? OR company LIKE ? OR position LIKE ? OR phone LIKE ? OR qq LIKE ? OR wechat_id LIKE ?)');
+      // Support searching by name, pinyin, or company only for regular users
+      conditions.push('(name LIKE ? OR pinyin_name LIKE ? OR company LIKE ?)');
       const like = `%${search}%`;
-      params.push(like, like, like, like, like, like, like);
+      params.push(like, like, like);
     }
 
     const region = searchParams.get('region') || '';
@@ -67,19 +68,13 @@ export async function GET(request: NextRequest) {
 
     const total = (db.prepare(`SELECT COUNT(*) as count FROM alumni a ${where}`).get(...params) as { count: number }).count;
     
-    // For Admins, we JOIN with users to check registration status
-    let query = '';
-    if (isAdmin) {
-      query = `
-        SELECT a.*, u.status as user_status, (CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END) as is_registered
-        FROM alumni a
-        LEFT JOIN users u ON a.id = u.alumni_id
-        ${where}
-        ORDER BY a.pinyin_name ASC LIMIT ? OFFSET ?
-      `;
-    } else {
-      query = `SELECT * FROM alumni a ${where} ORDER BY a.pinyin_name ASC LIMIT ? OFFSET ?`;
-    }
+    let query = `
+      SELECT a.*, u.status as user_status, (CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END) as is_registered
+      FROM alumni a
+      LEFT JOIN users u ON a.id = u.alumni_id
+      ${where}
+      ORDER BY a.pinyin_name ASC LIMIT ? OFFSET ?
+    `;
 
     const rows = db.prepare(query).all(...params, pageSize, offset);
 
@@ -98,14 +93,27 @@ export async function GET(request: NextRequest) {
 
     // Redaction logic for normal users
     let approvedContactAlumniIds: Set<number> = new Set();
-    if (isUser && alumniIds.length > 0) {
+    if (alumniIds.length > 0) {
       const qs = alumniIds.map(() => '?').join(',');
+      // Bidirectional check:
+      // 1. Current user (requester) -> Target alumni
+      // 2. Target alumni (requester) -> Current user (as alumni)
       const approvedRequests = db.prepare(`
-        SELECT target_alumni_id 
-        FROM contact_requests 
-        WHERE requester_id = ? AND target_alumni_id IN (${qs}) AND status = 'APPROVED'
-      `).all(session.userId, ...alumniIds) as any[];
-      approvedContactAlumniIds = new Set(approvedRequests.map(r => r.target_alumni_id));
+        SELECT 
+          CASE 
+            WHEN u.alumni_id = ? THEN cr.target_alumni_id 
+            ELSE u.alumni_id 
+          END as connected_id
+        FROM contact_requests cr
+        JOIN users u ON cr.requester_id = u.id
+        WHERE cr.status = 'APPROVED'
+        AND (
+          (u.alumni_id = ? AND cr.target_alumni_id IN (${qs}))
+          OR
+          (cr.target_alumni_id = ? AND u.alumni_id IN (${qs}))
+        )
+      `).all(session.alumniId, session.alumniId, ...alumniIds, session.alumniId, ...alumniIds) as any[];
+      approvedContactAlumniIds = new Set(approvedRequests.map(r => r.connected_id));
     }
 
     const data = rows.map((r: any) => {
@@ -117,15 +125,60 @@ export async function GET(request: NextRequest) {
         experiences: expsMap[r.id] || []
       };
 
-      if (isUser && !isRecordApproved && !isSelf) {
-        // Redaction: Hide phone and wechat_groups
+      const isRegistered = !!r.is_registered;
+
+      // 2. Connection-based Masking (Unapproved Connections)
+      if (!isAdmin && session.alumniId !== r.id && !isRecordApproved) {
+        if (isRegistered) {
+          if (!alumniData.is_company_public) alumniData.company = '******';
+          if (!alumniData.is_position_public) alumniData.position = '******';
+          if (!alumniData.is_business_public) alumniData.business_desc = '******';
+          if (!alumniData.is_social_roles_public) alumniData.social_roles = '******';
+
+          // School Experiences: Respect individual is_public toggles for non-connections
+          alumniData.experiences = (expsMap[r.id] || []).map(exp => ({
+            ...exp,
+            stage: exp.is_public ? exp.stage : '******',
+            start_year: exp.is_public ? exp.start_year : '****',
+            end_year: exp.is_public ? exp.end_year : '****',
+            college: exp.is_public ? exp.college : '******',
+            major: exp.is_public ? exp.major : '******',
+          }));
+        }
+
+        // Phone, WeChat, Birth Month, Interests are always masked for non-connections
         alumniData.phone = '******';
-        alumniData.wechat_groups = '******';
-        alumniData.qq = '******';
         alumniData.wechat_id = '******';
+        alumniData.qq = '******';
+        alumniData.birth_month = '******';
+        alumniData.interests = '******';
+        alumniData.dut_verified = '******';
+
+        // Always Mask sensitive fields for non-registered/non-approved users
+        alumniData.wechat_groups = '******';
+        alumniData.hometown = '******';
+        alumniData.region = '******';
+        
+        if (isRegistered) {
+          alumniData.degree = '******';
+        }
+
+        // For Unregistered: Experiences are public by default
+        if (!isRegistered) {
+          alumniData.experiences = expsMap[r.id] || [];
+        }
+
         alumniData.is_redacted = true;
       } else {
         alumniData.is_redacted = false;
+        
+        // If approved or self, show all experiences (registered or not)
+        alumniData.experiences = expsMap[r.id] || [];
+      }
+
+      // Interests: Only admins and self see this in list view
+      if (!isAdmin && session.alumniId !== r.id) {
+        alumniData.interests = '******';
       }
 
       return alumniData;
@@ -152,7 +205,6 @@ export async function POST(request: NextRequest) {
 
     const p = {
       name: body.name || null,
-      has_duplicate_name: body.has_duplicate_name || null,
       hometown: body.hometown || null,
       school_experience: body.school_experience || null,
       // Mirror from first experience if scalar fields are missing
@@ -179,25 +231,31 @@ export async function POST(request: NextRequest) {
       wechat_groups: body.wechat_groups || null,
       association_role: body.association_role || null,
       pinyin_name: body.name ? generatePinyin(body.name) : null,
+      is_company_public: body.is_company_public !== undefined ? (body.is_company_public ? 1 : 0) : 1,
+      is_position_public: body.is_position_public !== undefined ? (body.is_position_public ? 1 : 0) : 1,
+      is_business_public: body.is_business_public !== undefined ? (body.is_business_public ? 1 : 0) : 1,
+      is_social_roles_public: body.is_social_roles_public !== undefined ? (body.is_social_roles_public ? 1 : 0) : 1,
     };
 
     const insertAlumni = db.prepare(`
       INSERT INTO alumni (
-        name, has_duplicate_name, hometown, school_experience,
+        name, hometown, school_experience,
         enrollment_year, graduation_year, college, college_normalized, major,
         degree, phone, interests, qq, wechat_id, dut_verified, birth_month,
-        gender, region, career_type, company, position, industry, social_roles, business_desc, wechat_groups, pinyin_name, association_role
+        gender, region, career_type, company, position, industry, social_roles, business_desc, wechat_groups, pinyin_name, association_role,
+        is_company_public, is_position_public, is_business_public, is_social_roles_public
       ) VALUES (
-        @name, @has_duplicate_name, @hometown, @school_experience,
+        @name, @hometown, @school_experience,
         @enrollment_year, @graduation_year, @college, @college_normalized, @major,
         @degree, @phone, @interests, @qq, @wechat_id, @dut_verified, @birth_month,
-        @gender, @region, @career_type, @company, @position, @industry, @social_roles, @business_desc, @wechat_groups, @pinyin_name, @association_role
+        @gender, @region, @career_type, @company, @position, @industry, @social_roles, @business_desc, @wechat_groups, @pinyin_name, @association_role,
+        @is_company_public, @is_position_public, @is_business_public, @is_social_roles_public
       )
     `);
 
     const insertExp = db.prepare(`
-      INSERT INTO school_experiences (alumni_id, stage, start_year, end_year, college, major, sort_order)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO school_experiences (alumni_id, stage, start_year, end_year, college, major, sort_order, is_public)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     let newRecord: any = null;
@@ -208,7 +266,7 @@ export async function POST(request: NextRequest) {
       
       if (Array.isArray(experiences)) {
         experiences.forEach((exp: any, i: number) => {
-          insertExp.run(alumniId, exp.stage || null, exp.start_year || null, exp.end_year || null, exp.college || null, exp.major || null, i);
+          insertExp.run(alumniId, exp.stage || null, exp.start_year || null, exp.end_year || null, exp.college || null, exp.major || null, i, exp.is_public ? 1 : 0);
         });
       }
       

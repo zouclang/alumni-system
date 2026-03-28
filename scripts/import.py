@@ -129,44 +129,44 @@ def main():
         name = re.sub(r'\d+$', '', name)
 
         # Column mapping (0-indexed):
-        # 0:序号 1:姓名 2:是否重名 3:家乡 4:在校经历 5:入学时间 6:毕业年份 7:学院 8:整理后学院
-        # 9:专业 10:学历 11:联系电话 12:兴趣爱好 13:QQ号 14:所在微信群 15:大工人认证 
-        # 16:生日月份 17:性别 18:所在区域 19:事业类型 20:工作单位 21:职位 22:所属行业 23:社会职务
+        # 0:序号 1:姓名 2:家乡 3:在校经历 4:入学时间 5:毕业年份 6:学院 7:整理后学院
+        # 8:专业 9:学历 10:联系电话 11:兴趣爱好 12:QQ号 13:所在微信群 14:大工人认证 
+        # 15:生日月份 16:性别 17:所在区域 18:事业类型 19:工作单位 20:职位 21:所属行业 22:社会职务
 
         record = (
             seq_no,
             name,
-            clean_value(row[2]),   # has_duplicate_name
-            clean_value(row[3]),   # hometown
-            clean_value(row[4]),   # school_experience
-            clean_year(row[5]),    # enrollment_year
-            clean_year(row[6]),    # graduation_year
-            clean_value(row[7]),   # college
-            clean_value(row[8]),   # college_normalized
-            clean_value(row[9]),   # major
-            clean_value(row[10]),  # degree
-            clean_phone(row[11]),  # phone
-            clean_value(row[12]),  # interests
-            clean_phone(row[13]),  # qq
-            str(clean_value(row[14])).replace('、', ',') if clean_value(row[14]) else None,  # wechat_groups
-            clean_value(row[15]),  # dut_verified
-            int(row[16]) if isinstance(row[16], (int, float)) else None,  # birth_month
-            clean_value(row[17]),  # gender
-            clean_value(row[18]),  # region
-            clean_value(row[19]),  # career_type
-            clean_value(row[20]),  # company
-            clean_value(row[21]),  # position
-            clean_value(row[22]),  # industry
-            clean_value(row[23]),  # social_roles
+            standardize_hometown(clean_value(row[2])),   # hometown (was row[3])
+            clean_value(row[3]),   # school_experience (was row[4])
+            clean_year(row[4]),    # enrollment_year (was row[5])
+            clean_year(row[5]),    # graduation_year (was row[6])
+            clean_value(row[6]),   # college (was row[7])
+            clean_value(row[7]),   # college_normalized (was row[8])
+            clean_value(row[8]),   # major (was row[9])
+            clean_value(row[9]),  # degree (was row[10])
+            clean_phone(row[10]),  # phone (was row[11])
+            clean_value(row[11]),  # interests (was row[12])
+            clean_phone(row[12]),  # qq (was row[13])
+            str(clean_value(row[13])).replace('、', ',') if clean_value(row[13]) else None,  # wechat_groups (was row[14])
+            clean_value(row[14]),  # dut_verified (was row[15])
+            int(row[15]) if isinstance(row[15], (int, float)) else None,  # birth_month (was row[16])
+            clean_value(row[16]),  # gender (was row[17])
+            clean_value(row[17]),  # region (was row[18])
+            clean_value(row[18]),  # career_type (was row[19])
+            clean_value(row[19]),  # company (was row[20])
+            clean_value(row[20]),  # position (was row[21])
+            clean_value(row[21]),  # industry (was row[22])
+            clean_value(row[22]),  # social_roles (was row[23])
+            pinyin_name,           # pinyin_name
         )
 
         cur.execute("""
             INSERT INTO alumni (
-                seq_no, name, has_duplicate_name, hometown, school_experience,
+                seq_no, name, hometown, school_experience,
                 enrollment_year, graduation_year, college, college_normalized, major,
                 degree, phone, interests, qq, wechat_groups, dut_verified,
                 birth_month, gender, region, career_type, company, position,
-                industry, social_roles
+                industry, social_roles, pinyin_name
             ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, record)
         alumni_id = cur.lastrowid

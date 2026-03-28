@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     // Build CSV matching the user requested limited columns
     const headers = [
-      '姓名', '是否重名', '家乡', '在校经历', '最高学历', 
+      '姓名', '家乡', '在校经历', '最高学历', 
       '联系电话', '兴趣爱好', '所在微信群', '大工人认证', 
       '生日月份', '性别', '所在区域', '事业类型', 
       '工作单位', '职位', '所属行业', '社会职务'
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       let formattedExp = expStrs.join('|');
 
       const values = [
-        row.name, row.has_duplicate_name, row.hometown, formattedExp, row.degree,
+        row.name, row.hometown, formattedExp, row.degree,
         row.phone, row.interests, row.wechat_groups, row.dut_verified,
         row.birth_month, row.gender, row.region, row.career_type,
         row.company, row.position, row.industry, row.social_roles
