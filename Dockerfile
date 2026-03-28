@@ -2,7 +2,10 @@
 FROM node:20-bookworm-slim AS deps
 WORKDIR /app
 
-# Install build tools for better-sqlite3 (node-gyp requires python3 and make/g++)
+# Optimize: Use Aliyun mirror for Debian
+RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources
+
+# Install build tools for better-sqlite3
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -10,13 +13,17 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
-RUN npm ci
+# Optimize: Use Aliyun mirror for NPM
+RUN npm config set registry https://registry.npmmirror.com && npm ci
 
 # Stage 2: Builder
 FROM node:20-bookworm-slim AS builder
 WORKDIR /app
 
-# We need build tools again if better-sqlite3 rebuild is triggered during build or install
+# Optimize: Use Aliyun mirror for Debian
+RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources
+
+# We need build tools again
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
