@@ -51,11 +51,10 @@ ENV HOSTNAME="0.0.0.0"
 # Create data directory for SQLite
 RUN mkdir -p /app/data && chown -R node:node /app/data
 
-# Copy standalone output and necessary public files
-# The standalone build includes minimal node_modules and server files
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# Copy standalone output and necessary public files with correct node user ownership
+COPY --chown=node:node --from=builder /app/public ./public
+COPY --chown=node:node --from=builder /app/.next/standalone ./
+COPY --chown=node:node --from=builder /app/.next/static ./.next/static
 
 # We need to install production dependencies (specifically better-sqlite3)
 # because the standalone trace might not perfectly capture native bindings across OS boundaries.
