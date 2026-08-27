@@ -57,6 +57,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
+# Fix permissions on public assets and static directories to prevent EACCES scandir errors
+RUN chmod -R 755 /app/public /app/data /app/.next
+
 # We need to install production dependencies (specifically better-sqlite3)
 # because the standalone trace might not perfectly capture native bindings across OS boundaries.
 # However, Next.js standalone usually bundles deps. If better-sqlite3 fails to load,
