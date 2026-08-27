@@ -32,6 +32,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN find . -type d -exec chmod 755 {} +
 
 # Build Next.js application (standalone output must be enabled in next.config.ts)
 RUN npm run build
@@ -58,7 +59,7 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
 # Fix permissions on public assets and static directories to prevent EACCES scandir errors
-RUN chmod -R 755 /app/public /app/data /app/.next
+RUN find /app -type d -exec chmod 755 {} +
 
 # We need to install production dependencies (specifically better-sqlite3)
 # because the standalone trace might not perfectly capture native bindings across OS boundaries.
