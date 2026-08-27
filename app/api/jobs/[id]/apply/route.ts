@@ -28,8 +28,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         is_read_by_publisher = 0,
         updated_at = CURRENT_TIMESTAMP
     `).run(Number(id), userRow.alumni_id, bio_snapshot || '');
-    // Dispatch unread count update for publisher (will be picked up on next sidebar fetch)
-    return NextResponse.json({ success: true });
+
+    const appRow = db.prepare("SELECT id FROM job_applications WHERE job_id = ? AND applicant_alumni_id = ?").get(Number(id), userRow.alumni_id) as { id: number };
+
+    return NextResponse.json({ success: true, applicationId: appRow?.id });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }

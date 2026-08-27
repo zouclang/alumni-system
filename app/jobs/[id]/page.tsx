@@ -38,6 +38,8 @@ export default function JobDetailPage() {
       .catch(() => setLoading(false));
   }, [jobId]);
 
+  const [withdrawing, setWithdrawing] = useState(false);
+
   const handleOpenApply = async () => {
     const skillsRes = await fetch('/api/resume/skills');
     const skillsData = await skillsRes.json();
@@ -58,13 +60,50 @@ export default function JobDetailPage() {
       if (res.ok) {
         setApplySuccess(true);
         setShowApplyModal(false);
-        setJob((prev: any) => ({ ...prev, userApplied: true }));
+        setJob((prev: any) => ({ ...prev, userApplied: true, applicationId: data.applicationId || prev.applicationId }));
         window.dispatchEvent(new Event('unreadCountUpdate'));
       } else {
         alert(data.error || '投递失败，请重试');
       }
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleWithdrawApply = async () => {
+    let appId = job?.applicationId;
+    if (!appId) {
+      try {
+        const res = await fetch(`/api/jobs/${jobId}`);
+        const freshJob = await res.json();
+        appId = freshJob?.applicationId;
+      } catch {}
+    }
+    if (!appId) {
+      alert('未找到有效投递记录');
+      return;
+    }
+
+    if (!confirm('确定要撤回对此岗位的求职投递吗？')) return;
+
+    setWithdrawing(true);
+    try {
+      const res = await fetch(`/api/jobs/applications/${appId}/withdraw`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setApplySuccess(false);
+        setJob((prev: any) => ({ ...prev, userApplied: false, applicationId: null }));
+        window.dispatchEvent(new Event('unreadCountUpdate'));
+        alert('已撤回投递');
+      } else {
+        alert(data.error || '撤回失败，请重试');
+      }
+    } catch {
+      alert('网络开小差了');
+    } finally {
+      setWithdrawing(false);
     }
   };
 
@@ -138,10 +177,23 @@ export default function JobDetailPage() {
                 color: '#475569', textDecoration: 'none', display: 'inline-block',
               }}>⚙️ 去个人中心管理岗位</Link>
             ) : job.userApplied ? (
-              <button disabled style={{
-                padding: '12px 28px', background: '#f1f5f9', border: 'none',
-                borderRadius: '12px', fontWeight: 600, fontSize: '15px', color: '#94a3b8', cursor: 'not-allowed',
-              }}>✅ 已投递</button>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <button disabled style={{
+                  padding: '12px 22px', background: '#ecfdf5', border: '1px solid #a7f3d0',
+                  borderRadius: '12px', fontWeight: 600, fontSize: '14px', color: '#059669', cursor: 'default',
+                }}>✅ 已投递</button>
+                <button
+                  onClick={handleWithdrawApply}
+                  disabled={withdrawing}
+                  style={{
+                    padding: '12px 20px', background: '#fff', border: '1px solid #fca5a5',
+                    borderRadius: '12px', fontWeight: 600, fontSize: '14px', color: '#ef4444', cursor: 'pointer',
+                    transition: 'all 0.2s', opacity: withdrawing ? 0.6 : 1,
+                  }}
+                >
+                  {withdrawing ? '撤回中...' : '↩️ 撤回投递'}
+                </button>
+              </div>
             ) : isExpired || job.status !== 'ACTIVE' ? (
               <button disabled style={{
                 padding: '12px 28px', background: '#f1f5f9', border: 'none',
