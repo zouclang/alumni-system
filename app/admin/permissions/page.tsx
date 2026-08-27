@@ -135,6 +135,33 @@ export default function PermissionsPage() {
   };
 
   const handleStatusUpdate = async (userId: number | string, status: string) => {
+    const sId = String(userId);
+    let removedUser: any = null;
+
+    // 1. Instant optimistic UI update (0ms delay)
+    processedIdsRef.current.add(`REG-${sId}`);
+    setUsers(prev => {
+      removedUser = prev.find(u => String(u.id) === sId || String(u.user_id) === sId || String(u.alumni_id) === sId);
+      if (removedUser) {
+        if (removedUser.id) processedIdsRef.current.add(`REG-${String(removedUser.id)}`);
+        if (removedUser.user_id) processedIdsRef.current.add(`REG-${String(removedUser.user_id)}`);
+        if (removedUser.alumni_id) processedIdsRef.current.add(`REG-${String(removedUser.alumni_id)}`);
+      }
+      return prev.filter(u => 
+        String(u.id) !== sId && 
+        String(u.user_id) !== sId && 
+        String(u.alumni_id) !== sId
+      );
+    });
+
+    setPendingCounts(prev => ({
+      ...prev,
+      registration: Math.max(0, prev.registration - 1)
+    }));
+
+    window.dispatchEvent(new Event('pendingCountUpdate'));
+
+    // 2. Background API call
     try {
       const res = await fetch('/api/admin/users', {
         method: 'PATCH',
@@ -142,52 +169,38 @@ export default function PermissionsPage() {
         body: JSON.stringify({ userId: Number(userId), status }),
       });
       if (res.ok) {
-        // 1. Optimistic update: remove the user from local list immediately
-        const sId = String(userId);
-        processedIdsRef.current.add(`REG-${sId}`);
-        
-        setUsers(prev => {
-          // Find matching item to record all its IDs
-          const target = prev.find(u => String(u.id) === sId || String(u.user_id) === sId || String(u.alumni_id) === sId);
-          if (target) {
-            if (target.id) processedIdsRef.current.add(`REG-${String(target.id)}`);
-            if (target.user_id) processedIdsRef.current.add(`REG-${String(target.user_id)}`);
-            if (target.alumni_id) processedIdsRef.current.add(`REG-${String(target.alumni_id)}`);
-          }
-          return prev.filter(u => 
-            String(u.id) !== sId && 
-            String(u.user_id) !== sId && 
-            String(u.alumni_id) !== sId
-          );
-        });
-        
-        // 2. Optimistically update local counts for the tabs
-        setPendingCounts(prev => ({
-          ...prev,
-          registration: Math.max(0, prev.registration - 1)
-        }));
-        
-        // 3. Dispatch event for sidebar IMMEDIATELY
-        window.dispatchEvent(new Event('pendingCountUpdate'));
-        
-        // 4. Background refetch with generous delay to ensure DB visibility
         setTimeout(() => {
           fetchUsers(true);
           fetchPendingCounts();
         }, 1000);
-        
-        // Secondary fallback sync
-        setTimeout(() => {
-          fetchUsers(true);
-          fetchPendingCounts();
-        }, 2500);
+      } else {
+        if (removedUser) setUsers(prev => [removedUser, ...prev]);
+        alert('操作失败');
       }
     } catch (err) {
+      if (removedUser) setUsers(prev => [removedUser, ...prev]);
       alert('操作失败');
     }
   };
 
   const handleContactAudit = async (requestId: number | string, status: string, remark?: string) => {
+    const sId = String(requestId);
+    let removedReq: any = null;
+
+    // Instant optimistic UI update
+    processedIdsRef.current.add(`CON-${sId}`);
+    setContactRequests(prev => {
+      removedReq = prev.find(req => String(req.id) === sId);
+      return prev.filter(req => String(req.id) !== sId);
+    });
+
+    setPendingCounts(prev => ({
+      ...prev,
+      contact: Math.max(0, prev.contact - 1)
+    }));
+
+    window.dispatchEvent(new Event('pendingCountUpdate'));
+
     try {
       const res = await fetch(`/api/contact-requests/${requestId}`, {
         method: 'PATCH',
@@ -195,42 +208,40 @@ export default function PermissionsPage() {
         body: JSON.stringify({ status, adminRemark: remark }),
       });
       if (res.ok) {
-        // 1. Optimistic update
-        processedIdsRef.current.add(`CON-${String(requestId)}`);
-        setContactRequests(prev => prev.filter(req => String(req.id) !== String(requestId)));
-        
-        // 2. Optimistic count update
-        setPendingCounts(prev => ({
-          ...prev,
-          contact: Math.max(0, prev.contact - 1)
-        }));
-        
-        // 3. Dispatch event IMMEDIATELY
-        window.dispatchEvent(new Event('pendingCountUpdate'));
-        
-        // 4. Delayed background sync
         setTimeout(() => {
           fetchContactRequests(true);
           fetchPendingCounts();
         }, 1000);
-        
-        // Fallback sync
-        setTimeout(() => {
-          fetchContactRequests(true);
-          fetchPendingCounts();
-        }, 2500);
-        
         setRejectingRequest(null);
         setRejectReason('');
       } else {
+        if (removedReq) setContactRequests(prev => [removedReq, ...prev]);
         alert('审核失败');
       }
     } catch (err) {
+      if (removedReq) setContactRequests(prev => [removedReq, ...prev]);
       alert('操作失败');
     }
   };
 
   const handleCorrectionAudit = async (requestId: number | string, status: string, remark?: string) => {
+    const sId = String(requestId);
+    let removedReq: any = null;
+
+    // Instant optimistic UI update
+    processedIdsRef.current.add(`COR-${sId}`);
+    setCorrectionRequests(prev => {
+      removedReq = prev.find(req => String(req.id) === sId);
+      return prev.filter(req => String(req.id) !== sId);
+    });
+
+    setPendingCounts(prev => ({
+      ...prev,
+      correction: Math.max(0, prev.correction - 1)
+    }));
+
+    window.dispatchEvent(new Event('pendingCountUpdate'));
+
     try {
       const res = await fetch(`/api/corrections/${requestId}`, {
         method: 'PATCH',
@@ -238,37 +249,18 @@ export default function PermissionsPage() {
         body: JSON.stringify({ status, adminRemark: remark }),
       });
       if (res.ok) {
-        // 1. Optimistic update
-        processedIdsRef.current.add(`COR-${String(requestId)}`);
-        setCorrectionRequests(prev => prev.filter(req => String(req.id) !== String(requestId)));
-        
-        // 2. Optimistic count update
-        setPendingCounts(prev => ({
-          ...prev,
-          correction: Math.max(0, prev.correction - 1)
-        }));
-        
-        // 3. Dispatch event IMMEDIATELY
-        window.dispatchEvent(new Event('pendingCountUpdate'));
-
-        // 4. Delayed background sync
         setTimeout(() => {
           fetchCorrectionRequests(true);
           fetchPendingCounts();
         }, 1000);
-
-        // Fallback sync
-        setTimeout(() => {
-          fetchCorrectionRequests(true);
-          fetchPendingCounts();
-        }, 2500);
-        
         setRejectingRequest(null);
         setRejectReason('');
       } else {
+        if (removedReq) setCorrectionRequests(prev => [removedReq, ...prev]);
         alert('审核失败');
       }
     } catch (err) {
+      if (removedReq) setCorrectionRequests(prev => [removedReq, ...prev]);
       alert('操作失败');
     }
   };
