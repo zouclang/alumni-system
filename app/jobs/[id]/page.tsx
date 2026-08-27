@@ -191,7 +191,12 @@ export default function JobDetailPage() {
             <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px' }}>投递至：{job.company_name} · {job.job_title}</p>
 
             <div style={{ marginBottom: '20px', padding: '16px', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '10px' }}>📎 简历摘要（自动引入）</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>📎 简历摘要（自动引入）</div>
+                <Link href="/profile?tab=resume" target="_blank" style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                  ✏️ 修改/完善简历 ↗
+                </Link>
+              </div>
               {resumeSkills?.skill_tags && (() => {
                 try {
                   const tags = JSON.parse(resumeSkills.skill_tags);

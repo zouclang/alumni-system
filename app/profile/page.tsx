@@ -52,6 +52,13 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab && ['info', 'password', 'requests', 'resume', 'my-jobs', 'my-applications'].includes(tab)) {
+        setCurrentView(tab as any);
+      }
+    }
     fetchData();
   }, []);
 
@@ -359,7 +366,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="profile-content-area">
-          {currentView === 'info' ? (
+          {currentView === 'info' && (
             <div className="info-view animate-fade-in">
               <div className="view-title-row">
                 <h2>📄 个人详细资料</h2>
@@ -379,7 +386,9 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-          ) : currentView === 'password' ? (
+          )}
+
+          {currentView === 'password' && (
             <div className="password-view animate-fade-in">
               <div className="view-title-row">
                 <h2>🔐 修改登录密码</h2>
@@ -419,7 +428,9 @@ export default function ProfilePage() {
                 </form>
               </div>
             </div>
-          ) : (
+          )}
+
+          {currentView === 'requests' && (
             <div className="requests-view animate-fade-in">
               {user?.role !== 'ADMIN' && (
                 <div className="view-title-row">
