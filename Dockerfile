@@ -41,7 +41,7 @@ FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=8085
 ENV HOSTNAME="0.0.0.0"
 
 # Optional: Add non-root user for security
@@ -65,7 +65,7 @@ COPY --from=builder /app/.next/static ./.next/static
 
 USER node
 
-EXPOSE 3000
+EXPOSE 8085
 VOLUME ["/app/data"]
 
 CMD ["node", "server.js"]

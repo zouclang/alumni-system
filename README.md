@@ -125,25 +125,36 @@ pm2 stop alumni-system        # 停止应用
 ### 3. 更换登录页背景
 替换 `public/login-bg.png` 即可。
 
-## 🐳 Docker 部署 (推荐)
+## 🐳 Docker 部署 (推荐 - 阿里云 / 飞牛 NAS fnOS)
 
-项目已全面支持 Docker 容器化部署，内置了多阶段构建的轻量化 `Dockerfile`，并优化了 Next.js standalone 输出。同时配置了数据持久化挂载，确保 SQLite 数据安全。
+项目已全面支持 Docker 容器化部署，内置了多阶段构建的轻量化 `Dockerfile`（整合 Linux/node 编译好的 SQLite 动态库），特别推荐在 **飞牛 NAS (fnOS)** 或 **VPS 服务器** 上运行。
 
-### 1. 使用 Docker Compose 一键运行（最简单）
+### 1. 飞牛 NAS (fnOS) 图形化部署步骤（最推荐）
+
+1. 打开 **飞牛 NAS 网页端** 🡒 点击 **应用局** / **Docker** 管理器。
+2. 选择 **项目** (Compose) 🡒 点击 **新增项目**。
+3. 项目名称填写 `alumni-system`，路径选择代码仓库文件夹（例如 `/vol1/1000/docker/alumni-system`）。
+4. 在图形界面中识别到 `docker-compose.yml` 后，点击 **构建并启动**。
+5. 部署完成后，在飞牛 UI 勾选 **容器开机自启** 即可！
+6. 访问 `http://NAS的IP:8085` 即可打开校友通讯录系统，数据库文件会自动保存在 NAS 本地的 `data/alumni.db` 中。
+
+---
+
+### 2. 命令行一键运行 (Docker Compose)
 在项目根目录执行：
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
-系统将自动在 `3000` 端口启动，并由 `docker-compose` 守护进程保持运行。所有数据保存在此目录下的 `data/alumni.db` 中。
+系统将自动在 `8085` 端口启动，并由 `docker-compose` 守护进程保持运行。所有数据自动保存在此目录下的 `data/alumni.db` 中。
 
-### 2. 手动构建与运行
+### 3. 手动构建与运行 (Docker CLI)
 如果不使用 docker-compose，可以使用原生 docker 命令：
 ```bash
 # 构建镜像
 docker build -t alumni-system .
 
-# 运行容器 (映射 3000 端口，并挂载本地 data 目录)
-docker run -d -p 3000:3000 -v $(pwd)/data:/app/data --name alumni-system alumni-system
+# 运行容器 (映射 8085 端口，并挂载本地 data 目录)
+docker run -d -p 8085:8085 -v $(pwd)/data:/app/data --name alumni-system alumni-system
 ```
 
 ## 📝 开发备注
