@@ -487,7 +487,7 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
       </div>
       <div className={inline ? 'inline-form-footer' : 'modal-footer'}>
         {onClose && <button type="button" className="btn btn-outline" onClick={onClose}>取消</button>}
-        {onReject && (initial as any)?.status === 'PENDING' && (
+        {onReject && (initial as any)?.status?.toUpperCase() === 'PENDING' && (
           <button 
             type="button" 
             className="btn btn-danger" 
@@ -505,7 +505,7 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
           </button>
         )}
         <button type="submit" className="btn btn-primary" disabled={saving} style={inline ? { padding: '12px 30px' } : {}}>
-          {saving ? '保存中...' : (onApprove && (initial as any)?.status === 'PENDING' ? '保存并批准' : (isEdit ? '保存修改' : '添加校友'))}
+          {saving ? '保存中...' : (onApprove && (initial as any)?.status?.toUpperCase() === 'PENDING' ? '保存并批准' : (isEdit ? '保存修改' : '添加校友'))}
         </button>
       </div>
     </form>

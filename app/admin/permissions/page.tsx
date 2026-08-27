@@ -97,7 +97,7 @@ export default function PermissionsPage() {
       const data = await res.json();
       // Filter out ADMIN users and already-processed IDs to prevent reappearance on stale refetch
       const filtered = (data as any[]).filter((u: any) => 
-        u.role !== 'ADMIN' && !processedIdsRef.current.has(`REG-${u.id}`)
+        u.role !== 'ADMIN' && !processedIdsRef.current.has(`REG-${String(u.id)}`)
       );
       setUsers(filtered);
     } catch (err) {
@@ -112,7 +112,7 @@ export default function PermissionsPage() {
       const res = await fetch(`/api/contact-requests?status=PENDING&t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
-      const filtered = data.filter((r: any) => !processedIdsRef.current.has(`CON-${r.id}`));
+      const filtered = data.filter((r: any) => !processedIdsRef.current.has(`CON-${String(r.id)}`));
       setContactRequests(filtered);
     } catch (err) {
       setError('无法加载对接申请');
@@ -124,24 +124,24 @@ export default function PermissionsPage() {
       const res = await fetch(`/api/corrections?status=PENDING&t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
-      const filtered = data.filter((r: any) => !processedIdsRef.current.has(`COR-${r.id}`));
+      const filtered = data.filter((r: any) => !processedIdsRef.current.has(`COR-${String(r.id)}`));
       setCorrectionRequests(filtered);
     } catch (err) {
       setError('无法加载纠正申请');
     }
   };
 
-  const handleStatusUpdate = async (userId: number, status: string) => {
+  const handleStatusUpdate = async (userId: number | string, status: string) => {
     try {
       const res = await fetch('/api/admin/users', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, status }),
+        body: JSON.stringify({ userId: Number(userId), status }),
       });
       if (res.ok) {
         // 1. Optimistic update: remove the user from local list immediately
-        processedIdsRef.current.add(`REG-${userId}`);
-        setUsers(prev => prev.filter(u => u.id !== userId));
+        processedIdsRef.current.add(`REG-${String(userId)}`);
+        setUsers(prev => prev.filter(u => String(u.id) !== String(userId)));
         
         // 2. Optimistically update local counts for the tabs
         setPendingCounts(prev => ({
@@ -169,7 +169,7 @@ export default function PermissionsPage() {
     }
   };
 
-  const handleContactAudit = async (requestId: number, status: string, remark?: string) => {
+  const handleContactAudit = async (requestId: number | string, status: string, remark?: string) => {
     try {
       const res = await fetch(`/api/contact-requests/${requestId}`, {
         method: 'PATCH',
@@ -178,8 +178,8 @@ export default function PermissionsPage() {
       });
       if (res.ok) {
         // 1. Optimistic update
-        processedIdsRef.current.add(`CON-${requestId}`);
-        setContactRequests(prev => prev.filter(req => req.id !== requestId));
+        processedIdsRef.current.add(`CON-${String(requestId)}`);
+        setContactRequests(prev => prev.filter(req => String(req.id) !== String(requestId)));
         
         // 2. Optimistic count update
         setPendingCounts(prev => ({
@@ -212,7 +212,7 @@ export default function PermissionsPage() {
     }
   };
 
-  const handleCorrectionAudit = async (requestId: number, status: string, remark?: string) => {
+  const handleCorrectionAudit = async (requestId: number | string, status: string, remark?: string) => {
     try {
       const res = await fetch(`/api/corrections/${requestId}`, {
         method: 'PATCH',
@@ -221,8 +221,8 @@ export default function PermissionsPage() {
       });
       if (res.ok) {
         // 1. Optimistic update
-        processedIdsRef.current.add(`COR-${requestId}`);
-        setCorrectionRequests(prev => prev.filter(req => req.id !== requestId));
+        processedIdsRef.current.add(`COR-${String(requestId)}`);
+        setCorrectionRequests(prev => prev.filter(req => String(req.id) !== String(requestId)));
         
         // 2. Optimistic count update
         setPendingCounts(prev => ({
@@ -456,13 +456,13 @@ export default function PermissionsPage() {
           }}
           onClose={() => setSelectedUser(null)}
           onSaved={() => {
-            fetchUsers();
+            fetchUsers(true);
           }}
-          onApprove={selectedUser.status === 'PENDING' ? async () => {
+          onApprove={selectedUser?.status?.toUpperCase() === 'PENDING' ? async () => {
             await handleStatusUpdate(selectedUser.id, 'APPROVED');
             setSelectedUser(null);
           } : undefined}
-          onReject={selectedUser.status === 'PENDING' ? async () => {
+          onReject={selectedUser?.status?.toUpperCase() === 'PENDING' ? async () => {
              await handleStatusUpdate(selectedUser.id, 'REJECTED');
              setSelectedUser(null);
           } : undefined}
