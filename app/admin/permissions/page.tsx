@@ -97,7 +97,10 @@ export default function PermissionsPage() {
       const data = await res.json();
       // Filter out ADMIN users and already-processed IDs to prevent reappearance on stale refetch
       const filtered = (data as any[]).filter((u: any) => 
-        u.role !== 'ADMIN' && !processedIdsRef.current.has(`REG-${String(u.id)}`)
+        u.role !== 'ADMIN' && 
+        !processedIdsRef.current.has(`REG-${String(u.id)}`) &&
+        !processedIdsRef.current.has(`REG-${String(u.user_id)}`) &&
+        !processedIdsRef.current.has(`REG-${String(u.alumni_id)}`)
       );
       setUsers(filtered);
     } catch (err) {
@@ -140,8 +143,23 @@ export default function PermissionsPage() {
       });
       if (res.ok) {
         // 1. Optimistic update: remove the user from local list immediately
-        processedIdsRef.current.add(`REG-${String(userId)}`);
-        setUsers(prev => prev.filter(u => String(u.id) !== String(userId)));
+        const sId = String(userId);
+        processedIdsRef.current.add(`REG-${sId}`);
+        
+        setUsers(prev => {
+          // Find matching item to record all its IDs
+          const target = prev.find(u => String(u.id) === sId || String(u.user_id) === sId || String(u.alumni_id) === sId);
+          if (target) {
+            if (target.id) processedIdsRef.current.add(`REG-${String(target.id)}`);
+            if (target.user_id) processedIdsRef.current.add(`REG-${String(target.user_id)}`);
+            if (target.alumni_id) processedIdsRef.current.add(`REG-${String(target.alumni_id)}`);
+          }
+          return prev.filter(u => 
+            String(u.id) !== sId && 
+            String(u.user_id) !== sId && 
+            String(u.alumni_id) !== sId
+          );
+        });
         
         // 2. Optimistically update local counts for the tabs
         setPendingCounts(prev => ({
@@ -149,7 +167,7 @@ export default function PermissionsPage() {
           registration: Math.max(0, prev.registration - 1)
         }));
         
-        // 3. Dispatch event for sidebar IMMEDIATELY - Sidebar has its own protective delay
+        // 3. Dispatch event for sidebar IMMEDIATELY
         window.dispatchEvent(new Event('pendingCountUpdate'));
         
         // 4. Background refetch with generous delay to ensure DB visibility
