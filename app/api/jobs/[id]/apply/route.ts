@@ -19,9 +19,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (existing) return NextResponse.json({ error: '已经投递过该岗位' }, { status: 400 });
     const body = await req.json();
     const { bio_snapshot } = body;
-    db.prepare(
-      'INSERT INTO job_applications (job_id, applicant_alumni_id, bio_snapshot, status, is_read_by_publisher) VALUES (?, ?, ?, \'SUBMITTED\', 0)'
-    ).run(Number(id), userRow.alumni_id, bio_snapshot || '');
+    db.prepare(`
+      INSERT INTO job_applications (job_id, applicant_alumni_id, bio_snapshot, status, is_read_by_publisher, created_at, updated_at)
+      VALUES (?, ?, ?, 'SUBMITTED', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      ON CONFLICT(job_id, applicant_alumni_id) DO UPDATE SET
+        bio_snapshot = excluded.bio_snapshot,
+        status = 'SUBMITTED',
+        is_read_by_publisher = 0,
+        updated_at = CURRENT_TIMESTAMP
+    `).run(Number(id), userRow.alumni_id, bio_snapshot || '');
     // Dispatch unread count update for publisher (will be picked up on next sidebar fetch)
     return NextResponse.json({ success: true });
   } catch (e) {

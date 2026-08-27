@@ -61,8 +61,9 @@ export default function JobsPage() {
 
   const formatDeadline = (d: string) => {
     if (!d) return '';
-    const date = new Date(d);
+    const date = new Date(d + 'T23:59:59');
     const diff = Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    if (diff <= 0) return `⚠️ 今天截止`;
     if (diff <= 3) return `⚠️ 仅剩 ${diff} 天`;
     if (diff <= 7) return `📅 还剩 ${diff} 天`;
     return `截止 ${d}`;

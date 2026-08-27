@@ -70,7 +70,7 @@ export default function JobDetailPage() {
 
   const tags = (() => { try { return JSON.parse(job?.tags || '[]'); } catch { return []; } })();
   const isOwnJob = job?.publisher_alumni_id === job?.currentAlumniId;
-  const isExpired = job?.deadline && new Date(job.deadline) < new Date();
+  const isExpired = job?.deadline && new Date(job.deadline + 'T23:59:59') < new Date();
 
   if (loading) return <div style={{ padding: '100px', textAlign: 'center', color: '#94a3b8' }}>加载中...</div>;
   if (!job || job.error) return <div style={{ padding: '100px', textAlign: 'center', color: '#94a3b8' }}>岗位不存在或已删除</div>;
@@ -132,11 +132,11 @@ export default function JobDetailPage() {
           {/* Actions */}
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
             {isOwnJob ? (
-              <Link href={`/jobs/${job.id}/edit`} style={{
+              <Link href="/profile" style={{
                 padding: '12px 28px', background: '#f1f5f9', border: 'none',
                 borderRadius: '12px', fontWeight: 600, fontSize: '15px',
                 color: '#475569', textDecoration: 'none', display: 'inline-block',
-              }}>⚙️ 管理此岗位</Link>
+              }}>⚙️ 去个人中心管理岗位</Link>
             ) : job.userApplied ? (
               <button disabled style={{
                 padding: '12px 28px', background: '#f1f5f9', border: 'none',
