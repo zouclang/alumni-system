@@ -39,11 +39,25 @@ export async function GET(_request: NextRequest) {
       `).get(alumniId) as { count: number }).count;
     }
 
+    // 3. Unread job applications for jobs I published
+    let jobUnread = 0;
+    if (alumniId) {
+      jobUnread = (db.prepare(`
+        SELECT COUNT(*) as count
+        FROM job_applications ja
+        JOIN job_postings jp ON ja.job_id = jp.id
+        WHERE jp.publisher_alumni_id = ?
+          AND ja.is_read_by_publisher = 0
+          AND ja.status = 'SUBMITTED'
+      `).get(alumniId) as { count: number }).count;
+    }
+
     const processedTotal = contactCount + correctionCount;
     return NextResponse.json({ 
       count: processedTotal + pendingIncomingCount,
       processed: processedTotal,
-      pendingIncoming: pendingIncomingCount
+      pendingIncoming: pendingIncomingCount,
+      jobUnread,
     });
   } catch (error) {
     console.error('GET /api/notifications/unread-count error:', error);

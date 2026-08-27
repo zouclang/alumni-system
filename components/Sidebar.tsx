@@ -10,7 +10,9 @@ export default function Sidebar() {
   const [user, setUser] = useState<{ role: string; username?: string; real_name?: string; realName?: string } | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [userUnreadCount, setUserUnreadCount] = useState(0);
+  const [jobUnreadCount, setJobUnreadCount] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -61,7 +63,10 @@ export default function Sidebar() {
   function fetchUserUnreadCount() {
     fetch(`/api/notifications/unread-count?t=${Date.now()}`)
       .then(res => res.json())
-      .then(data => setUserUnreadCount(data.count || 0))
+      .then(data => {
+        setUserUnreadCount(data.count || 0);
+        setJobUnreadCount(data.jobUnread || 0);
+      })
       .catch(() => {});
   }
 
@@ -82,6 +87,7 @@ export default function Sidebar() {
     { href: '/', icon: '👥', label: '通讯录' },
     { href: '/stats', icon: '📊', label: '数据统计' },
     { href: '/council', icon: '🏛️', label: '理事会成员' },
+    { href: '/jobs', icon: '📋', label: '招聘市场', badge: jobUnreadCount > 0 ? jobUnreadCount : null },
   ];
 
   if (user?.role === 'ADMIN') {

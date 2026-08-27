@@ -219,4 +219,83 @@ function initializeSchema(database: Database.Database) {
   // Migration for processor tracking
   try { database.exec("ALTER TABLE contact_requests ADD COLUMN processed_by_user_id INTEGER;"); } catch(e) {}
   try { database.exec("ALTER TABLE correction_requests ADD COLUMN processed_by_user_id INTEGER;"); } catch(e) {}
+
+  // Recruitment feature tables
+  try {
+    database.exec(`
+      CREATE TABLE IF NOT EXISTS job_postings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        publisher_alumni_id INTEGER NOT NULL,
+        company_name TEXT NOT NULL,
+        use_profile_company INTEGER DEFAULT 1,
+        job_title TEXT NOT NULL,
+        job_type TEXT NOT NULL,
+        location TEXT NOT NULL,
+        salary_range TEXT NOT NULL,
+        description TEXT NOT NULL,
+        contact_info TEXT NOT NULL,
+        tags TEXT DEFAULT '[]',
+        deadline TEXT NOT NULL,
+        status TEXT DEFAULT 'ACTIVE',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (publisher_alumni_id) REFERENCES alumni(id) ON DELETE CASCADE
+      )
+    `);
+  } catch(e) {}
+
+  try {
+    database.exec(`
+      CREATE TABLE IF NOT EXISTS resume_work_experiences (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        alumni_id INTEGER NOT NULL,
+        company TEXT NOT NULL,
+        position TEXT NOT NULL,
+        location TEXT,
+        start_year TEXT NOT NULL,
+        end_year TEXT,
+        is_current INTEGER DEFAULT 0,
+        description TEXT,
+        sort_order INTEGER DEFAULT 0,
+        FOREIGN KEY (alumni_id) REFERENCES alumni(id) ON DELETE CASCADE
+      )
+    `);
+  } catch(e) {}
+
+  try {
+    database.exec(`
+      CREATE TABLE IF NOT EXISTS resume_skills (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        alumni_id INTEGER NOT NULL UNIQUE,
+        skill_tags TEXT DEFAULT '[]',
+        languages TEXT DEFAULT '[]',
+        bio TEXT DEFAULT '',
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (alumni_id) REFERENCES alumni(id) ON DELETE CASCADE
+      )
+    `);
+  } catch(e) {}
+
+  try {
+    database.exec(`
+      CREATE TABLE IF NOT EXISTS job_applications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        job_id INTEGER NOT NULL,
+        applicant_alumni_id INTEGER NOT NULL,
+        bio_snapshot TEXT DEFAULT '',
+        status TEXT DEFAULT 'SUBMITTED',
+        is_read_by_publisher INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (job_id) REFERENCES job_postings(id) ON DELETE CASCADE,
+        FOREIGN KEY (applicant_alumni_id) REFERENCES alumni(id) ON DELETE CASCADE
+      )
+    `);
+  } catch(e) {}
+
+  try { database.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_job_applications_unique ON job_applications(job_id, applicant_alumni_id)'); } catch(e) {}
+  try { database.exec('CREATE INDEX IF NOT EXISTS idx_job_postings_alumni ON job_postings(publisher_alumni_id)'); } catch(e) {}
+  try { database.exec('CREATE INDEX IF NOT EXISTS idx_job_postings_status ON job_postings(status, deadline)'); } catch(e) {}
+  try { database.exec('CREATE INDEX IF NOT EXISTS idx_job_applications_job ON job_applications(job_id)'); } catch(e) {}
+  try { database.exec('CREATE INDEX IF NOT EXISTS idx_job_applications_applicant ON job_applications(applicant_alumni_id)'); } catch(e) {}
 }

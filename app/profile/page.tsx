@@ -12,7 +12,7 @@ export default function ProfilePage() {
   const [completion, setCompletion] = useState<number>(0);
   const [eligibility, setEligibility] = useState<{ eligible: boolean; reason?: string }>({ eligible: false });
   const [loading, setLoading] = useState(true);
-  const [currentView, setCurrentView] = useState<'info' | 'password' | 'requests'>('info');
+  const [currentView, setCurrentView] = useState<'info' | 'password' | 'requests' | 'resume' | 'my-jobs' | 'my-applications'>('info');
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [passwordForm, setPasswordForm] = useState({ old: '', new: '', confirm: '' });
   const [passError, setPassError] = useState('');
@@ -20,6 +20,20 @@ export default function ProfilePage() {
   const router = useRouter();
 
   const [contactRequests, setContactRequests] = useState<{ outgoing: any[], incoming: any[] }>({ outgoing: [], incoming: [] });
+  
+  // Resume state
+  const [workExperiences, setWorkExperiences] = useState<any[]>([]);
+  const [skills, setSkills] = useState<{ skill_tags: string; languages: string; bio: string }>({ skill_tags: '[]', languages: '[]', bio: '' });
+  const [editingWork, setEditingWork] = useState<any>(null);
+  const [showWorkForm, setShowWorkForm] = useState(false);
+  const [workForm, setWorkForm] = useState({ company: '', position: '', location: '', start_year: '', end_year: '', is_current: false, description: '' });
+  const [savingSkills, setSavingSkills] = useState(false);
+  const [skillInput, setSkillInput] = useState('');
+
+  // Jobs state
+  const [myJobs, setMyJobs] = useState<any[]>([]);
+  const [selectedJobApps, setSelectedJobApps] = useState<{ jobId: number; apps: any[] } | null>(null);
+  const [myApplications, setMyApplications] = useState<any[]>([]);
   
   const formatDateTime = (dateStr: string) => {
     if (!dateStr) return '—';
@@ -44,10 +58,11 @@ export default function ProfilePage() {
   useEffect(() => {
     if (currentView === 'requests' && user?.role !== 'ADMIN') {
       fetch('/api/notifications/mark-read', { method: 'POST' })
-        .then(() => {
-          window.dispatchEvent(new Event('unreadCountUpdate'));
-        });
+        .then(() => window.dispatchEvent(new Event('unreadCountUpdate')));
     }
+    if (currentView === 'resume') fetchResume();
+    if (currentView === 'my-jobs') { fetchMyJobs(); window.dispatchEvent(new Event('unreadCountUpdate')); }
+    if (currentView === 'my-applications') fetchMyApplications();
   }, [currentView, user]);
 
   const fetchData = async () => {
@@ -92,6 +107,110 @@ export default function ProfilePage() {
         }
       }
     } catch (err) { console.error(err); }
+  };
+
+  const fetchResume = async () => {
+    try {
+      const [workRes, skillsRes] = await Promise.all([
+        fetch('/api/resume/work'),
+        fetch('/api/resume/skills'),
+      ]);
+      if (workRes.ok) setWorkExperiences(await workRes.json());
+      if (skillsRes.ok) setSkills(await skillsRes.json());
+    } catch (err) { console.error(err); }
+  };
+
+  const fetchMyJobs = async () => {
+    try {
+      const res = await fetch('/api/jobs/my');
+      if (res.ok) setMyJobs(await res.json());
+    } catch (err) { console.error(err); }
+  };
+
+  const fetchMyApplications = async () => {
+    try {
+      const res = await fetch('/api/jobs/applications/my');
+      if (res.ok) setMyApplications(await res.json());
+    } catch (err) { console.error(err); }
+  };
+
+  const handleJobAction = async (jobId: number, action: 'WITHDRAWN' | 'ACTIVE') => {
+    if (!confirm(action === 'WITHDRAWN' ? '确定撤回该岗位？' : '确定重新发布该岗位？')) return;
+    try {
+      const res = await fetch(`/api/jobs/${jobId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: action }),
+      });
+      if (res.ok) { fetchMyJobs(); alert(action === 'WITHDRAWN' ? '已撤回' : '已重新发布'); }
+      else { const d = await res.json(); alert(d.error || '操作失败'); }
+    } catch { alert('网络错误'); }
+  };
+
+  const handleWithdrawApplication = async (appId: number) => {
+    if (!confirm('确定撤回该投递？')) return;
+    try {
+      const res = await fetch(`/api/jobs/applications/${appId}/withdraw`, { method: 'POST' });
+      if (res.ok) { fetchMyApplications(); alert('已撤回投递'); }
+      else { const d = await res.json(); alert(d.error || '撤回失败'); }
+    } catch { alert('网络错误'); }
+  };
+
+  const handleSaveWork = async () => {
+    const url = editingWork ? `/api/resume/work/${editingWork.id}` : '/api/resume/work';
+    const method = editingWork ? 'PUT' : 'POST';
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(workForm),
+      });
+      if (res.ok) {
+        setShowWorkForm(false);
+        setEditingWork(null);
+        setWorkForm({ company: '', position: '', location: '', start_year: '', end_year: '', is_current: false, description: '' });
+        fetchResume();
+      } else { const d = await res.json(); alert(d.error || '保存失败'); }
+    } catch { alert('网络错误'); }
+  };
+
+  const handleDeleteWork = async (id: number) => {
+    if (!confirm('确定删除此工作经历？')) return;
+    try {
+      const res = await fetch(`/api/resume/work/${id}`, { method: 'DELETE' });
+      if (res.ok) fetchResume();
+    } catch { alert('网络错误'); }
+  };
+
+  const handleSaveSkills = async () => {
+    setSavingSkills(true);
+    try {
+      let parsedTags: string[] = [];
+      try { parsedTags = JSON.parse(skills.skill_tags); } catch { parsedTags = []; }
+      const res = await fetch('/api/resume/skills', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skill_tags: parsedTags, languages: [], bio: skills.bio }),
+      });
+      if (res.ok) alert('技能信息已保存');
+      else { const d = await res.json(); alert(d.error || '保存失败'); }
+    } finally { setSavingSkills(false); }
+  };
+
+  const addSkillTag = (tag: string) => {
+    if (!tag.trim()) return;
+    try {
+      const tags = JSON.parse(skills.skill_tags || '[]');
+      if (!tags.includes(tag.trim())) setSkills(prev => ({ ...prev, skill_tags: JSON.stringify([...tags, tag.trim()]) }));
+    } catch { setSkills(prev => ({ ...prev, skill_tags: JSON.stringify([tag.trim()]) })); }
+    setSkillInput('');
+  };
+
+  const removeSkillTag = (tag: string) => {
+    try {
+      const tags = JSON.parse(skills.skill_tags || '[]');
+      setSkills(prev => ({ ...prev, skill_tags: JSON.stringify(tags.filter((t: string) => t !== tag)) }));
+    } catch {}
   };
 
   const handleRequestAction = async (requestId: number, status: 'APPROVED' | 'REJECTED') => {
@@ -229,6 +348,13 @@ export default function ProfilePage() {
               </span>
             )}
           </button>
+          {user?.role !== 'ADMIN' && (
+            <>
+              <button className={`nav-tab ${currentView === 'resume' ? 'active' : ''}`} onClick={() => setCurrentView('resume')}>我的简历</button>
+              <button className={`nav-tab ${currentView === 'my-jobs' ? 'active' : ''}`} onClick={() => setCurrentView('my-jobs')}>我的招聘</button>
+              <button className={`nav-tab ${currentView === 'my-applications' ? 'active' : ''}`} onClick={() => setCurrentView('my-applications')}>我的投递</button>
+            </>
+          )}
           <button className={`nav-tab ${currentView === 'password' ? 'active' : ''}`} onClick={() => setCurrentView('password')}>安全设置</button>
         </div>
 
@@ -426,6 +552,235 @@ export default function ProfilePage() {
               )}
             </div>
           )}
+
+          {/* Resume Tab */}
+          {currentView === 'resume' && user?.role !== 'ADMIN' && (
+            <div className="animate-fade-in">
+              <div className="view-title-row"><h2>📄 我的简历</h2></div>
+
+              <section style={{ marginBottom: '28px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>🎓 教育经历 <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 400 }}>（与主档案同步）</span></h3>
+                {alumni?.experiences?.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {alumni.experiences.map((exp: any, i: number) => (
+                      <div key={i} style={{ padding: '12px 16px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px', color: '#374151' }}>
+                        <span style={{ fontWeight: 600 }}>{exp.stage}</span>
+                        {(exp.start_year || exp.end_year) && <span style={{ color: '#64748b', marginLeft: '8px' }}>{exp.start_year}—{exp.end_year || '至今'}</span>}
+                        {exp.college && <span style={{ marginLeft: '8px' }}>· {exp.college}</span>}
+                        {exp.major && <span style={{ marginLeft: '8px' }}>· {exp.major}</span>}
+                      </div>
+                    ))}
+                  </div>
+                ) : <div style={{ color: '#94a3b8', fontSize: '14px' }}>暂无教育经历记录</div>}
+              </section>
+
+              <section style={{ marginBottom: '28px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#374151', margin: 0 }}>💼 工作经历</h3>
+                  <button onClick={() => { setEditingWork(null); setWorkForm({ company: '', position: '', location: '', start_year: '', end_year: '', is_current: false, description: '' }); setShowWorkForm(true); }}
+                    style={{ padding: '6px 14px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>+ 添加</button>
+                </div>
+                {alumni?.company && (
+                  <div style={{ padding: '12px 16px', background: '#eff6ff', borderRadius: '10px', border: '1px solid #bfdbfe', marginBottom: '8px', fontSize: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div><span style={{ fontWeight: 600, color: '#1e40af' }}>{alumni.company}</span>{alumni.position && <span style={{ color: '#3b82f6', marginLeft: '10px' }}>{alumni.position}</span>}</div>
+                    <span style={{ fontSize: '11px', color: '#60a5fa', background: '#dbeafe', padding: '2px 8px', borderRadius: '6px', fontWeight: 600 }}>当前 · 同步自主档案</span>
+                  </div>
+                )}
+                {workExperiences.map((exp: any) => (
+                  <div key={exp.id} style={{ padding: '12px 16px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '8px', fontSize: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600 }}>{exp.company} <span style={{ fontWeight: 400, color: '#475569', marginLeft: '8px' }}>{exp.position}</span></div>
+                        <div style={{ color: '#64748b', fontSize: '13px', marginTop: '3px' }}>{exp.start_year} — {exp.is_current ? '至今' : (exp.end_year || '')}{exp.location && ` · ${exp.location}`}</div>
+                        {exp.description && <div style={{ color: '#64748b', fontSize: '13px', marginTop: '4px' }}>{exp.description}</div>}
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', marginLeft: '12px' }}>
+                        <button onClick={() => { setEditingWork(exp); setWorkForm({ company: exp.company, position: exp.position, location: exp.location || '', start_year: exp.start_year, end_year: exp.end_year || '', is_current: !!exp.is_current, description: exp.description || '' }); setShowWorkForm(true); }}
+                          style={{ padding: '4px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', background: '#fff', color: '#475569' }}>编辑</button>
+                        <button onClick={() => handleDeleteWork(exp.id)}
+                          style={{ padding: '4px 10px', border: '1px solid #fee2e2', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', background: '#fff', color: '#ef4444' }}>删除</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {workExperiences.length === 0 && !alumni?.company && (
+                  <div style={{ color: '#94a3b8', fontSize: '14px', textAlign: 'center', padding: '20px', background: '#f8fafc', borderRadius: '10px', border: '1px dashed #cbd5e1' }}>暂无工作经历，点击「添加」开始维护</div>
+                )}
+              </section>
+
+              {showWorkForm && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+                  <div style={{ background: '#fff', borderRadius: '20px', padding: '32px', width: '100%', maxWidth: '500px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 20px 0' }}>{editingWork ? '编辑工作经历' : '添加工作经历'}</h3>
+                    <div style={{ display: 'grid', gap: '14px' }}>
+                      {[['工作单位 *', 'company', 'text'], ['职务 *', 'position', 'text'], ['工作地点', 'location', 'text']].map(([label, key, type]) => (
+                        <div key={key}><label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>{label}</label>
+                          <input type={type as string} style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' as any }}
+                            value={(workForm as any)[key]} onChange={e => setWorkForm(p => ({ ...p, [key]: e.target.value }))} /></div>
+                      ))}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div><label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>起始年月 *</label>
+                          <input type="month" style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' as any }} value={workForm.start_year} onChange={e => setWorkForm(p => ({ ...p, start_year: e.target.value }))} /></div>
+                        <div><label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>结束年月</label>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {!workForm.is_current && <input type="month" style={{ flex: 1, padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' as any }} value={workForm.end_year} onChange={e => setWorkForm(p => ({ ...p, end_year: e.target.value }))} />}
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' }}><input type="checkbox" checked={workForm.is_current} onChange={e => setWorkForm(p => ({ ...p, is_current: e.target.checked, end_year: '' }))} /> 至今</label>
+                          </div></div>
+                      </div>
+                      <div><label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '5px' }}>工作描述</label>
+                        <textarea style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' as any, resize: 'vertical', minHeight: '72px' }} value={workForm.description} onChange={e => setWorkForm(p => ({ ...p, description: e.target.value }))} /></div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                      <button onClick={() => { setShowWorkForm(false); setEditingWork(null); }} style={{ padding: '9px 18px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}>取消</button>
+                      <button onClick={handleSaveWork} style={{ padding: '9px 20px', background: '#3b82f6', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 700, cursor: 'pointer' }}>保存</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <section>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>🛠️ 职业技能</h3>
+                <div style={{ background: '#f8fafc', borderRadius: '14px', padding: '20px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ marginBottom: '14px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '8px' }}>技能标签</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                      {(() => { try { return (JSON.parse(skills.skill_tags || '[]') as string[]).map((tag: string) => (
+                        <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', padding: '3px 10px', background: '#dbeafe', color: '#1d4ed8', borderRadius: '8px', fontSize: '13px', fontWeight: 600 }}>
+                          {tag} <button onClick={() => removeSkillTag(tag)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#60a5fa', fontSize: '14px', padding: 0 }}>×</button>
+                        </span>
+                      )); } catch { return null; } })()}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input placeholder="输入技能后按回车添加" value={skillInput} onChange={e => setSkillInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkillTag(skillInput); }}} style={{ flex: 1, padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', outline: 'none' }} />
+                      <button onClick={() => addSkillTag(skillInput)} style={{ padding: '8px 14px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>添加</button>
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '14px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>自我介绍 <span style={{ color: '#94a3b8', fontWeight: 400 }}>（≤500字，投递时展示给招聘方）</span></label>
+                    <textarea value={skills.bio} onChange={e => setSkills(prev => ({ ...prev, bio: e.target.value.slice(0, 500) }))} placeholder="简单介绍一下自己的背景、专长和求职意向..." rows={4} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', outline: 'none', resize: 'vertical', lineHeight: 1.6, boxSizing: 'border-box' as any }} />
+                    <div style={{ textAlign: 'right', fontSize: '12px', color: '#94a3b8' }}>{skills.bio?.length || 0}/500</div>
+                  </div>
+                  <button onClick={handleSaveSkills} disabled={savingSkills} style={{ padding: '9px 20px', background: '#3b82f6', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 700, cursor: 'pointer', opacity: savingSkills ? 0.7 : 1 }}>
+                    {savingSkills ? '保存中...' : '💾 保存技能信息'}
+                  </button>
+                </div>
+              </section>
+            </div>
+          )}
+
+          {/* My Jobs Tab */}
+          {currentView === 'my-jobs' && user?.role !== 'ADMIN' && (
+            <div className="animate-fade-in">
+              <div className="view-title-row" style={{ marginBottom: '20px' }}>
+                <h2>📋 我发布的招聘</h2>
+                <a href="/jobs/post" style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', borderRadius: '10px', fontWeight: 600, fontSize: '14px', textDecoration: 'none' }}>+ 发布岗位</a>
+              </div>
+              {myJobs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', background: '#f8fafc', borderRadius: '14px', border: '1px dashed #cbd5e1' }}>暂未发布过招聘岗位</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {myJobs.map((job: any) => {
+                    const isActive = job.status === 'ACTIVE';
+                    const statusColor = isActive ? '#10b981' : job.status === 'WITHDRAWN' ? '#94a3b8' : '#f59e0b';
+                    const statusLabel = isActive ? '招募中' : job.status === 'WITHDRAWN' ? '已撤回' : '已到期';
+                    return (
+                      <div key={job.id} style={{ padding: '16px 18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: '15px', fontWeight: 700 }}>{job.job_title}</span>
+                              <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '100px', background: statusColor + '20', color: statusColor }}>{statusLabel}</span>
+                              {job.unread_count > 0 && <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '100px', background: '#fee2e2', color: '#dc2626' }}>🔔 {job.unread_count} 条新投递</span>}
+                            </div>
+                            <div style={{ fontSize: '13px', color: '#64748b' }}>{job.company_name} · {job.location} · 截止 {job.deadline}</div>
+                            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '3px' }}>共 {job.application_count} 份投递</div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '6px', flexShrink: 0, marginLeft: '12px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                            {job.application_count > 0 && (
+                              <button onClick={async () => {
+                                const res = await fetch(`/api/jobs/${job.id}/applications`);
+                                if (res.ok) { const apps = await res.json(); setSelectedJobApps({ jobId: job.id, apps }); window.dispatchEvent(new Event('unreadCountUpdate')); fetchMyJobs(); }
+                              }} style={{ padding: '5px 12px', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', background: '#eff6ff', color: '#2563eb', fontWeight: 600 }}>📥 查看投递</button>
+                            )}
+                            <a href={`/jobs/${job.id}`} style={{ padding: '5px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '12px', color: '#475569', fontWeight: 600, textDecoration: 'none' }}>详情</a>
+                            {isActive && <button onClick={() => handleJobAction(job.id, 'WITHDRAWN')} style={{ padding: '5px 12px', border: '1px solid #fee2e2', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', background: '#fff', color: '#ef4444', fontWeight: 600 }}>撤回</button>}
+                            {!isActive && <button onClick={() => handleJobAction(job.id, 'ACTIVE')} style={{ padding: '5px 12px', border: '1px solid #d1fae5', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', background: '#fff', color: '#10b981', fontWeight: 600 }}>重新发布</button>}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {selectedJobApps && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+                  <div style={{ background: '#fff', borderRadius: '24px', padding: '32px', width: '100%', maxWidth: '660px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                      <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700 }}>📥 收到的投递（{selectedJobApps.apps.length} 份）</h3>
+                      <button onClick={() => setSelectedJobApps(null)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#94a3b8' }}>×</button>
+                    </div>
+                    {selectedJobApps.apps.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '32px', color: '#94a3b8' }}>暂无投递</div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        {selectedJobApps.apps.map((app: any) => (
+                          <div key={app.id} style={{ padding: '18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                              <div style={{ fontWeight: 700, fontSize: '15px' }}>{app.applicant_name} {app.gender === '男' ? '👨' : app.gender === '女' ? '👩' : ''}</div>
+                              <div style={{ fontSize: '12px', color: '#94a3b8' }}>{app.created_at?.substring(0, 10)}</div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '13px', color: '#475569', marginBottom: '10px' }}>
+                              <div>🎓 {app.college || '—'} {app.degree || ''}</div>
+                              <div>🏢 {app.company || '—'}{app.position ? ` · ${app.position}` : ''}</div>
+                              <div>📞 {app.phone || '—'}</div>
+                              <div>💬 微信：{app.wechat_id || '—'}</div>
+                            </div>
+                            {app.bio_snapshot && (
+                              <div style={{ padding: '10px 12px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '13px', color: '#374151', lineHeight: 1.7 }}>
+                                <strong>求职说明：</strong>{app.bio_snapshot}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* My Applications Tab */}
+          {currentView === 'my-applications' && user?.role !== 'ADMIN' && (
+            <div className="animate-fade-in">
+              <div className="view-title-row"><h2>📤 我的投递</h2></div>
+              {myApplications.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', background: '#f8fafc', borderRadius: '14px', border: '1px dashed #cbd5e1' }}>还未投递过任何岗位</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {myApplications.map((app: any) => (
+                    <div key={app.id} style={{ padding: '16px 18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '3px' }}>{app.job_title}</div>
+                        <div style={{ fontSize: '13px', color: '#475569' }}>{app.company_name} · {app.location}</div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '3px' }}>投递于 {app.created_at?.substring(0, 10)}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '100px', background: app.status === 'SUBMITTED' ? '#d1fae5' : '#f1f5f9', color: app.status === 'SUBMITTED' ? '#065f46' : '#64748b' }}>
+                          {app.status === 'SUBMITTED' ? '已投递' : '已撤回'}
+                        </span>
+                        <a href={`/jobs/${app.job_id}`} style={{ padding: '5px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '12px', color: '#475569', fontWeight: 600, textDecoration: 'none' }}>查看岗位</a>
+                        {app.status === 'SUBMITTED' && (
+                          <button onClick={() => handleWithdrawApplication(app.id)} style={{ padding: '5px 12px', border: '1px solid #fee2e2', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', background: '#fff', color: '#ef4444', fontWeight: 600 }}>撤回</button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
 
