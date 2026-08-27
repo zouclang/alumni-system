@@ -60,9 +60,8 @@ COPY --chown=node:node --from=builder /app/.next/static ./.next/static
 # because the standalone trace might not perfectly capture native bindings across OS boundaries.
 # However, Next.js standalone usually bundles deps. If better-sqlite3 fails to load,
 # it's usually because the binding wasn't copied correctly. 
-# In this setup, we rely on the standalone output copying the compiled better-sqlite3 .node file from the builder.
-
-USER node
+# Note: USER node is commented out so container process can write to host-mounted ./data volume without EACCES permission errors
+# USER node
 
 EXPOSE 8085
 VOLUME ["/app/data"]
