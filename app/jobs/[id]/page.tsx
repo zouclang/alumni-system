@@ -162,6 +162,16 @@ export default function JobDetailPage() {
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{ fontSize: '22px', fontWeight: 800, color: '#ef4444' }}>{job.salary_range}</div>
+              {job.publisher_alumni_id === job.currentAlumniId && (
+                <Link href={`/jobs/edit/${job.id}`} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '8px',
+                  padding: '6px 14px', borderRadius: '8px', border: '1px solid #fed7aa',
+                  background: '#fff7ed', color: '#ea580c', fontSize: '13px', fontWeight: 600,
+                  textDecoration: 'none'
+                }}>
+                  ✏️ 修改岗位信息
+                </Link>
+              )}
             </div>
           </div>
 
