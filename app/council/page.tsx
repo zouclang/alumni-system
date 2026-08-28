@@ -111,9 +111,13 @@ export default function CouncilPage() {
                             </span>
                           </Link>
                           {alumni.association_role && alumni.association_role !== '—' && (
-                            <span className="badge badge-purple" style={{ fontSize: '10px', padding: '1px 6px' }}>
-                              {alumni.association_role}
-                            </span>
+                            <div style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '3px' }}>
+                              {alumni.association_role.split(',').map((r: string) => r.trim()).filter(Boolean).map((role: string) => (
+                                <span key={role} className="badge badge-purple" style={{ fontSize: '10px', padding: '1px 6px' }}>
+                                  {role}
+                                </span>
+                              ))}
+                            </div>
                           )}
                         </div>
                       </td>

@@ -350,9 +350,13 @@ export default function HomePage() {
                           </span>
                         </Link>
                         {alumni.association_role && alumni.association_role !== '—' && (
-                          <span className="badge badge-purple" style={{ fontSize: '10px', padding: '1px 6px' }}>
-                            {alumni.association_role}
-                          </span>
+                          <div style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '3px' }}>
+                            {alumni.association_role.split(',').map((r: string) => r.trim()).filter(Boolean).map((role: string) => (
+                              <span key={role} className="badge badge-purple" style={{ fontSize: '10px', padding: '1px 6px' }}>
+                                {role}
+                              </span>
+                            ))}
+                          </div>
                         )}
                         {isAdmin && alumni.is_registered === 1 && (
                           <span className={`status-badge ${alumni.user_status === 'PENDING' ? 'status-pending' : 'status-approved'}`} style={{ fontSize: '10px', padding: '1px 4px' }}>

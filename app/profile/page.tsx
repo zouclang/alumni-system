@@ -331,9 +331,13 @@ export default function ProfilePage() {
                   </span>
                 )}
                 {alumni?.association_role && (
-                  <span className="tag association-tag">
-                    职务: {alumni.association_role}
-                  </span>
+                  <div style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '4px' }}>
+                    {alumni.association_role.split(',').map((r: string) => r.trim()).filter(Boolean).map((role: string) => (
+                      <span key={role} className="tag association-tag">
+                        职务: {role}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
               {user?.role !== 'ADMIN' && (

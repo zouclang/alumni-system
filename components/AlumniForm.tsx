@@ -119,6 +119,69 @@ function WechatGroupInput({ value, onChange, readOnly }: { value: string; onChan
   );
 }
 
+function AssociationRoleInput({ value, onChange, readOnly }: { value: string; onChange: (v: string) => void; readOnly?: boolean }) {
+  const [inputVal, setInputVal] = useState('');
+  const DEFAULT_ROLES = ['理事长', '副理事长', '常务理事', '理事', '监事长', '监事', '秘书长', '副秘书长', '顾问', '名誉理事长'];
+
+  const tags = value ? value.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  const addTag = (t: string) => {
+    if (readOnly) return;
+    const n = t.trim();
+    if (n && !tags.includes(n)) {
+      onChange([...tags, n].join(','));
+    }
+    setInputVal('');
+  };
+
+  const removeTag = (t: string) => {
+    if (readOnly) return;
+    onChange(tags.filter(tg => tg !== t).join(','));
+  };
+
+  return (
+    <div className="form-group span-2" style={{ gridColumn: '1 / -1', marginTop: '8px' }}>
+      <label className="form-label" style={{ color: '#0369a1', fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span>校友会职务 (仅管理员可见)</span>
+        <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 'normal' }}>
+          {readOnly ? '' : '(支持多选和自定义新增)'}
+        </span>
+      </label>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: readOnly ? '0' : '8px', minHeight: tags.length ? '28px' : '0' }}>
+        {tags.map(t => (
+          <span key={t} style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', border: '1px solid #bae6fd', fontWeight: 600 }}>
+            {t}
+            {!readOnly && <span style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', lineHeight: 1 }} onClick={() => removeTag(t)}>×</span>}
+          </span>
+        ))}
+        {tags.length === 0 && <span style={{ fontSize: '13px', color: '#9ca3af', fontStyle: 'italic', display: 'flex', alignItems: 'center' }}>普通校友（暂无职务）</span>}
+      </div>
+      {!readOnly && (
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input 
+            className="form-input" 
+            style={{ flex: 1, borderColor: '#bae6fd', backgroundColor: '#f0f9ff' }}
+            value={inputVal} 
+            onChange={e => setInputVal(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addTag(inputVal);
+              }
+            }}
+            placeholder="选择快捷职务或输入自定义职务后按 Enter / 点击添加..."
+            list="association-role-suggestions"
+          />
+          <datalist id="association-role-suggestions">
+            {DEFAULT_ROLES.map(s => !tags.includes(s) && <option key={s} value={s} />)}
+          </datalist>
+          <button type="button" className="btn btn-primary" style={{ background: '#0284c7', borderColor: '#0284c7', padding: '0 16px' }} onClick={() => addTag(inputVal)}>添加</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AlumniForm({ initial, onClose, onSaved, onApprove, onReject, inline = false }: AlumniFormProps) {
   const isEdit = !!initial?.id;
   const [currentUser, setCurrentUser] = useState<{ role: string } | null>(null);
@@ -470,16 +533,10 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
                   </div>
                 )}
 
-              <label className="form-label" style={{ color: '#0369a1', fontWeight: 600 }}>校友会职务 (仅管理员可见)</label>
-              <select 
-                className="form-select" 
-                value={form.association_role} 
-                onChange={(e) => set('association_role', e.target.value)}
-                style={{ borderColor: '#bae6fd', backgroundColor: '#f0f9ff' }}
-              >
-                <option value="">普通校友</option>
-                {ASSOCIATION_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
+              <AssociationRoleInput
+                value={form.association_role || ''}
+                onChange={(v) => set('association_role', v)}
+              />
             </div>
           )}
         </div>

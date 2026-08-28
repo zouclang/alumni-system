@@ -180,7 +180,11 @@ export default function AlumniDetailPage() {
               <span className="badge badge-orange">✓ 大工人认证</span>
             )}
             {alumni.association_role && (
-              <span className="badge badge-green">{alumni.association_role}</span>
+              <div style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '4px' }}>
+                {alumni.association_role.split(',').map((r: string) => r.trim()).filter(Boolean).map((role: string) => (
+                  <span key={role} className="badge badge-green">{role}</span>
+                ))}
+              </div>
             )}
           </div>
           <p className="page-subtitle" style={{ marginTop: '8px' }}>
