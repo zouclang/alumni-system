@@ -87,7 +87,7 @@ export default function Sidebar() {
     { href: '/', icon: '👥', label: '通讯录' },
     { href: '/stats', icon: '📊', label: '数据统计' },
     { href: '/council', icon: '🏛️', label: '理事会成员' },
-    { href: '/jobs', icon: '📋', label: '招聘市场', badge: jobUnreadCount > 0 ? jobUnreadCount : null },
+    { href: '/jobs', icon: '🤝', label: '校友招聘', badge: jobUnreadCount > 0 ? jobUnreadCount : null },
   ];
 
   if (user?.role === 'ADMIN') {

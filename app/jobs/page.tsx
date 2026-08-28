@@ -75,7 +75,7 @@ export default function JobsPage() {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
           <div>
-            <h1 style={{ fontSize: '28px', fontWeight: 700, color: '#0f172a', margin: 0 }}>📋 招聘市场</h1>
+            <h1 style={{ fontSize: '28px', fontWeight: 700, color: '#0f172a', margin: 0 }}>🤝 校友招聘</h1>
             <p style={{ color: '#64748b', marginTop: '6px', fontSize: '14px' }}>共 {total} 个在招岗位</p>
           </div>
           {user?.role !== 'ADMIN' && (
