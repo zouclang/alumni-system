@@ -119,7 +119,7 @@ export default function JobDetailPage() {
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         {/* Back */}
         <Link href="/jobs" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '14px', marginBottom: '24px', textDecoration: 'none' }}>
-          ← 返回校友招聘
+          ← 返回连理招聘
         </Link>
 
         {/* Main Card */}
