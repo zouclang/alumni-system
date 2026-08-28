@@ -19,23 +19,28 @@ export async function GET(_req: NextRequest, { params }: Params) {
     const isCouncil = !!session.association_role;
     const isSelf = session.alumniId === parseInt(id);
     
-    // Check if this record is approved for the current user
-    const approvedConnection = db.prepare(`
-      SELECT cr.id FROM contact_requests cr
-      JOIN users u ON cr.requester_id = u.id
-      WHERE cr.status = 'APPROVED'
-      AND (
-        (u.alumni_id = ? AND cr.target_alumni_id = ?)
-        OR
-        (cr.target_alumni_id = ? AND u.alumni_id = ?)
-      )
-    `).get(session.alumniId, id, session.alumniId, id);
-    const isApproved = !!approvedConnection;
+    // Check if current user is the publisher of a job this candidate applied for
+    let isJobPublisher = false;
+    if (session.alumniId) {
+      const pubCheck = db.prepare(`
+        SELECT ja.id FROM job_applications ja
+        JOIN job_postings jp ON ja.job_id = jp.id
+        WHERE jp.publisher_alumni_id = ? AND ja.applicant_alumni_id = ? AND ja.status = 'SUBMITTED'
+      `).get(session.alumniId, id);
+      isJobPublisher = !!pubCheck;
+    }
+
+    const isApproved = !!approvedConnection || isJobPublisher;
 
     const row = db.prepare('SELECT * FROM alumni WHERE id = ?').get(id) as any;
     if (!row) return NextResponse.json({ error: 'Not Found' }, { status: 404 });
     
     row.experiences = db.prepare('SELECT * FROM school_experiences WHERE alumni_id = ? ORDER BY sort_order ASC').all(id);
+    
+    const workExps = db.prepare('SELECT * FROM resume_work_experiences WHERE alumni_id = ? ORDER BY sort_order ASC, start_year DESC').all(id);
+    const resumeSkill = db.prepare('SELECT * FROM resume_skills WHERE alumni_id = ?').get(id) as any;
+    row.work_experiences = workExps || [];
+    row.resume_skills = resumeSkill || { skill_tags: '[]', languages: '[]', bio: '' };
     
     // Check if registered
     const user = db.prepare('SELECT id, status, role FROM users WHERE alumni_id = ?').get(id) as any;
