@@ -10,6 +10,7 @@ export default function PostJobPage() {
   const [alumni, setAlumni] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
   const [useProfileCompany, setUseProfileCompany] = useState(true);
+  const [isAlumniCompany, setIsAlumniCompany] = useState(true);
   const [form, setForm] = useState({
     company_name: '',
     job_title: '',
@@ -61,7 +62,11 @@ export default function PostJobPage() {
       const res = await fetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, use_profile_company: useProfileCompany }),
+        body: JSON.stringify({
+          ...form,
+          use_profile_company: useProfileCompany,
+          is_alumni_company: isAlumniCompany,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -118,6 +123,18 @@ export default function PostJobPage() {
               {useProfileCompany && alumni?.company && (
                 <div style={{ fontSize: '13px', color: '#64748b', background: '#f8fafc', padding: '10px 14px', borderRadius: '10px' }}>✓ 将使用：{alumni.company}</div>
               )}
+              
+              {/* Is Alumni Company Checkbox */}
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#334155', fontWeight: 600, marginTop: '12px' }}>
+                <input
+                  type="checkbox"
+                  checked={isAlumniCompany}
+                  onChange={e => setIsAlumniCompany(e.target.checked)}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#2563eb' }}
+                />
+                🏢 校友企业 / 校友创立企业
+                <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 400 }}>（勾选后岗位卡片将带有【🏢 校友企业】推荐标识）</span>
+              </label>
             </div>
 
             {/* Job Title */}

@@ -57,15 +57,16 @@ export async function POST(req: NextRequest) {
     const userRow = db.prepare('SELECT alumni_id FROM users WHERE id = ?').get(session.userId) as { alumni_id: number } | null;
     if (!userRow?.alumni_id) return NextResponse.json({ error: 'No alumni profile' }, { status: 400 });
     const body = await req.json();
-    const { company_name, use_profile_company, job_title, job_type, location, salary_range, description, contact_info, tags, deadline } = body;
+    const { company_name, use_profile_company, is_alumni_company, job_title, job_type, location, salary_range, description, contact_info, tags, deadline } = body;
     if (!company_name || !job_title || !job_type || !location || !salary_range || !description || !contact_info || !deadline) {
       return NextResponse.json({ error: '请填写所有必填字段' }, { status: 400 });
     }
     const tagsStr = JSON.stringify(Array.isArray(tags) ? tags : []);
+    const isAlumniCo = is_alumni_company !== false ? 1 : 0;
     const result = db.prepare(`
-      INSERT INTO job_postings (publisher_alumni_id, company_name, use_profile_company, job_title, job_type, location, salary_range, description, contact_info, tags, deadline, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE')
-    `).run(userRow.alumni_id, company_name, use_profile_company ? 1 : 0, job_title, job_type, location, salary_range, description, contact_info, tagsStr, deadline);
+      INSERT INTO job_postings (publisher_alumni_id, company_name, use_profile_company, is_alumni_company, job_title, job_type, location, salary_range, description, contact_info, tags, deadline, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE')
+    `).run(userRow.alumni_id, company_name, use_profile_company ? 1 : 0, isAlumniCo, job_title, job_type, location, salary_range, description, contact_info, tagsStr, deadline);
     return NextResponse.json({ id: result.lastInsertRowid });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

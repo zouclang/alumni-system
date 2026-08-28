@@ -141,12 +141,24 @@ export default function JobDetailPage() {
                 <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '100px', background: '#dbeafe', color: '#1d4ed8' }}>
                   {JOB_TYPE_LABELS[job.job_type] || job.job_type}
                 </span>
+                {job.is_alumni_company === 1 && (
+                  <span style={{
+                    fontSize: '11px', fontWeight: 700, padding: '3px 10px',
+                    borderRadius: '100px', background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+                    color: '#92400e', border: '1px solid #fcd34d',
+                    boxShadow: '0 2px 4px rgba(245,158,11,0.15)'
+                  }}>
+                    🏢 校友企业
+                  </span>
+                )}
                 {tags.map((tag: string, i: number) => (
                   <span key={tag} style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: '#f1f5f9', color: '#475569', fontWeight: 600 }}>{tag}</span>
                 ))}
               </div>
               <h1 style={{ fontSize: '26px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0' }}>{job.job_title}</h1>
-              <div style={{ fontSize: '17px', color: '#475569', fontWeight: 500, marginBottom: '4px' }}>🏢 {job.company_name}</div>
+              <div style={{ fontSize: '17px', color: '#475569', fontWeight: 500, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🏢 {job.company_name}</span>
+              </div>
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{ fontSize: '22px', fontWeight: 800, color: '#ef4444' }}>{job.salary_range}</div>

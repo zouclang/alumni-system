@@ -180,14 +180,26 @@ export default function JobsPage() {
                       (e.currentTarget as HTMLDivElement).style.borderColor = isUrgent ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.5)';
                     }}
                   >
-                    {/* Job Type + Salary */}
+                    {/* Job Type + Alumni Company + Salary */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <span style={{
-                        fontSize: '11px', fontWeight: 700, padding: '3px 10px',
-                        borderRadius: '100px', background: '#dbeafe', color: '#1d4ed8',
-                      }}>
-                        {JOB_TYPE_LABELS[job.job_type] || job.job_type}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{
+                          fontSize: '11px', fontWeight: 700, padding: '3px 10px',
+                          borderRadius: '100px', background: '#dbeafe', color: '#1d4ed8',
+                        }}>
+                          {JOB_TYPE_LABELS[job.job_type] || job.job_type}
+                        </span>
+                        {job.is_alumni_company === 1 && (
+                          <span style={{
+                            fontSize: '11px', fontWeight: 700, padding: '2px 8px',
+                            borderRadius: '100px', background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+                            color: '#92400e', border: '1px solid #fcd34d',
+                            boxShadow: '0 2px 4px rgba(245,158,11,0.15)',
+                          }}>
+                            🏢 校友企业
+                          </span>
+                        )}
+                      </div>
                       <span style={{ fontSize: '15px', fontWeight: 700, color: '#ef4444' }}>
                         {job.salary_range}
                       </span>
@@ -197,8 +209,8 @@ export default function JobsPage() {
                       {job.job_title}
                     </div>
                     {/* Company */}
-                    <div style={{ fontSize: '14px', color: '#475569', marginBottom: '12px', fontWeight: 500 }}>
-                      🏢 {job.company_name}
+                    <div style={{ fontSize: '14px', color: '#475569', marginBottom: '12px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>🏢 {job.company_name}</span>
                     </div>
                     {/* Location */}
                     <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '14px' }}>

@@ -43,15 +43,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const existing = db.prepare('SELECT * FROM job_postings WHERE id = ? AND publisher_alumni_id = ?').get(Number(id), userRow.alumni_id);
     if (!existing) return NextResponse.json({ error: 'Not found or unauthorized' }, { status: 404 });
     const body = await req.json();
-    const { company_name, use_profile_company, job_title, job_type, location, salary_range, description, contact_info, tags, deadline } = body;
+    const { company_name, use_profile_company, is_alumni_company, job_title, job_type, location, salary_range, description, contact_info, tags, deadline } = body;
     if (!company_name || !job_title || !job_type || !location || !salary_range || !description || !contact_info || !deadline) {
       return NextResponse.json({ error: '请填写所有必填字段' }, { status: 400 });
     }
     const tagsStr = JSON.stringify(Array.isArray(tags) ? tags : []);
+    const isAlumniCo = is_alumni_company !== false ? 1 : 0;
     db.prepare(`
-      UPDATE job_postings SET company_name=?, use_profile_company=?, job_title=?, job_type=?, location=?, salary_range=?, description=?, contact_info=?, tags=?, deadline=?, updated_at=CURRENT_TIMESTAMP
+      UPDATE job_postings SET company_name=?, use_profile_company=?, is_alumni_company=?, job_title=?, job_type=?, location=?, salary_range=?, description=?, contact_info=?, tags=?, deadline=?, updated_at=CURRENT_TIMESTAMP
       WHERE id=?
-    `).run(company_name, use_profile_company ? 1 : 0, job_title, job_type, location, salary_range, description, contact_info, tagsStr, deadline, Number(id));
+    `).run(company_name, use_profile_company ? 1 : 0, isAlumniCo, job_title, job_type, location, salary_range, description, contact_info, tagsStr, deadline, Number(id));
     return NextResponse.json({ success: true });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

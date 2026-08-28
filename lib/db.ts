@@ -216,9 +216,7 @@ function initializeSchema(database: Database.Database) {
   try { database.exec("ALTER TABLE school_experiences ADD COLUMN is_public INTEGER DEFAULT 0;"); } catch(e) {}
   try { database.exec("ALTER TABLE alumni ADD COLUMN is_social_roles_public INTEGER DEFAULT 1;"); } catch(e) {}
   
-  // Migration for processor tracking
-  try { database.exec("ALTER TABLE contact_requests ADD COLUMN processed_by_user_id INTEGER;"); } catch(e) {}
-  try { database.exec("ALTER TABLE correction_requests ADD COLUMN processed_by_user_id INTEGER;"); } catch(e) {}
+  try { database.exec("ALTER TABLE job_postings ADD COLUMN is_alumni_company INTEGER DEFAULT 1;"); } catch(e) {}
 
   // Recruitment feature tables
   try {
@@ -228,6 +226,7 @@ function initializeSchema(database: Database.Database) {
         publisher_alumni_id INTEGER NOT NULL,
         company_name TEXT NOT NULL,
         use_profile_company INTEGER DEFAULT 1,
+        is_alumni_company INTEGER DEFAULT 1,
         job_title TEXT NOT NULL,
         job_type TEXT NOT NULL,
         location TEXT NOT NULL,

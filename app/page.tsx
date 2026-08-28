@@ -342,24 +342,24 @@ export default function HomePage() {
 
                   return (
                     <tr key={alumni.id}>
-                    <td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Link href={`/alumni/${alumni.id}`} className="hover:underline">
-                          <span style={{ fontWeight: 600, color: 'var(--blue-dark)', fontSize: '15px' }}>
+                        <Link href={`/alumni/${alumni.id}`} className="hover:underline" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+                          <span style={{ fontWeight: 600, color: 'var(--blue-dark)', fontSize: '15px', whiteSpace: 'nowrap' }}>
                             {genderBadge(alumni.gender)} {alumni.name}
                           </span>
                         </Link>
                         {alumni.association_role && alumni.association_role !== '—' && (
                           <div style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '3px' }}>
                             {alumni.association_role.split(',').map((r: string) => r.trim()).filter(Boolean).map((role: string) => (
-                              <span key={role} className="badge badge-purple" style={{ fontSize: '10px', padding: '1px 6px' }}>
+                              <span key={role} className="badge badge-purple" style={{ fontSize: '10px', padding: '1px 6px', whiteSpace: 'nowrap' }}>
                                 {role}
                               </span>
                             ))}
                           </div>
                         )}
                         {isAdmin && alumni.is_registered === 1 && (
-                          <span className={`status-badge ${alumni.user_status === 'PENDING' ? 'status-pending' : 'status-approved'}`} style={{ fontSize: '10px', padding: '1px 4px' }}>
+                          <span className={`status-badge ${alumni.user_status === 'PENDING' ? 'status-pending' : 'status-approved'}`} style={{ fontSize: '10px', padding: '1px 4px', whiteSpace: 'nowrap' }}>
                             {alumni.user_status === 'PENDING' ? '待审核' : '已注册'}
                           </span>
                         )}
