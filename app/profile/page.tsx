@@ -863,7 +863,7 @@ export default function ProfilePage() {
 
                     {/* Skills & Bio */}
                     <div style={{ marginBottom: '24px' }}>
-                      <h3 style={{ fontSize: '15px', fontWeight 700, color: '#1e293b', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>🛠️ 技能 & 自我介绍</h3>
+                      <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>🛠️ 技能 & 自我介绍</h3>
                       <div style={{ background: '#f8fafc', borderRadius: '14px', padding: '16px', border: '1px solid #e2e8f0' }}>
                         {(() => {
                           try {
