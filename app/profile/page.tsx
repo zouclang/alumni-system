@@ -757,17 +757,21 @@ export default function ProfilePage() {
                           <div key={app.id} style={{ padding: '18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span
-                                  onClick={() => handleOpenApplicantResume(app.applicant_alumni_id)}
-                                  style={{ fontWeight: 700, fontSize: '15px', color: '#2563eb', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px' }}
-                                  title="点击查看此校友完整简历"
+                                <a
+                                  href={`/alumni/${app.applicant_alumni_id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b', textDecoration: 'none', transition: 'color 0.2s' }}
+                                  onMouseEnter={e => (e.currentTarget.style.color = '#2563eb')}
+                                  onMouseLeave={e => (e.currentTarget.style.color = '#1e293b')}
+                                  title="点击进入校友个人详情页"
                                 >
-                                  {app.applicant_name}
-                                </span>
+                                  {app.applicant_name} ↗
+                                </a>
                                 <span style={{ fontSize: '13px' }}>{app.gender === '男' ? '👨' : app.gender === '女' ? '👩' : ''}</span>
                                 <button
                                   onClick={() => handleOpenApplicantResume(app.applicant_alumni_id)}
-                                  style={{ padding: '2px 8px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '11px', color: '#2563eb', fontWeight: 600, cursor: 'pointer' }}
+                                  style={{ padding: '2px 10px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: '12px', color: '#2563eb', fontWeight: 600, cursor: 'pointer' }}
                                 >
                                   📄 查看简历
                                 </button>

@@ -17,16 +17,33 @@ export async function GET(_req: NextRequest, { params }: Params) {
     // Regular users can now enter detail pages for anyone, but data is masked.
     const isAdmin = session.role === 'ADMIN';
     const isCouncil = !!session.association_role;
-    const isSelf = session.alumniId === parseInt(id);
+    const userRow = db.prepare('SELECT alumni_id FROM users WHERE id = ?').get(session.userId) as { alumni_id: number } | null;
+    const currentAlumniId = session.alumniId || userRow?.alumni_id;
+    const isSelf = currentAlumniId === parseInt(id);
     
+    // Check if this record is approved for the current user
+    let approvedConnection = null;
+    if (currentAlumniId) {
+      approvedConnection = db.prepare(`
+        SELECT cr.id FROM contact_requests cr
+        JOIN users u ON cr.requester_id = u.id
+        WHERE cr.status = 'APPROVED'
+        AND (
+          (u.alumni_id = ? AND cr.target_alumni_id = ?)
+          OR
+          (cr.target_alumni_id = ? AND u.alumni_id = ?)
+        )
+      `).get(currentAlumniId, id, currentAlumniId, id);
+    }
+
     // Check if current user is the publisher of a job this candidate applied for
     let isJobPublisher = false;
-    if (session.alumniId) {
+    if (currentAlumniId) {
       const pubCheck = db.prepare(`
         SELECT ja.id FROM job_applications ja
         JOIN job_postings jp ON ja.job_id = jp.id
         WHERE jp.publisher_alumni_id = ? AND ja.applicant_alumni_id = ? AND ja.status = 'SUBMITTED'
-      `).get(session.alumniId, id);
+      `).get(currentAlumniId, id);
       isJobPublisher = !!pubCheck;
     }
 
