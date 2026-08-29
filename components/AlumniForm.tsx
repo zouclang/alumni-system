@@ -285,6 +285,11 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
       const method = isEdit ? 'PUT' : 'POST';
       const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error(await res.text());
+
+      // Notify Sidebar and Profile page to re-fetch auth status immediately
+      window.dispatchEvent(new Event('profileUpdate'));
+      window.dispatchEvent(new Event('unreadCountUpdate'));
+
       if (onApprove) {
         await onApprove();
       }

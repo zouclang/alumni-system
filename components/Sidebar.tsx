@@ -16,24 +16,8 @@ export default function Sidebar() {
   const [targetHref, setTargetHref] = useState<string | null>(null);
 
 
-  useEffect(() => {
-    const handleUpdate = () => {
-      // Add a small delay to prevent fetching stale data right after an action
-      setTimeout(() => {
-        if (user?.role === 'ADMIN') fetchPendingCount();
-        else if (user) fetchUserUnreadCount();
-      }, 500);
-    };
-    window.addEventListener('pendingCountUpdate', handleUpdate);
-    window.addEventListener('unreadCountUpdate', handleUpdate);
-    return () => {
-      window.removeEventListener('pendingCountUpdate', handleUpdate);
-      window.removeEventListener('unreadCountUpdate', handleUpdate);
-    };
-  }, [user]);
-
-  useEffect(() => {
-    fetch('/api/auth/me')
+  const fetchAuthUser = () => {
+    fetch(`/api/auth/me?t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
         if (data.authenticated) {
@@ -43,6 +27,8 @@ export default function Sidebar() {
               setShowIncompleteModal(true);
               router.push('/profile');
             }
+          } else {
+            setShowIncompleteModal(false);
           }
           if (data.user.role === 'ADMIN') {
             fetchPendingCount();
@@ -54,7 +40,25 @@ export default function Sidebar() {
         }
       })
       .catch(() => setUser(null));
-  }, [pathname, router]);
+  };
+
+  useEffect(() => {
+    fetchAuthUser();
+  }, [pathname]);
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      fetchAuthUser();
+    };
+    window.addEventListener('profileUpdate', handleProfileUpdate);
+    window.addEventListener('pendingCountUpdate', handleProfileUpdate);
+    window.addEventListener('unreadCountUpdate', handleProfileUpdate);
+    return () => {
+      window.removeEventListener('profileUpdate', handleProfileUpdate);
+      window.removeEventListener('pendingCountUpdate', handleProfileUpdate);
+      window.removeEventListener('unreadCountUpdate', handleProfileUpdate);
+    };
+  }, []);
 
   // Auto-close sidebar on route change (mobile)
   useEffect(() => {

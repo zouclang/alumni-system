@@ -79,6 +79,14 @@ export default function ProfilePage() {
       }
     }
     fetchData();
+
+    const handleProfileUpdate = () => {
+      fetchData();
+    };
+    window.addEventListener('profileUpdate', handleProfileUpdate);
+    return () => {
+      window.removeEventListener('profileUpdate', handleProfileUpdate);
+    };
   }, []);
 
   useEffect(() => {
