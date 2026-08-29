@@ -256,6 +256,13 @@ export default function HomePage() {
             {metadata.colleges.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
+        <div className="filter-group">
+          <span className="filter-label">微信群</span>
+          <select className="filter-select" value={wechatGroup} onChange={(e) => { setWechatGroup(e.target.value); handleFilterChange(); }}>
+            <option value="">全部</option>
+            {metadata.wechatGroups.map((g) => <option key={g} value={g}>{g}</option>)}
+          </select>
+        </div>
         {isPrivileged && (
           <>
             <div className="filter-group">
@@ -270,13 +277,6 @@ export default function HomePage() {
               <select className="filter-select" value={careerType} onChange={(e) => { setCareerType(e.target.value); handleFilterChange(); }}>
                 <option value="">全部</option>
                 {metadata.careerTypes.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div className="filter-group">
-              <span className="filter-label">微信群</span>
-              <select className="filter-select" value={wechatGroup} onChange={(e) => { setWechatGroup(e.target.value); handleFilterChange(); }}>
-                <option value="">全部</option>
-                {metadata.wechatGroups.map((g) => <option key={g} value={g}>{g}</option>)}
               </select>
             </div>
           </>
