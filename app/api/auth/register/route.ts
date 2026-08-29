@@ -37,6 +37,18 @@ export async function POST(request: NextRequest) {
         db.prepare('UPDATE alumni SET wechat_id = ? WHERE id = ?').run(wechat, alumniId);
       }
 
+      // Reset is_public to NULL so claimed users must re-confirm in Personal Center
+      const currentExps = db.prepare('SELECT id FROM school_experiences WHERE alumni_id = ?').all(alumniId);
+      if (currentExps.length > 0) {
+        db.prepare('UPDATE school_experiences SET is_public = NULL WHERE alumni_id = ?').run(alumniId);
+      } else {
+        const stage = existingAlumni.degree || '本科';
+        db.prepare(`
+          INSERT INTO school_experiences (alumni_id, stage, start_year, end_year, college, major, sort_order, is_public)
+          VALUES (?, ?, ?, ?, ?, ?, 0, NULL)
+        `).run(alumniId, stage, existingAlumni.enrollment_year || null, existingAlumni.graduation_year || null, existingAlumni.college || null, existingAlumni.major || null);
+      }
+
     } else if (loginType === 'new') {
       // New alumni registration
       const passwordHash = await bcrypt.hash(password, 10);
