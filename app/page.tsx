@@ -242,15 +242,13 @@ export default function HomePage() {
             onChange={(e) => { setSearch(e.target.value); handleFilterChange(); }}
           />
         </div>
-        {isPrivileged && (
-          <div className="filter-group">
-            <span className="filter-label">所在区域</span>
-            <select className="filter-select" value={region} onChange={(e) => { setRegion(e.target.value); handleFilterChange(); }}>
-              <option value="">全部</option>
-              {metadata.regions.map((r) => <option key={r} value={r}>{r}</option>)}
-            </select>
-          </div>
-        )}
+        <div className="filter-group">
+          <span className="filter-label">所在区域</span>
+          <select className="filter-select" value={region} onChange={(e) => { setRegion(e.target.value); handleFilterChange(); }}>
+            <option value="">全部</option>
+            {metadata.regions.map((r) => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
         <div className="filter-group">
           <span className="filter-label">学院</span>
           <select className="filter-select" value={college} onChange={(e) => { setCollege(e.target.value); handleFilterChange(); }}>
@@ -283,7 +281,7 @@ export default function HomePage() {
             </div>
           </>
         )}
-        {(isAdmin || user?.association_role) && (
+        {isAdmin && (
           <div className="filter-group">
             <span className="filter-label">注册状态</span>
             <select className="filter-select" value={isRegistered} onChange={(e) => { setIsRegistered(e.target.value); handleFilterChange(); }}>
