@@ -110,6 +110,15 @@ export default function RegisterPage() {
         return;
       }
 
+      for (let i = 0; i < experiences.length; i++) {
+        const exp = experiences[i];
+        if ((exp as any).is_public !== 1 && (exp as any).is_public !== 0) {
+          setError(`请在在校经历第 ${i + 1} 阶段中选择“对外展示”（必选项：是 或 否）`);
+          setLoading(false);
+          return;
+        }
+      }
+
       if (!alumniData.region) {
         setError('请选择所在区域');
         setLoading(false);
@@ -117,15 +126,6 @@ export default function RegisterPage() {
       }
       if (!alumniData.career_type) {
         setError('请选择事业类型');
-        setLoading(false);
-        return;
-      }
-    }
-
-    for (let i = 0; i < experiences.length; i++) {
-      const exp = experiences[i];
-      if ((exp as any).is_public !== 1 && (exp as any).is_public !== 0) {
-        setError(`请在在校经历第 ${i + 1} 阶段中选择“对外展示”（必选项：是 或 否）`);
         setLoading(false);
         return;
       }
