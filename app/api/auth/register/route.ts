@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
               exp.college || null, 
               exp.major || null, 
               i,
-              exp.is_public ? 1 : 0
+              (exp.is_public === 1 || exp.is_public === '1') ? 1 : ((exp.is_public === 0 || exp.is_public === '0') ? 0 : null)
             );
           });
         }

@@ -256,12 +256,23 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
   };
 
   const addExp = () => {
-    setExperiences([...experiences, { stage: '', start_year: '', end_year: '', college: '', major: '', sort_order: experiences.length }]);
+    setExperiences([...experiences, { stage: '', start_year: '', end_year: '', college: '', major: '', sort_order: experiences.length, is_public: null }]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) { setError('姓名不能为空'); return; }
+    
+    if (experiences && experiences.length > 0) {
+      for (let i = 0; i < experiences.length; i++) {
+        const exp = experiences[i];
+        if (exp.is_public !== 1 && exp.is_public !== 0) {
+          setError(`请在在校经历第 ${i + 1} 阶段中选择“是否对外展示”（必选项：是 或 否）`);
+          return;
+        }
+      }
+    }
+
     setSaving(true);
     setError('');
     
@@ -367,7 +378,7 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {experiences.map((exp, i) => (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 2fr 2fr auto', gap: '8px', alignItems: 'end' }}>
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.9fr 0.9fr 1.6fr 1.6fr 1.1fr auto', gap: '8px', alignItems: 'end' }}>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label className="form-label">阶段</label>
                     <select className="form-select" value={exp.stage} onChange={(e) => updateExp(i, 'stage', e.target.value)}>
@@ -394,9 +405,26 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
                     <label className="form-label">专业</label>
                     <input className="form-input" value={exp.major || ''} onChange={(e) => updateExp(i, 'major', e.target.value)} />
                   </div>
-                  <div className="form-group" style={{ marginBottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                    <label className="form-label" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>是否对外展示</label>
-                    <input type="checkbox" checked={!!exp.is_public} onChange={(e) => updateExp(i, 'is_public', e.target.checked ? 1 : 0)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} title="是否对外展示这段教育经历" />
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" style={{ fontSize: '11px', whiteSpace: 'nowrap', color: (exp.is_public === 1 || exp.is_public === 0) ? '#374151' : '#dc2626' }}>
+                      是否对外展示 <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <select
+                      className="form-select"
+                      value={exp.is_public === 1 ? '1' : exp.is_public === 0 ? '0' : ''}
+                      onChange={(e) => updateExp(i, 'is_public', e.target.value === '1' ? 1 : e.target.value === '0' ? 0 : null)}
+                      style={{
+                        borderColor: (exp.is_public === 1 || exp.is_public === 0) ? '#bae6fd' : '#fca5a5',
+                        backgroundColor: (exp.is_public === 1 || exp.is_public === 0) ? '#f0f9ff' : '#fef2f2',
+                        color: (exp.is_public === 1 || exp.is_public === 0) ? '#0369a1' : '#991b1b',
+                        fontWeight: (exp.is_public === 1 || exp.is_public === 0) ? 500 : 600,
+                      }}
+                      required
+                    >
+                      <option value="">请选择</option>
+                      <option value="1">是</option>
+                      <option value="0">否</option>
+                    </select>
                   </div>
                   <button type="button" onClick={() => removeExp(i)} className="btn btn-danger" style={{ padding: '8px' }}>🗑</button>
                 </div>

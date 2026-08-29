@@ -41,12 +41,12 @@ export default function RegisterPage() {
   });
   
   const [experiences, setExperiences] = useState([
-    { stage: '', start_year: '', end_year: '', college: '', major: '', sort_order: 0 }
+    { stage: '', start_year: '', end_year: '', college: '', major: '', sort_order: 0, is_public: null }
   ]);
 
   const router = useRouter();
 
-  const addExp = () => setExperiences([...experiences, { stage: '', start_year: '', end_year: '', college: '', major: '', sort_order: experiences.length }]);
+  const addExp = () => setExperiences([...experiences, { stage: '', start_year: '', end_year: '', college: '', major: '', sort_order: experiences.length, is_public: null }]);
   const removeExp = (i: number) => setExperiences(experiences.filter((_, idx) => idx !== i));
   const updateExp = (i: number, field: string, val: any) => {
     const next = [...experiences];
@@ -117,6 +117,15 @@ export default function RegisterPage() {
       }
       if (!alumniData.career_type) {
         setError('请选择事业类型');
+        setLoading(false);
+        return;
+      }
+    }
+
+    for (let i = 0; i < experiences.length; i++) {
+      const exp = experiences[i];
+      if ((exp as any).is_public !== 1 && (exp as any).is_public !== 0) {
+        setError(`请在在校经历第 ${i + 1} 阶段中选择“对外展示”（必选项：是 或 否）`);
         setLoading(false);
         return;
       }
@@ -361,9 +370,28 @@ export default function RegisterPage() {
                       <label>专业</label>
                       <input type="text" placeholder="所属专业" value={exp.major} onChange={e => updateExp(i, 'major', e.target.value)} />
                     </div>
-                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                      <label style={{ fontSize: '11px', marginBottom: '4px' }}>对外展示</label>
-                      <input type="checkbox" checked={!!(exp as any).is_public} onChange={e => updateExp(i, 'is_public', e.target.checked ? 1 : 0)} style={{ width: '20px', height: '20px' }} />
+                    <div className="form-group">
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: (exp as any).is_public === 1 || (exp as any).is_public === 0 ? '#374151' : '#dc2626' }}>
+                        对外展示 <span style={{ color: '#ef4444' }}>*</span>
+                      </label>
+                      <select
+                        value={(exp as any).is_public === 1 ? '1' : (exp as any).is_public === 0 ? '0' : ''}
+                        onChange={e => updateExp(i, 'is_public', e.target.value === '1' ? 1 : e.target.value === '0' ? 0 : null)}
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          border: '1px solid',
+                          borderColor: (exp as any).is_public === 1 || (exp as any).is_public === 0 ? '#d1d5db' : '#fca5a5',
+                          backgroundColor: (exp as any).is_public === 1 || (exp as any).is_public === 0 ? '#ffffff' : '#fef2f2',
+                          color: (exp as any).is_public === 1 || (exp as any).is_public === 0 ? '#111827' : '#991b1b',
+                          fontSize: '13px',
+                        }}
+                        required
+                      >
+                        <option value="">请选择</option>
+                        <option value="1">是</option>
+                        <option value="0">否</option>
+                      </select>
                     </div>
                   </div>
                   {experiences.length > 1 && (

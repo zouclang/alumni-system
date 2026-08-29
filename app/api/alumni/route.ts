@@ -266,7 +266,8 @@ export async function POST(request: NextRequest) {
       
       if (Array.isArray(experiences)) {
         experiences.forEach((exp: any, i: number) => {
-          insertExp.run(alumniId, exp.stage || null, exp.start_year || null, exp.end_year || null, exp.college || null, exp.major || null, i, exp.is_public ? 1 : 0);
+          const isPub = (exp.is_public === 1 || exp.is_public === '1') ? 1 : ((exp.is_public === 0 || exp.is_public === '0') ? 0 : null);
+          insertExp.run(alumniId, exp.stage || null, exp.start_year || null, exp.end_year || null, exp.college || null, exp.major || null, i, isPub);
         });
       }
       

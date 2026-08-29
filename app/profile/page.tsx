@@ -391,6 +391,19 @@ export default function ProfilePage() {
         <div className="profile-content-area">
           {currentView === 'info' && (
             <div className="info-view animate-fade-in">
+              {user?.hasIncompleteProfile && (
+                <div style={{
+                  marginBottom: '20px', padding: '14px 20px', background: '#fef2f2',
+                  borderRadius: '16px', border: '1px solid #fca5a5', color: '#991b1b',
+                  fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.08)'
+                }}>
+                  <span style={{ fontSize: '20px' }}>⚠️</span>
+                  <div>
+                    您的个人信息尚未完善：请在下方【在校经历】中为每一阶段选择“是否对外展示”（必选项：是 或 否）并保存。
+                  </div>
+                </div>
+              )}
               <div className="view-title-row">
                 <h2>📄 个人详细资料</h2>
               </div>
