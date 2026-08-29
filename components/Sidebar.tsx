@@ -38,6 +38,12 @@ export default function Sidebar() {
       .then(data => {
         if (data.authenticated) {
           setUser(data.user);
+          if (data.user.role !== 'ADMIN' && data.user.hasIncompleteProfile) {
+            if (pathname !== '/profile') {
+              setShowIncompleteModal(true);
+              router.push('/profile');
+            }
+          }
           if (data.user.role === 'ADMIN') {
             fetchPendingCount();
           } else {
@@ -48,7 +54,7 @@ export default function Sidebar() {
         }
       })
       .catch(() => setUser(null));
-  }, [pathname]);
+  }, [pathname, router]);
 
   // Auto-close sidebar on route change (mobile)
   useEffect(() => {
@@ -273,80 +279,62 @@ export default function Sidebar() {
         }
       `}</style>
 
-      {/* Incomplete Profile Prompt Modal */}
+      {/* Incomplete Profile Mandatory Modal */}
       {showIncompleteModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(8px)',
+          backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(10px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 99999, padding: '20px'
-        }} onClick={() => setShowIncompleteModal(false)}>
+        }}>
           <div style={{
-            background: '#ffffff', borderRadius: '24px', padding: '32px 28px',
-            maxWidth: '460px', width: '100%', boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
+            background: '#ffffff', borderRadius: '24px', padding: '36px 30px',
+            maxWidth: '460px', width: '100%', boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
             border: '1px solid rgba(226, 232, 240, 0.8)', position: 'relative',
             animation: 'modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
           }} onClick={e => e.stopPropagation()}>
             
-            <button type="button" onClick={() => setShowIncompleteModal(false)} style={{
-              position: 'absolute', top: '16px', right: '16px', border: 'none',
-              background: '#f1f5f9', borderRadius: '50%', width: '32px', height: '32px',
-              cursor: 'pointer', fontSize: '16px', color: '#64748b', display: 'flex',
-              alignItems: 'center', justifyContent: 'center'
-            }}>✕</button>
-
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <div style={{ fontSize: '44px', marginBottom: '12px' }}>📝</div>
+              <div style={{ fontSize: '48px', marginBottom: '12px' }}>📝</div>
               <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                 个人信息待完善提示
               </h3>
             </div>
 
             <div style={{
-              fontSize: '14px', color: '#334155', lineHeight: 1.7, background: '#f8fafc',
-              padding: '16px 20px', borderRadius: '16px', marginBottom: '24px',
-              border: '1px solid #e2e8f0'
+              fontSize: '14px', color: '#334155', lineHeight: 1.7, background: '#fef2f2',
+              padding: '18px 20px', borderRadius: '16px', marginBottom: '24px',
+              border: '1px solid #fca5a5'
             }}>
-              <p style={{ margin: 0, fontWeight: 600, color: '#1e293b' }}>
-                您还有在校经历中的“<span style={{ color: '#dc2626' }}>是否对外展示</span>”信息未设置（必填项）。
+              <p style={{ margin: 0, fontWeight: 700, color: '#991b1b', fontSize: '15px' }}>
+                ⚠️ 暂无法浏览其他功能
               </p>
-              <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: '13px' }}>
-                请前往个人中心选择“是”或“否”并保存，以便更好地完善个人信息。
+              <p style={{ margin: '8px 0 0 0', color: '#7f1d1d', fontSize: '13.5px' }}>
+                您在校经历中的“<strong style={{ color: '#dc2626' }}>是否对外展示</strong>”为必填项（目前为“请选择”）。
+              </p>
+              <p style={{ margin: '6px 0 0 0', color: '#991b1b', fontSize: '13px' }}>
+                请前往个人中心为每一阶段选择“是”或“否”并点击保存，保存后即可正常使用全站功能。
               </p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <Link
-                href="/profile"
-                onClick={() => {
-                  setShowIncompleteModal(false);
-                }}
-                style={{
-                  display: 'block', textAlign: 'center', padding: '12px 20px',
-                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                  color: 'white', borderRadius: '12px', fontWeight: 700,
-                  fontSize: '15px', textDecoration: 'none',
-                  boxShadow: '0 4px 12px rgba(59,130,246,0.3)'
-                }}
-              >
-                🚀 前往个人中心修改
-              </Link>
-
               <button
                 type="button"
                 onClick={() => {
                   setShowIncompleteModal(false);
-                  if (targetHref) {
-                    router.push(targetHref);
+                  if (pathname !== '/profile') {
+                    router.push('/profile');
                   }
                 }}
                 style={{
-                  width: '100%', padding: '11px 20px', border: '1px solid #e2e8f0',
-                  borderRadius: '12px', background: '#ffffff', color: '#64748b',
-                  fontWeight: 600, fontSize: '14px', cursor: 'pointer'
+                  width: '100%', padding: '13px 20px',
+                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                  color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700,
+                  fontSize: '15px', cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(59,130,246,0.3)'
                 }}
               >
-                关闭弹窗并继续浏览
+                🚀 前往个人中心完善
               </button>
             </div>
           </div>
