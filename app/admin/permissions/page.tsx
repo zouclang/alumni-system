@@ -37,7 +37,16 @@ export default function PermissionsPage() {
  streams:
 
   useEffect(() => {
-    fetchAll();
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.authenticated || data.user?.role !== 'ADMIN') {
+          router.replace('/admin');
+        } else {
+          fetchAll();
+        }
+      })
+      .catch(() => router.replace('/admin'));
   }, []);
 
   useEffect(() => {

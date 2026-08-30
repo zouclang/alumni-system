@@ -1,14 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function LoginPage() {
-  const [realName, setRealName] = useState('');
+export default function AdminLoginPage() {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user?.role === 'ADMIN') {
+          router.replace('/admin/permissions');
+        } else {
+          setCheckingAuth(false);
+        }
+      })
+      .catch(() => setCheckingAuth(false));
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,12 +33,12 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ realName, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
       if (res.ok) {
-        router.push('/');
+        router.push('/admin/permissions');
         router.refresh();
       } else {
         setError(data.error || '登录失败');
@@ -36,52 +50,59 @@ export default function LoginPage() {
     }
   };
 
+  if (checkingAuth) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0a0b0d', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+        验证身份中...
+      </div>
+    );
+  }
+
   return (
     <div className="login-container">
       <div className="login-bg-overlay"></div>
-      
+
       <div className="login-card">
         <div className="login-header">
           <img src="/logo.png" alt="Logo" className="login-logo" />
           <h1>大工苏州校友会</h1>
-          <p>校友通讯录管理系统</p>
+          <p>管理后台系统</p>
         </div>
 
         <div className="login-title">
-          <h2>校友登录</h2>
+          <h2>🛡️ 管理员登录</h2>
         </div>
 
         <form onSubmit={handleLogin} className="login-form">
           <div className="form-group">
-            <label>真实姓名</label>
-            <input 
-              type="text" 
-              value={realName} 
-              onChange={(e) => setRealName(e.target.value)} 
-              placeholder="请输入您的真实姓名"
-              required 
+            <label>管理员用户名</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="请输入管理员账号"
+              required
             />
           </div>
 
           <div className="form-group">
             <label>密码</label>
-            <input 
-              type="password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              placeholder="请输入密码"
-              required 
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="请输入管理员密码"
+              required
             />
           </div>
 
           {error && <div className="login-error">{error}</div>}
 
           <button type="submit" className="login-button" disabled={loading}>
-            {loading ? '登录中...' : '立即登录'}
+            {loading ? '登录中...' : '管理员登录'}
           </button>
 
           <div className="login-footer">
-            <p>还没有账号？ <a href="/register">立即注册</a></p>
             <p className="copyright">© 2024 大工苏州校友会 多多技术支持</p>
           </div>
         </form>
@@ -113,9 +134,9 @@ export default function LoginPage() {
         .login-card {
           width: 100%;
           max-width: 440px;
-          background: rgba(15, 23, 42, 0.75);
+          background: rgba(15, 23, 42, 0.85);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           border-radius: 32px;
           padding: 48px;
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
@@ -159,8 +180,8 @@ export default function LoginPage() {
 
         .login-title h2 {
           font-size: 18px;
-          color: #e2e8f0;
-          font-weight: 600;
+          color: #60a5fa;
+          font-weight: 700;
           padding-bottom: 12px;
           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
           margin: 0;
@@ -181,8 +202,8 @@ export default function LoginPage() {
         input {
           width: 100%;
           padding: 12px 16px;
-          background: rgba(0, 0, 0, 0.2);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(0, 0, 0, 0.25);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           border-radius: 12px;
           color: white;
           font-size: 15px;
@@ -192,8 +213,8 @@ export default function LoginPage() {
         input:focus {
           outline: none;
           border-color: #3b82f6;
-          background: rgba(0, 0, 0, 0.3);
-          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+          background: rgba(0, 0, 0, 0.35);
+          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
         }
 
         .login-error {
@@ -210,7 +231,7 @@ export default function LoginPage() {
         .login-button {
           width: 100%;
           padding: 14px;
-          background: linear-gradient(135deg, #3b82f6, #2563eb);
+          background: linear-gradient(135deg, #2563eb, #1d4ed8);
           color: white;
           border: none;
           border-radius: 12px;
@@ -240,24 +261,10 @@ export default function LoginPage() {
           text-align: center;
         }
 
-        .login-footer p {
-          margin-bottom: 8px;
-        }
-
-        .login-footer a {
-          color: #3b82f6;
-          text-decoration: none;
-          font-weight: 600;
-        }
-
-        .login-footer a:hover {
-          text-decoration: underline;
-        }
-
         .copyright {
           font-size: 12px;
           margin-top: 16px;
-          opacity: 0.5;
+          color: #64748b;
         }
       `}</style>
     </div>
