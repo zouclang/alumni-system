@@ -261,14 +261,19 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) { setError('姓名不能为空'); return; }
-    
-    if (experiences && experiences.length > 0) {
-      for (let i = 0; i < experiences.length; i++) {
-        const exp = experiences[i];
-        if (exp.is_public !== 1 && exp.is_public !== 0) {
-          setError(`请在在校经历第 ${i + 1} 阶段中选择“是否对外展示”（必选项：是 或 否）`);
-          return;
+
+    const isAdmin = currentUser?.role === 'ADMIN';
+
+    if (!isAdmin) {
+      if (!form.name.trim()) { setError('姓名不能为空'); return; }
+      
+      if (experiences && experiences.length > 0) {
+        for (let i = 0; i < experiences.length; i++) {
+          const exp = experiences[i];
+          if (exp.is_public !== 1 && exp.is_public !== 0) {
+            setError(`请在在校经历第 ${i + 1} 阶段中选择“是否对外展示”（必选项：是 或 否）`);
+            return;
+          }
         }
       }
     }
@@ -315,14 +320,14 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
 
         <div className="form-grid">
           <div className="form-group">
-            <label className="form-label required">
+            <label className={`form-label${currentUser?.role !== 'ADMIN' ? ' required' : ''}`}>
               姓名
             </label>
             <input
               className="form-input"
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
-              required
+              required={currentUser?.role !== 'ADMIN'}
             />
           </div>
           <SelectField label="性别" name="gender" value={form.gender} onChange={set} options={GENDERS} />
@@ -330,11 +335,11 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
           <SelectField label="生日月份" name="birth_month" value={form.birth_month} onChange={set} options={MONTHS} />
           <SelectField label="所在区域" name="region" value={form.region} onChange={set} options={REGIONS} />
           <div className="form-group">
-            <label className="form-label required">
+            <label className={`form-label${currentUser?.role !== 'ADMIN' ? ' required' : ''}`}>
               联系电话 
               <span style={{ color: '#ef4444', fontSize: '12px', fontWeight: 'normal', display: 'block' }}>授权对接后可向对接人展示</span>
             </label>
-            <input className="form-input" type="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} required />
+            <input className="form-input" type="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} required={currentUser?.role !== 'ADMIN'} />
           </div>
           <div className="form-group">
             <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -411,20 +416,20 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
                     <input className="form-input" value={exp.major || ''} onChange={(e) => updateExp(i, 'major', e.target.value)} />
                   </div>
                   <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label" style={{ fontSize: '11px', whiteSpace: 'nowrap', color: (exp.is_public === 1 || exp.is_public === 0) ? '#374151' : '#dc2626' }}>
-                      是否对外展示 <span style={{ color: '#ef4444' }}>*</span>
+                    <label className="form-label" style={{ fontSize: '11px', whiteSpace: 'nowrap', color: (currentUser?.role === 'ADMIN' || exp.is_public === 1 || exp.is_public === 0) ? '#374151' : '#dc2626' }}>
+                      是否对外展示 {currentUser?.role !== 'ADMIN' && <span style={{ color: '#ef4444' }}>*</span>}
                     </label>
                     <select
                       className="form-select"
                       value={exp.is_public === 1 ? '1' : exp.is_public === 0 ? '0' : ''}
                       onChange={(e) => updateExp(i, 'is_public', e.target.value === '1' ? 1 : e.target.value === '0' ? 0 : null)}
                       style={{
-                        borderColor: (exp.is_public === 1 || exp.is_public === 0) ? '#bae6fd' : '#fca5a5',
-                        backgroundColor: (exp.is_public === 1 || exp.is_public === 0) ? '#f0f9ff' : '#fef2f2',
-                        color: (exp.is_public === 1 || exp.is_public === 0) ? '#0369a1' : '#991b1b',
+                        borderColor: (currentUser?.role === 'ADMIN' || exp.is_public === 1 || exp.is_public === 0) ? '#bae6fd' : '#fca5a5',
+                        backgroundColor: (currentUser?.role === 'ADMIN' || exp.is_public === 1 || exp.is_public === 0) ? '#f0f9ff' : '#fef2f2',
+                        color: (currentUser?.role === 'ADMIN' || exp.is_public === 1 || exp.is_public === 0) ? '#0369a1' : '#991b1b',
                         fontWeight: (exp.is_public === 1 || exp.is_public === 0) ? 500 : 600,
                       }}
-                      required
+                      required={currentUser?.role !== 'ADMIN'}
                     >
                       <option value="">请选择</option>
                       <option value="1">是</option>
