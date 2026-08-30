@@ -57,12 +57,12 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="login-form">
           <div className="form-group">
-            <label>真实姓名 / 账号</label>
+            <label>真实姓名</label>
             <input 
               type="text" 
               value={realName} 
               onChange={(e) => setRealName(e.target.value)} 
-              placeholder="请输入您的真实姓名或账号"
+              placeholder="请输入您的真实姓名"
               required 
             />
           </div>
