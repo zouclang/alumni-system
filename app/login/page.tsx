@@ -24,7 +24,11 @@ export default function LoginPage() {
 
       const data = await res.json();
       if (res.ok) {
-        router.push('/');
+        if (data.user?.role === 'ADMIN') {
+          router.push('/admin/permissions');
+        } else {
+          router.push('/');
+        }
         router.refresh();
       } else {
         setError(data.error || '登录失败');
@@ -53,12 +57,12 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="login-form">
           <div className="form-group">
-            <label>真实姓名</label>
+            <label>真实姓名 / 账号</label>
             <input 
               type="text" 
               value={realName} 
               onChange={(e) => setRealName(e.target.value)} 
-              placeholder="请输入您的真实姓名"
+              placeholder="请输入您的真实姓名或账号"
               required 
             />
           </div>

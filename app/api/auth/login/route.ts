@@ -9,21 +9,24 @@ export async function POST(request: NextRequest) {
     const { username, realName, password } = await request.json();
     const db = getDb();
 
+    const identifier = (username || realName || '').trim();
+    if (!identifier) {
+      return NextResponse.json({ error: '请输入姓名或账号' }, { status: 400 });
+    }
+
     let user: any = null;
 
-    if (username) {
-      // Admin login by username
-      user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
-    } else if (realName) {
-      // Alumni login by real name
-      // This requires joining with alumni table or having the real name in users
-      // For now, let's assume we search by alumni name linked to user
+    // 1. Check if identifier matches admin username first
+    user = db.prepare('SELECT * FROM users WHERE username = ?').get(identifier);
+
+    // 2. If not found by username, search by alumni real name or phone number
+    if (!user) {
       user = db.prepare(`
         SELECT u.*, a.name as real_name 
         FROM users u 
         JOIN alumni a ON u.alumni_id = a.id 
-        WHERE a.name = ?
-      `).get(realName);
+        WHERE a.name = ? OR a.phone = ?
+      `).get(identifier, identifier);
     }
 
     if (!user) {
