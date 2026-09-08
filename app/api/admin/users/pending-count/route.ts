@@ -16,14 +16,21 @@ export async function GET(_request: NextRequest) {
     const contactPending = db.prepare("SELECT COUNT(*) as count FROM contact_requests WHERE status = 'PENDING'").get() as { count: number };
     const correctionPending = db.prepare("SELECT COUNT(*) as count FROM correction_requests WHERE status = 'PENDING'").get() as { count: number };
 
-    const total = userPending.count + contactPending.count + correctionPending.count;
+    let matchmakingPendingCount = 0;
+    try {
+      const mmPending = db.prepare("SELECT COUNT(*) as count FROM matchmaking_applications WHERE status = 'PENDING'").get() as { count: number };
+      matchmakingPendingCount = mmPending?.count || 0;
+    } catch (e) {}
+
+    const total = userPending.count + contactPending.count + correctionPending.count + matchmakingPendingCount;
 
     if (_request.nextUrl.searchParams.get('detail') === '1') {
       return NextResponse.json({ 
         count: total,
         registration: userPending.count,
         contact: contactPending.count,
-        correction: correctionPending.count
+        correction: correctionPending.count,
+        matchmaking: matchmakingPendingCount
       });
     }
 

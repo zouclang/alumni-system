@@ -14,6 +14,9 @@ export default function Sidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const [targetHref, setTargetHref] = useState<string | null>(null);
+  const [mmStatus, setMmStatus] = useState<string | null>(null);
+  const [showMmApplyModal, setShowMmApplyModal] = useState(false);
+  const [mmApplying, setMmApplying] = useState(false);
 
 
   const fetchAuthUser = () => {
@@ -34,6 +37,11 @@ export default function Sidebar() {
             fetchPendingCount();
           } else {
             fetchUserUnreadCount();
+            // Fetch matchmaking status
+            fetch('/api/matchmaking/application')
+              .then(r => r.json())
+              .then(d => setMmStatus(d.application?.status || null))
+              .catch(() => {});
           }
         } else {
           setUser(null);
@@ -103,19 +111,64 @@ export default function Sidebar() {
   ];
 
   if (user?.role === 'ADMIN') {
+    navItems.push({
+      href: '/matchmaking',
+      icon: '💞',
+      label: '喜结连理',
+    });
     navItems.push({ 
       href: '/admin/permissions', 
       icon: '🔐', 
       label: '审核管理',
       badge: pendingCount > 0 ? pendingCount : null
     });
+  } else if (user) {
+    navItems.push({
+      href: '/matchmaking',
+      icon: '💞',
+      label: '喜结连理',
+      badge: mmStatus === 'PENDING' ? null : null,
+    });
   }
+
+  const handleMmApply = async () => {
+    setMmApplying(true);
+    try {
+      const res = await fetch('/api/matchmaking/application', { method: 'POST' });
+      const d = await res.json();
+      if (res.ok) {
+        setMmStatus('PENDING');
+        setShowMmApplyModal(false);
+      } else {
+        if (d.needProfile) {
+          setShowMmApplyModal(false);
+          if (confirm(`${d.error}\n\n是否立即前往个人中心完善资料？`)) {
+            router.push('/profile');
+          }
+        } else {
+          alert(d.error || '申请失败');
+        }
+      }
+    } catch { alert('网络错误，请重试'); }
+    finally { setMmApplying(false); }
+  };
 
   const handleNavClick = (e: React.MouseEvent, href: string) => {
     if (user && user.role !== 'ADMIN' && user.hasIncompleteProfile) {
       e.preventDefault();
       setTargetHref(href);
       setShowIncompleteModal(true);
+      return;
+    }
+    // Matchmaking intercept
+    if (href === '/matchmaking' && user && user.role !== 'ADMIN') {
+      if (mmStatus === 'APPROVED') return; // navigate normally
+      e.preventDefault();
+      if (mmStatus === 'PENDING') {
+        alert('您的喜结连理申请正在审核中，请耐心等待，管理员将通过微信与您核实。');
+        return;
+      }
+      setShowMmApplyModal(true);
     }
   };
 
@@ -339,6 +392,44 @@ export default function Sidebar() {
                 }}
               >
                 🚀 前往个人中心完善
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Matchmaking Application Modal */}
+      {showMmApplyModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(10px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 99999, padding: '20px'
+        }}>
+          <div style={{
+            background: '#ffffff', borderRadius: '24px', padding: '36px 30px',
+            maxWidth: '460px', width: '100%', boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <div style={{ fontSize: '48px', marginBottom: '12px' }}>🌸</div>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#c0392b', margin: 0 }}>
+                喜结连理 · 校友相亲板块
+              </h3>
+            </div>
+            <div style={{ fontSize: '13.5px', color: '#334155', lineHeight: 1.8, background: '#fff5f5', padding: '16px 18px', borderRadius: '12px', marginBottom: '20px', border: '1px solid #fecdd3' }}>
+              <p style={{ margin: '0 0 8px' }}>欢迎申请加入喜结连理板块！在提交申请前，请您仔细阅读以下说明：</p>
+              <p style={{ margin: '4px 0' }}>· 本板块为大工苏州校友会专属相亲平台</p>
+              <p style={{ margin: '4px 0', color: '#c0392b', fontWeight: 600 }}>✔ 请确认您目前为单身状态</p>
+              <p style={{ margin: '4px 0', color: '#b91c1c', fontWeight: 600 }}>✔ 申请人基础资料中必须明确【性别】、【手机号】与【微信号】</p>
+              <p style={{ margin: '4px 0' }}>· 申请提交后，管理员将通过微信与您核实身份</p>
+              <p style={{ margin: '4px 0' }}>· 核实通过后方可进入板块使用全部功能</p>
+            </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setShowMmApplyModal(false)} style={{ flex: 1, padding: '11px 0', border: '1px solid #ddd', borderRadius: '10px', background: '#fff', cursor: 'pointer', fontSize: '14px', color: '#666' }}>
+                取消
+              </button>
+              <button onClick={handleMmApply} disabled={mmApplying} style={{ flex: 2, padding: '11px 0', border: 'none', borderRadius: '10px', background: '#c0392b', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: 700, opacity: mmApplying ? 0.7 : 1 }}>
+                {mmApplying ? '提交中…' : '提交申请'}
               </button>
             </div>
           </div>

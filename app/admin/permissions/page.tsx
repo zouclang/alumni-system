@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import AlumniForm from '@/components/AlumniForm';
+import MatchmakingDetailModal from '@/components/MatchmakingDetailModal';
 
 export default function PermissionsPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -11,14 +12,23 @@ export default function PermissionsPage() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<'REGISTRATION' | 'CONTACT' | 'CORRECTION'>('REGISTRATION');
+  const [activeTab, setActiveTab] = useState<'REGISTRATION' | 'CONTACT' | 'CORRECTION' | 'MATCHMAKING'>('REGISTRATION');
   const [contactRequests, setContactRequests] = useState<any[]>([]);
   const [correctionRequests, setCorrectionRequests] = useState<any[]>([]);
   const [rejectingRequest, setRejectingRequest] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [hasAutoSwitched, setHasAutoSwitched] = useState(false);
-  const [pendingCounts, setPendingCounts] = useState({ registration: 0, contact: 0, correction: 0 });
+  const [pendingCounts, setPendingCounts] = useState({ registration: 0, contact: 0, correction: 0, matchmaking: 0 });
   const processedIdsRef = useRef<Set<string>>(new Set());
+
+  // Matchmaking admin state
+  const [mmSubTab, setMmSubTab] = useState<'pending' | 'approved'>('pending');
+  const [mmPendingList, setMmPendingList] = useState<any[]>([]);
+  const [mmApprovedList, setMmApprovedList] = useState<any[]>([]);
+  const [mmActionLoading, setMmActionLoading] = useState(false);
+  const [mmRejectModal, setMmRejectModal] = useState<any>(null);
+  const [mmRejectReason, setMmRejectReason] = useState('');
+  const [viewingMmAlumniId, setViewingMmAlumniId] = useState<number | null>(null);
   
   const formatDateTime = (dateStr: string) => {
     if (!dateStr) return '—';
@@ -90,12 +100,44 @@ export default function PermissionsPage() {
         setPendingCounts({
           registration: data.registration || 0,
           contact: data.contact || 0,
-          correction: data.correction || 0
+          correction: data.correction || 0,
+          matchmaking: data.matchmaking || 0,
         });
-        // Dispatch event for sidebar to update
         window.dispatchEvent(new Event('pendingCountUpdate'));
       }
     } catch (err) {}
+  };
+
+  const fetchMmData = async (tab: 'pending' | 'approved' = 'pending') => {
+    try {
+      const res = await fetch(`/api/admin/matchmaking?tab=${tab}`);
+      const data = await res.json();
+      if (tab === 'pending') setMmPendingList(data.applications || []);
+      else setMmApprovedList(data.members || []);
+    } catch {}
+  };
+
+  const handleMmAction = async (action: 'approve' | 'reject', alumni_id: number, reject_reason?: string) => {
+    setMmActionLoading(true);
+    const res = await fetch('/api/admin/matchmaking', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action, alumni_id, reject_reason }),
+    });
+    if (res.ok) { fetchMmData('pending'); fetchPendingCounts(); setMmRejectModal(null); setMmRejectReason(''); }
+    else { const d = await res.json(); alert(d.error || '操作失败'); }
+    setMmActionLoading(false);
+  };
+
+  const handleMmRemove = async (alumni_id: number, name: string) => {
+    if (!confirm(`确认将「${name}」移出喜结连理板块？移出后其信息将不再参与匹配。`)) return;
+    setMmActionLoading(true);
+    const res = await fetch('/api/admin/matchmaking', {
+      method: 'DELETE', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ alumni_id }),
+    });
+    if (res.ok) { fetchMmData('approved'); fetchPendingCounts(); }
+    else { const d = await res.json(); alert(d.error || '操作失败'); }
+    setMmActionLoading(false);
   };
 
   const fetchUsers = async (skipLoading = false) => {
@@ -322,11 +364,18 @@ export default function PermissionsPage() {
           <span>信息纠正</span>
           <span className="count-badge">{pendingCounts.correction}</span>
         </button>
+        <button
+          className={`tab-btn ${activeTab === 'MATCHMAKING' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('MATCHMAKING'); fetchMmData(mmSubTab); }}
+        >
+          <span>💞 喜结连理</span>
+          {pendingCounts.matchmaking > 0 && <span className="count-badge">{pendingCounts.matchmaking}</span>}
+        </button>
       </div>
 
       {error && <div className="error-msg">{error}</div>}
 
-      {activeTab === 'REGISTRATION' ? (
+      {activeTab === 'REGISTRATION' && (
         <div className="section">
           <h2 className="section-title">待审核注册申请 ({pendingUsers.length})</h2>
           {pendingUsers.length === 0 ? (
@@ -356,7 +405,9 @@ export default function PermissionsPage() {
             </div>
           )}
         </div>
-      ) : activeTab === 'CONTACT' ? (
+      )}
+
+      {activeTab === 'CONTACT' && (
         <div className="section">
           <h2 className="section-title">待审核对接申请 ({contactRequests.length})</h2>
           {contactRequests.length === 0 ? (
@@ -388,7 +439,9 @@ export default function PermissionsPage() {
             </div>
           )}
         </div>
-      ) : (
+      )}
+
+      {activeTab === 'CORRECTION' && (
         <div className="section">
           <h2 className="section-title">待审核资料纠正 ({correctionRequests.length})</h2>
           {correctionRequests.length === 0 ? (
@@ -418,6 +471,197 @@ export default function PermissionsPage() {
                 </div>
               ))}
             </div>
+          )}
+        </div>
+      )}
+
+      {/* Matchmaking Tab Content */}
+      {activeTab === 'MATCHMAKING' && (
+        <div className="section">
+          <h2 className="section-title">💞 喜结连理管理</h2>
+          {/* Sub-tabs */}
+          <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
+            <button 
+              onClick={() => { setMmSubTab('pending'); fetchMmData('pending'); }} 
+              style={{ 
+                padding: '8px 20px', 
+                borderRadius: '12px', 
+                border: '1px solid ' + (mmSubTab === 'pending' ? '#ef4444' : 'rgba(255,255,255,0.12)'),
+                background: mmSubTab === 'pending' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.05)', 
+                color: mmSubTab === 'pending' ? '#fca5a5' : '#94a3b8', 
+                cursor: 'pointer', 
+                fontWeight: 700, 
+                fontSize: '14px',
+                transition: 'all 0.2s'
+              }}
+            >
+              待审核申请 ({mmPendingList.length})
+            </button>
+            <button 
+              onClick={() => { setMmSubTab('approved'); fetchMmData('approved'); }} 
+              style={{ 
+                padding: '8px 20px', 
+                borderRadius: '12px', 
+                border: '1px solid ' + (mmSubTab === 'approved' ? '#ef4444' : 'rgba(255,255,255,0.12)'),
+                background: mmSubTab === 'approved' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.05)', 
+                color: mmSubTab === 'approved' ? '#fca5a5' : '#94a3b8', 
+                cursor: 'pointer', 
+                fontWeight: 700, 
+                fontSize: '14px',
+                transition: 'all 0.2s'
+              }}
+            >
+              已通过成员 ({mmApprovedList.length})
+            </button>
+          </div>
+
+          {/* Pending sub-tab */}
+          {mmSubTab === 'pending' && (
+            mmPendingList.length === 0 ? (
+              <p className="empty-msg">暂时没有待审核的喜结连理申请</p>
+            ) : (
+              <div className="user-grid">
+                {mmPendingList.map(item => (
+                  <div key={item.id} className="user-card pending">
+                    <div className="user-info" style={{ flex: 1 }}>
+                      <div className="user-main">
+                        <span 
+                          className="user-name-link" 
+                          onClick={() => setViewingMmAlumniId(item.alumni_id || item.id)}
+                          title="点击查看喜结连理相亲档案与择偶标准"
+                        >
+                          {item.name}
+                        </span>
+                        <span className="status-badge pending">待审核</span>
+                      </div>
+                      <div className="user-sub">
+                        {item.college || '未填写学院'} · {item.enrollment_year ? `${item.enrollment_year}级` : '未填写年级'}
+                        {item.gender ? ` · ${item.gender === 'M' ? '男' : item.gender === 'F' ? '女' : item.gender}` : ''}
+                      </div>
+                      <div style={{ marginTop: '8px', fontSize: '13px', display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ 
+                          color: '#34d399', 
+                          fontWeight: 600, 
+                          background: 'rgba(16, 185, 129, 0.15)', 
+                          padding: '3px 10px', 
+                          borderRadius: '8px', 
+                          border: '1px solid rgba(16, 185, 129, 0.3)' 
+                        }}>
+                          💬 微信号: <strong>{item.wechat_id || '未填写'}</strong>
+                        </span>
+                        {item.phone && (
+                          <span style={{ color: '#93c5fd', fontSize: '13px' }}>
+                            📱 手机: {item.phone}
+                          </span>
+                        )}
+                      </div>
+                      <div className="user-time" style={{ marginTop: '8px' }}>申请时间: {formatDateTime(item.created_at)}</div>
+                    </div>
+                    <div className="user-actions" style={{ marginLeft: '20px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => setViewingMmAlumniId(item.alumni_id || item.id)}
+                        className="action-btn"
+                        style={{ background: 'rgba(59, 130, 246, 0.18)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.35)' }}
+                        title="查看个人自身条件与期望择偶标准（只读）"
+                      >
+                        🔍 相亲档案
+                      </button>
+                      <button 
+                        onClick={() => handleMmAction('approve', item.alumni_id)} 
+                        disabled={mmActionLoading} 
+                        className="action-btn approve"
+                      >
+                        批准入驻
+                      </button>
+                      <button 
+                        onClick={() => setMmRejectModal(item)} 
+                        disabled={mmActionLoading} 
+                        className="action-btn reject"
+                      >
+                        拒绝
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+
+          {/* Approved sub-tab */}
+          {mmSubTab === 'approved' && (
+            mmApprovedList.length === 0 ? (
+              <p className="empty-msg">暂时没有已通过的喜结连理成员</p>
+            ) : (
+              <div className="user-grid">
+                {mmApprovedList.map(item => (
+                  <div key={item.id} className="user-card" style={{ borderLeft: '4px solid #10b981' }}>
+                    <div className="user-info" style={{ flex: 1 }}>
+                      <div className="user-main">
+                        <span 
+                          className="user-name-link" 
+                          onClick={() => setViewingMmAlumniId(item.alumni_id || item.id)}
+                          title="点击查看喜结连理相亲档案与择偶标准"
+                        >
+                          {item.name}
+                        </span>
+                        <span style={{ 
+                          fontSize: '11px', 
+                          padding: '3px 8px', 
+                          borderRadius: '6px', 
+                          fontWeight: 700, 
+                          background: item.profile_completed ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                          color: item.profile_completed ? '#34d399' : '#fbbf24',
+                          border: '1px solid ' + (item.profile_completed ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)')
+                        }}>
+                          {item.profile_completed ? '✅ 择偶条件已完善' : '⚠️ 尚未完善条件'}
+                        </span>
+                      </div>
+                      <div className="user-sub">
+                        {item.college || '未填写学院'} · {item.enrollment_year ? `${item.enrollment_year}级` : '未填写年级'}
+                        {item.gender ? ` · ${item.gender === 'M' ? '男' : item.gender === 'F' ? '女' : item.gender}` : ''}
+                      </div>
+                      <div style={{ marginTop: '8px', fontSize: '13px', display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ 
+                          color: '#34d399', 
+                          fontWeight: 600, 
+                          background: 'rgba(16, 185, 129, 0.15)', 
+                          padding: '3px 10px', 
+                          borderRadius: '8px' 
+                        }}>
+                          💬 微信号: {item.wechat_id || '未填写'}
+                        </span>
+                        {item.phone && (
+                          <span style={{ color: '#93c5fd' }}>
+                            📱 手机: {item.phone}
+                          </span>
+                        )}
+                      </div>
+                      <div className="user-time" style={{ marginTop: '8px' }}>入驻时间: {formatDateTime(item.approved_at)}</div>
+                    </div>
+                    <div className="user-actions" style={{ marginLeft: '20px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => setViewingMmAlumniId(item.alumni_id || item.id)}
+                        className="action-btn"
+                        style={{ background: 'rgba(59, 130, 246, 0.18)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.35)' }}
+                        title="查看个人自身条件与期望择偶标准（只读）"
+                      >
+                        🔍 相亲档案
+                      </button>
+                      <button 
+                        onClick={() => handleMmRemove(item.alumni_id, item.name)} 
+                        disabled={mmActionLoading} 
+                        className="action-btn reject"
+                        title="移出后该校友不再参与匹配，可重新申请"
+                      >
+                        移出板块
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
           )}
         </div>
       )}
@@ -465,6 +709,46 @@ export default function PermissionsPage() {
         </div>
       )}
 
+      {/* Matchmaking Reject Modal */}
+      {mmRejectModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '420px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title">拒绝入驻申请</h2>
+              <button className="close-btn" onClick={() => { setMmRejectModal(null); setMmRejectReason(''); }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div style={{ padding: '20px' }}>
+              <p style={{ fontSize: '14px', color: '#cbd5e1', marginBottom: '16px' }}>
+                申请人：<strong style={{ color: '#ffffff' }}>{mmRejectModal.name}</strong>
+              </p>
+              <textarea
+                className="form-textarea"
+                placeholder="请输入拒绝原因（可选，将展示给校友）..."
+                value={mmRejectReason}
+                onChange={(e) => setMmRejectReason(e.target.value)}
+                style={{ width: '100%', minHeight: '100px', marginBottom: '20px', padding: '12px', borderRadius: '8px' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button className="btn btn-outline" onClick={() => { setMmRejectModal(null); setMmRejectReason(''); }}>取消</button>
+                <button 
+                  className="btn"
+                  style={{ background: '#ef4444', color: '#fff' }}
+                  onClick={() => handleMmAction('reject', mmRejectModal.alumni_id, mmRejectReason)}
+                  disabled={mmActionLoading}
+                >
+                  确认拒绝
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {selectedUser && (
         <AlumniForm
           initial={{
@@ -485,6 +769,15 @@ export default function PermissionsPage() {
              await handleStatusUpdate(selectedUser.id, 'REJECTED');
              setSelectedUser(null);
           } : undefined}
+        />
+      )}
+
+      {/* Matchmaking Read-Only Detail Modal */}
+      {viewingMmAlumniId && (
+        <MatchmakingDetailModal
+          alumniId={viewingMmAlumniId}
+          onClose={() => setViewingMmAlumniId(null)}
+          onOpenEditAlumni={(a) => setSelectedUser(a)}
         />
       )}
 

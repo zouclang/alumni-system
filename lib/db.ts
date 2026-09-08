@@ -297,4 +297,115 @@ function initializeSchema(database: Database.Database) {
   try { database.exec('CREATE INDEX IF NOT EXISTS idx_job_postings_status ON job_postings(status, deadline)'); } catch(e) {}
   try { database.exec('CREATE INDEX IF NOT EXISTS idx_job_applications_job ON job_applications(job_id)'); } catch(e) {}
   try { database.exec('CREATE INDEX IF NOT EXISTS idx_job_applications_applicant ON job_applications(applicant_alumni_id)'); } catch(e) {}
+
+  // ── 喜结连理 tables ──────────────────────────────────────────────────────
+  // 入驻申请表
+  try {
+    database.exec(`
+      CREATE TABLE IF NOT EXISTS matchmaking_applications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        alumni_id INTEGER NOT NULL UNIQUE,
+        status TEXT DEFAULT 'PENDING',
+        reject_reason TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (alumni_id) REFERENCES alumni(id) ON DELETE CASCADE
+      )
+    `);
+  } catch(e) {}
+
+  // 用户自身条件表
+  try {
+    database.exec(`
+      CREATE TABLE IF NOT EXISTS matchmaking_profiles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        alumni_id INTEGER NOT NULL UNIQUE,
+        gender TEXT,
+        age INTEGER,
+        height INTEGER,
+        weight INTEGER,
+        hometown TEXT,
+        marital_status TEXT,
+        region TEXT,
+        property_status TEXT,
+        annual_income REAL,
+        job_type TEXT,
+        degree TEXT,
+        parents_job TEXT DEFAULT '[]',
+        parents_insurance TEXT,
+        family_structure TEXT,
+        parents_marital TEXT,
+        smoking TEXT,
+        drinking TEXT,
+        schedule TEXT,
+        hobbies TEXT DEFAULT '[]',
+        personality TEXT DEFAULT '[]',
+        profile_completed INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (alumni_id) REFERENCES alumni(id) ON DELETE CASCADE
+      )
+    `);
+  } catch(e) {}
+
+  // 择偶标准表
+  try {
+    database.exec(`
+      CREATE TABLE IF NOT EXISTS matchmaking_criteria (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        alumni_id INTEGER NOT NULL UNIQUE,
+        age_min INTEGER,
+        age_max INTEGER,
+        height_min INTEGER,
+        height_max INTEGER,
+        weight_min INTEGER,
+        weight_max INTEGER,
+        income_min REAL,
+        income_max REAL,
+        marital_status TEXT DEFAULT '[]',
+        region TEXT DEFAULT '[]',
+        property_status TEXT DEFAULT '[]',
+        job_type TEXT DEFAULT '[]',
+        degree TEXT,
+        parents_job TEXT DEFAULT '[]',
+        parents_insurance TEXT,
+        family_structure TEXT,
+        parents_marital TEXT,
+        smoking TEXT,
+        drinking TEXT,
+        schedule TEXT,
+        hobbies TEXT DEFAULT '[]',
+        personality TEXT DEFAULT '[]',
+        criteria_completed INTEGER DEFAULT 0,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (alumni_id) REFERENCES alumni(id) ON DELETE CASCADE
+      )
+    `);
+  } catch(e) {}
+
+  // 对接申请表
+  try {
+    database.exec(`
+      CREATE TABLE IF NOT EXISTS matchmaking_connections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        applicant_alumni_id INTEGER NOT NULL,
+        target_alumni_id INTEGER NOT NULL,
+        status TEXT DEFAULT 'PENDING',
+        reject_reason TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (applicant_alumni_id) REFERENCES alumni(id) ON DELETE CASCADE,
+        FOREIGN KEY (target_alumni_id) REFERENCES alumni(id) ON DELETE CASCADE
+      )
+    `);
+  } catch(e) {}
+
+  try { database.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_mm_connections_pair ON matchmaking_connections(applicant_alumni_id, target_alumni_id)'); } catch(e) {}
+  try { database.exec('CREATE INDEX IF NOT EXISTS idx_mm_applications_alumni ON matchmaking_applications(alumni_id)'); } catch(e) {}
+  try { database.exec('CREATE INDEX IF NOT EXISTS idx_mm_applications_status ON matchmaking_applications(status)'); } catch(e) {}
+  try { database.exec('CREATE INDEX IF NOT EXISTS idx_mm_profiles_alumni ON matchmaking_profiles(alumni_id)'); } catch(e) {}
+  try { database.exec('CREATE INDEX IF NOT EXISTS idx_mm_criteria_alumni ON matchmaking_criteria(alumni_id)'); } catch(e) {}
+  try { database.exec('CREATE INDEX IF NOT EXISTS idx_mm_connections_applicant ON matchmaking_connections(applicant_alumni_id)'); } catch(e) {}
+  try { database.exec('CREATE INDEX IF NOT EXISTS idx_mm_connections_target ON matchmaking_connections(target_alumni_id)'); } catch(e) {}
 }
+

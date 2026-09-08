@@ -12,7 +12,7 @@ export default function ProfilePage() {
   const [completion, setCompletion] = useState<number>(0);
   const [eligibility, setEligibility] = useState<{ eligible: boolean; reason?: string }>({ eligible: false });
   const [loading, setLoading] = useState(true);
-  const [currentView, setCurrentView] = useState<'info' | 'password' | 'requests' | 'resume' | 'my-jobs' | 'my-applications'>('info');
+  const [currentView, setCurrentView] = useState<'info' | 'password' | 'requests' | 'resume' | 'my-jobs' | 'my-applications' | 'matchmaking'>('info');
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [passwordForm, setPasswordForm] = useState({ old: '', new: '', confirm: '' });
   const [passError, setPassError] = useState('');
@@ -70,15 +70,56 @@ export default function ProfilePage() {
     }
   };
 
+  // Matchmaking state
+  const [mmApplication, setMmApplication] = useState<any>(null);
+  const [mmLoading, setMmLoading] = useState(false);
+  const [mmMsg, setMmMsg] = useState('');
+
+  const fetchMmApplication = async () => {
+    try {
+      const res = await fetch('/api/matchmaking/application');
+      const d = await res.json();
+      setMmApplication(d.application || null);
+    } catch {}
+  };
+
+  const handleProfileMmApply = async () => {
+    setMmLoading(true);
+    setMmMsg('');
+    try {
+      const res = await fetch('/api/matchmaking/application', { method: 'POST' });
+      const d = await res.json();
+      if (res.ok) {
+        setMmMsg('✅ 申请已提交，请等待管理员审核');
+        fetchMmApplication();
+      } else {
+        if (d.needProfile) {
+          if (confirm(`${d.error}\n\n是否立即前往完善「详细资料」？`)) {
+            setCurrentView('info');
+          } else {
+            setMmMsg('❌ ' + d.error);
+          }
+        } else {
+          setMmMsg('❌ ' + (d.error || '提交失败'));
+        }
+      }
+    } catch {
+      setMmMsg('❌ 网络错误，请稍后重试');
+    } finally {
+      setMmLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
-      if (tab && ['info', 'password', 'requests', 'resume', 'my-jobs', 'my-applications'].includes(tab)) {
+      if (tab && ['info', 'password', 'requests', 'resume', 'my-jobs', 'my-applications', 'matchmaking'].includes(tab)) {
         setCurrentView(tab as any);
       }
     }
     fetchData();
+    fetchMmApplication();
 
     const handleProfileUpdate = () => {
       fetchData();
@@ -391,6 +432,7 @@ export default function ProfilePage() {
               <button className={`nav-tab ${currentView === 'resume' ? 'active' : ''}`} onClick={() => setCurrentView('resume')}>我的简历</button>
               <button className={`nav-tab ${currentView === 'my-jobs' ? 'active' : ''}`} onClick={() => setCurrentView('my-jobs')}>我的招聘</button>
               <button className={`nav-tab ${currentView === 'my-applications' ? 'active' : ''}`} onClick={() => setCurrentView('my-applications')}>我的投递</button>
+              <button className={`nav-tab ${currentView === 'matchmaking' ? 'active' : ''}`} onClick={() => { setCurrentView('matchmaking'); fetchMmApplication(); }}>💞 喜结连理</button>
             </>
           )}
           <button className={`nav-tab ${currentView === 'password' ? 'active' : ''}`} onClick={() => setCurrentView('password')}>安全设置</button>
@@ -429,6 +471,93 @@ export default function ProfilePage() {
                   <p>您当前以管理员身份登录，没有关联的校友档案。</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* 喜结连理 Tab */}
+          {currentView === 'matchmaking' && user?.role !== 'ADMIN' && (
+            <div className="animate-fade-in">
+              <div className="view-title-row"><h2>💞 喜结连理</h2></div>
+              <div style={{ maxWidth: 600 }}>
+                {mmMsg && (
+                  <div style={{ marginBottom: 14 }}>
+                    <p style={{ color: mmMsg.startsWith('✅') ? '#27ae60' : '#e74c3c', fontWeight: 600, margin: '0 0 6px' }}>{mmMsg}</p>
+                    {mmMsg.includes('完善') && (
+                      <button 
+                        type="button"
+                        onClick={() => setCurrentView('info')} 
+                        style={{ padding: '6px 14px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 12.5, color: '#2563eb', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        👉 点击此处前往完善「详细资料」（性别 / 手机号 / 微信号）
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* No application */}
+                {!mmApplication && (
+                  <div style={{ background: '#fff5f5', border: '1px solid #fecdd3', borderRadius: 14, padding: '24px 20px', textAlign: 'center' }}>
+                    <div style={{ fontSize: 40 }}>🌸</div>
+                    <p style={{ color: '#666', margin: '12px 0 6px', fontSize: 14 }}>您尚未申请加入喜结连理板块</p>
+                    <p style={{ color: '#991b1b', margin: '0 0 18px', fontSize: 12.5 }}>✔ 提交申请前请确认已在「详细资料」中填写【性别】、【手机号】与【微信号】</p>
+                    <button onClick={handleProfileMmApply} disabled={mmLoading} style={{ padding: '10px 32px', background: '#c0392b', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                      {mmLoading ? '提交中…' : '立即申请'}
+                    </button>
+                  </div>
+                )}
+
+                {/* PENDING */}
+                {mmApplication?.status === 'PENDING' && (
+                  <div style={{ background: '#fff9e6', border: '1px solid #fde68a', borderRadius: 14, padding: '20px 24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <span style={{ fontSize: 13, background: '#fef3cd', padding: '3px 10px', borderRadius: 20, color: '#856404', fontWeight: 600 }}>⏳ 审核中</span>
+                        <p style={{ color: '#666', fontSize: 13, margin: '8px 0 0' }}>申请时间：{mmApplication.created_at?.slice(0, 10)}</p>
+                        <p style={{ color: '#888', fontSize: 12, margin: '4px 0 0' }}>管理员将通过微信与您核实，请保持微信畅通</p>
+                      </div>
+                      <button onClick={async () => { if (!confirm('确认撤回申请？')) return; setMmLoading(true); const res = await fetch('/api/matchmaking/application', { method: 'DELETE' }); if (res.ok) { setMmMsg('✅ 已撤回申请'); fetchMmApplication(); } setMmLoading(false); }} disabled={mmLoading} style={{ padding: '8px 16px', border: '1px solid #e67e22', borderRadius: 8, background: '#fff', color: '#e67e22', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                        撤回申请
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* APPROVED */}
+                {mmApplication?.status === 'APPROVED' && (
+                  <div style={{ background: '#f0fff4', border: '1px solid #86efac', borderRadius: 14, padding: '20px 24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <span style={{ fontSize: 13, background: '#dcfce7', padding: '3px 10px', borderRadius: 20, color: '#166534', fontWeight: 600 }}>✅ 已加入喜结连理</span>
+                        <p style={{ color: '#666', fontSize: 13, margin: '8px 0 0' }}>通过时间：{mmApplication.updated_at?.slice(0, 10)}</p>
+                      </div>
+                      <button onClick={async () => { if (!confirm('确认退出喜结连理板块？退出后您的信息将不再参与匹配，已建立的联系会保留。')) return; setMmLoading(true); const res = await fetch('/api/matchmaking/application', { method: 'PUT' }); if (res.ok) { setMmMsg('✅ 已退出喜结连理'); fetchMmApplication(); } setMmLoading(false); }} disabled={mmLoading} style={{ padding: '8px 16px', border: '1px solid #dc2626', borderRadius: 8, background: '#fff', color: '#dc2626', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                        退出喜结连理
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* REJECTED */}
+                {mmApplication?.status === 'REJECTED' && (
+                  <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 14, padding: '20px 24px' }}>
+                    <span style={{ fontSize: 13, background: '#fee2e2', padding: '3px 10px', borderRadius: 20, color: '#991b1b', fontWeight: 600 }}>❌ 申请未通过</span>
+                    {mmApplication.reject_reason && <p style={{ color: '#666', fontSize: 13, margin: '8px 0 12px' }}>原因：{mmApplication.reject_reason}</p>}
+                    <button onClick={handleProfileMmApply} disabled={mmLoading} style={{ padding: '8px 20px', background: '#c0392b', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                      {mmLoading ? '提交中…' : '重新申请'}
+                    </button>
+                  </div>
+                )}
+
+                {/* WITHDRAWN */}
+                {mmApplication?.status === 'WITHDRAWN' && (
+                  <div style={{ background: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: 14, padding: '20px 24px', textAlign: 'center' }}>
+                    <p style={{ color: '#888', fontSize: 14, marginBottom: 16 }}>您已撤回申请或退出了喜结连理板块</p>
+                    <button onClick={handleProfileMmApply} disabled={mmLoading} style={{ padding: '8px 24px', background: '#c0392b', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                      {mmLoading ? '提交中…' : '重新申请'}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
