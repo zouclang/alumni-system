@@ -63,7 +63,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
     const user = db.prepare('SELECT id, status, role FROM users WHERE alumni_id = ?').get(id) as any;
     if (user) {
       row.registration = {
-        isRegistered: true,
+        isRegistered: user.status === 'APPROVED',
         userId: user.id,
         status: user.status,
         role: user.role

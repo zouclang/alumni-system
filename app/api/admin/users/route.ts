@@ -101,7 +101,20 @@ export async function PATCH(request: NextRequest) {
       if (targetUser) {
         db.prepare('UPDATE users SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, targetUser.id);
         if (targetUser.alumni_id) {
-          db.prepare('UPDATE alumni SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, targetUser.alumni_id);
+          if (status === 'REJECTED') {
+            const curAlumni = db.prepare('SELECT id, seq_no, status FROM alumni WHERE id = ?').get(targetUser.alumni_id) as any;
+            if (curAlumni) {
+              // If it's an old alumnus (seq_no is not null), always keep their profile as APPROVED in the directory
+              if (curAlumni.seq_no !== null && curAlumni.seq_no !== undefined) {
+                db.prepare("UPDATE alumni SET status = 'APPROVED', updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(targetUser.alumni_id);
+              } else {
+                // Newly registered alumnus: reject the profile so they do not appear in the directory
+                db.prepare("UPDATE alumni SET status = 'REJECTED', updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(targetUser.alumni_id);
+              }
+            }
+          } else {
+            db.prepare('UPDATE alumni SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, targetUser.alumni_id);
+          }
         }
       } else {
         db.prepare('UPDATE users SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, userId);

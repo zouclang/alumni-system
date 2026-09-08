@@ -10,7 +10,12 @@ export async function GET() {
   if (!session.alumniId) return NextResponse.json({ application: null });
 
   const db = getDb();
-  const app = db.prepare('SELECT * FROM matchmaking_applications WHERE alumni_id = ?').get(session.alumniId);
+  const app = db.prepare(`
+    SELECT ma.*, COALESCE(mp.profile_completed, 0) as profile_completed
+    FROM matchmaking_applications ma
+    LEFT JOIN matchmaking_profiles mp ON mp.alumni_id = ma.alumni_id
+    WHERE ma.alumni_id = ?
+  `).get(session.alumniId);
   return NextResponse.json({ application: app || null });
 }
 

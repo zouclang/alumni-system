@@ -203,6 +203,10 @@ function initializeSchema(database: Database.Database) {
   } catch(e) {}
 
   try {
+    database.exec("UPDATE alumni SET status = 'APPROVED' WHERE seq_no IS NOT NULL AND status != 'APPROVED';");
+  } catch(e) {}
+
+  try {
     database.exec("ALTER TABLE contact_requests ADD COLUMN user_notified INTEGER DEFAULT 0;");
   } catch(e) {}
 

@@ -24,12 +24,8 @@ export async function GET(request: NextRequest) {
     const conditions: string[] = [];
     const params: (string | number)[] = [];
 
-    // All registered users can browse now as per new requirement
-    // Admins see all, others see only APPROVED alumni records 
-    // OR records that have an APPROVED user account
-    if (!isAdmin) {
-      conditions.push("(a.status = 'APPROVED' OR EXISTS (SELECT 1 FROM users u WHERE u.alumni_id = a.id AND u.status = 'APPROVED'))");
-    }
+    // Alumni directory only displays verified/approved alumni records
+    conditions.push("a.status = 'APPROVED'");
 
     if (search) {
       // Support searching by name, pinyin, or company only for regular users
@@ -59,9 +55,9 @@ export async function GET(request: NextRequest) {
     if (wechatGroup) { conditions.push("(',' || wechat_groups || ',') LIKE ?"); params.push(`%,${wechatGroup},%`); }
     
     if (registered === 'yes') {
-      conditions.push('EXISTS (SELECT 1 FROM users WHERE alumni_id = a.id)');
+      conditions.push("EXISTS (SELECT 1 FROM users WHERE alumni_id = a.id AND status = 'APPROVED')");
     } else if (registered === 'no') {
-      conditions.push('NOT EXISTS (SELECT 1 FROM users WHERE alumni_id = a.id)');
+      conditions.push("NOT EXISTS (SELECT 1 FROM users WHERE alumni_id = a.id AND status = 'APPROVED')");
     }
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -69,7 +65,7 @@ export async function GET(request: NextRequest) {
     const total = (db.prepare(`SELECT COUNT(*) as count FROM alumni a ${where}`).get(...params) as { count: number }).count;
     
     let query = `
-      SELECT a.*, u.status as user_status, (CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END) as is_registered
+      SELECT a.*, u.status as user_status, (CASE WHEN u.id IS NOT NULL AND u.status = 'APPROVED' THEN 1 ELSE 0 END) as is_registered
       FROM alumni a
       LEFT JOIN users u ON a.id = u.alumni_id
       ${where}

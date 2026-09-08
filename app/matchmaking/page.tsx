@@ -976,6 +976,29 @@ export default function MatchmakingPage() {
           ))}
         </div>
 
+        {/* Incomplete Conditions Permanent Banner */}
+        {!profile.profile_completed && (
+          <div style={{
+            background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12,
+            padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
+            boxShadow: '0 2px 8px rgba(245, 158, 11, 0.08)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5, color: '#92400e' }}>
+              <span style={{ fontSize: 20 }}>⚠️</span>
+              <span><strong>提示：</strong>您当前尚未完善条件，系统暂未为您开启校友匹配。请在下方表格中填写自身条件与择偶期望，并点击底部「保存」按钮。</span>
+            </div>
+            {activeTab !== 'criteria' && (
+              <button onClick={() => setActiveTab('criteria')} style={{
+                padding: '7px 16px', background: '#c0392b', color: '#fff', border: 'none',
+                borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', flexShrink: 0
+              }}>
+                立即完善条件 →
+              </button>
+            )}
+          </div>
+        )}
+
         {/* ── Tab 1: 择偶标准 ── */}
         {activeTab === 'criteria' && (
           <div style={{ background: '#fff', borderRadius: 12, padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
@@ -1085,7 +1108,22 @@ export default function MatchmakingPage() {
               ✅ 互相匹配的校友可以直接查看对方联系方式，无需申请对接
             </div>
             {matchLoading ? <div style={{ textAlign: 'center', padding: 40, color: '#888' }}>加载中…</div> :
-            mutual.length === 0 ? <EmptyState text="暂无互相匹配的校友，完善您的条件后再来看看~" /> :
+            !profile.profile_completed ? (
+              <div style={{ background: '#fff', borderRadius: 12, padding: '48px 24px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>📝</div>
+                <h3 style={{ fontSize: 17, fontWeight: 700, color: '#1e293b', margin: '0 0 8px' }}>尚未完善相亲与择偶条件</h3>
+                <p style={{ color: '#64748b', fontSize: 13.5, maxWidth: 460, margin: '0 auto 20px', lineHeight: 1.6 }}>
+                  喜结连理采用严格的双向标准匹配。只有完善您的自身实际条件和期望择偶标准后，系统才能为您精准匹配合适的校友。
+                </p>
+                <button onClick={() => setActiveTab('criteria')} style={{
+                  padding: '10px 24px', background: '#c0392b', color: '#fff', border: 'none',
+                  borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(192, 57, 43, 0.25)'
+                }}>
+                  前往填写择偶标准表格 →
+                </button>
+              </div>
+            ) : mutual.length === 0 ? <EmptyState text="暂无互相匹配的校友，完善您的条件后再来看看~" /> :
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
               {mutual.map(m => (
                 <div key={m.alumni_id} style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
@@ -1121,7 +1159,22 @@ export default function MatchmakingPage() {
               ℹ️ {activeTab === 'them' ? '以下校友符合您的择偶标准，但您不在对方的择偶标准范围内。可申请对接，由对方审核决定。' : '您符合以下校友的择偶标准，但对方不在您的择偶标准范围内。可申请对接，由对方审核决定。'}
             </div>
             {matchLoading ? <div style={{ textAlign: 'center', padding: 40, color: '#888' }}>加载中…</div> :
-            (activeTab === 'them' ? them : me).length === 0 ? <EmptyState text="暂无匹配结果，完善条件后再来看看~" /> :
+            !profile.profile_completed ? (
+              <div style={{ background: '#fff', borderRadius: 12, padding: '48px 24px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>📝</div>
+                <h3 style={{ fontSize: 17, fontWeight: 700, color: '#1e293b', margin: '0 0 8px' }}>尚未完善相亲与择偶条件</h3>
+                <p style={{ color: '#64748b', fontSize: 13.5, maxWidth: 460, margin: '0 auto 20px', lineHeight: 1.6 }}>
+                  喜结连理采用严格的双向标准匹配。只有完善您的自身实际条件和期望择偶标准后，系统才能为您精准匹配合适的校友。
+                </p>
+                <button onClick={() => setActiveTab('criteria')} style={{
+                  padding: '10px 24px', background: '#c0392b', color: '#fff', border: 'none',
+                  borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(192, 57, 43, 0.25)'
+                }}>
+                  前往填写择偶标准表格 →
+                </button>
+              </div>
+            ) : (activeTab === 'them' ? them : me).length === 0 ? <EmptyState text="暂无匹配结果，完善条件后再来看看~" /> :
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {(activeTab === 'them' ? them : me).map(m => {
                 const conn = m.connection;

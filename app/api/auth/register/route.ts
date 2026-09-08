@@ -21,11 +21,28 @@ export async function POST(request: NextRequest) {
 
       const passwordHash = await bcrypt.hash(password, 10);
       
-      // Create user record
-      db.prepare(`
-        INSERT INTO users (alumni_id, password_hash, role, status)
-        VALUES (?, ?, 'USER', 'PENDING')
-      `).run(alumniId, passwordHash);
+      // Check if this alumni record is already claimed/registered
+      const existingUser = db.prepare('SELECT id, status FROM users WHERE alumni_id = ?').get(alumniId) as any;
+      if (existingUser) {
+        if (existingUser.status === 'APPROVED') {
+          return NextResponse.json({ error: '该校友已完成注册认证，请直接登录' }, { status: 400 });
+        }
+        if (existingUser.status === 'PENDING') {
+          return NextResponse.json({ error: '该校友账号正在审核中，请耐心等待管理员审核' }, { status: 400 });
+        }
+        if (existingUser.status === 'REJECTED') {
+          // Previously rejected: allow re-submitting for review
+          db.prepare(`
+            UPDATE users SET password_hash = ?, status = 'PENDING', updated_at = CURRENT_TIMESTAMP WHERE id = ?
+          `).run(passwordHash, existingUser.id);
+        }
+      } else {
+        // Create user record
+        db.prepare(`
+          INSERT INTO users (alumni_id, password_hash, role, status)
+          VALUES (?, ?, 'USER', 'PENDING')
+        `).run(alumniId, passwordHash);
+      }
 
       // If phone was missing in system, update it
       if (!existingAlumni.phone && phone) {

@@ -26,7 +26,8 @@ export async function GET() {
         '' as remark,
         '管理员' as processor_name,
         NULL as processor_id,
-        u.alumni_id as target_alumni_id
+        u.alumni_id as target_alumni_id,
+        0 as is_self_approved
       FROM users u
       JOIN alumni a ON u.alumni_id = a.id
       WHERE u.status != 'PENDING' AND u.role != 'ADMIN'
@@ -41,9 +42,17 @@ export async function GET() {
         cr.status as status,
         cr.updated_at as updated_at,
         cr.admin_remark as remark,
-        COALESCE(pa.name, '管理员') as processor_name,
+        CASE 
+          WHEN pu.role = 'ADMIN' THEN '管理员'
+          WHEN pu.alumni_id IS NOT NULL AND pu.alumni_id = cr.target_alumni_id THEN COALESCE(pa.name, ta.name)
+          ELSE '管理员'
+        END as processor_name,
         cr.processed_by_user_id as processor_id,
-        cr.target_alumni_id as target_alumni_id
+        cr.target_alumni_id as target_alumni_id,
+        CASE 
+          WHEN (pu.role IS NULL OR pu.role != 'ADMIN') AND pu.alumni_id IS NOT NULL AND pu.alumni_id = cr.target_alumni_id THEN 1 
+          ELSE 0 
+        END as is_self_approved
       FROM contact_requests cr
       JOIN alumni ta ON cr.target_alumni_id = ta.id
       JOIN users ru ON cr.requester_id = ru.id
@@ -62,9 +71,10 @@ export async function GET() {
         cor.status as status,
         cor.updated_at as updated_at,
         cor.admin_remark as remark,
-        COALESCE(pa.name, '管理员') as processor_name,
+        '管理员' as processor_name,
         cor.processed_by_user_id as processor_id,
-        cor.alumni_id as target_alumni_id
+        cor.alumni_id as target_alumni_id,
+        0 as is_self_approved
       FROM correction_requests cor
       JOIN alumni ta ON cor.alumni_id = ta.id
       JOIN users ru ON cor.requester_id = ru.id

@@ -356,9 +356,14 @@ export default function HomePage() {
                             ))}
                           </div>
                         )}
-                        {isAdmin && alumni.is_registered === 1 && (
-                          <span className={`status-badge ${alumni.user_status === 'PENDING' ? 'status-pending' : 'status-approved'}`} style={{ fontSize: '10px', padding: '1px 4px', whiteSpace: 'nowrap' }}>
-                            {alumni.user_status === 'PENDING' ? '待审核' : '已注册'}
+                        {isAdmin && alumni.user_status === 'APPROVED' && (
+                          <span className="status-badge status-approved" style={{ fontSize: '10px', padding: '1px 4px', whiteSpace: 'nowrap' }}>
+                            已注册
+                          </span>
+                        )}
+                        {isAdmin && alumni.user_status === 'PENDING' && (
+                          <span className="status-badge status-pending" style={{ fontSize: '10px', padding: '1px 4px', whiteSpace: 'nowrap' }}>
+                            待审核
                           </span>
                         )}
                       </div>

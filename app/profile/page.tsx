@@ -525,14 +525,28 @@ export default function ProfilePage() {
                 {/* APPROVED */}
                 {mmApplication?.status === 'APPROVED' && (
                   <div style={{ background: '#f0fff4', border: '1px solid #86efac', borderRadius: 14, padding: '20px 24px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
                       <div>
-                        <span style={{ fontSize: 13, background: '#dcfce7', padding: '3px 10px', borderRadius: 20, color: '#166534', fontWeight: 600 }}>✅ 已加入喜结连理</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 13, background: '#dcfce7', padding: '3px 10px', borderRadius: 20, color: '#166534', fontWeight: 600 }}>✅ 已加入喜结连理</span>
+                          {mmApplication.profile_completed ? (
+                            <span style={{ fontSize: 12, background: '#e0f2fe', padding: '2px 8px', borderRadius: 12, color: '#0369a1', fontWeight: 600 }}>🎯 择偶条件已完善（匹配中）</span>
+                          ) : (
+                            <span style={{ fontSize: 12, background: '#fef3c7', padding: '2px 8px', borderRadius: 12, color: '#92400e', fontWeight: 600 }}>⚠️ 尚未完善条件（暂未开启匹配）</span>
+                          )}
+                        </div>
                         <p style={{ color: '#666', fontSize: 13, margin: '8px 0 0' }}>通过时间：{mmApplication.updated_at?.slice(0, 10)}</p>
                       </div>
-                      <button onClick={async () => { if (!confirm('确认退出喜结连理板块？退出后您的信息将不再参与匹配，已建立的联系会保留。')) return; setMmLoading(true); const res = await fetch('/api/matchmaking/application', { method: 'PUT' }); if (res.ok) { setMmMsg('✅ 已退出喜结连理'); fetchMmApplication(); } setMmLoading(false); }} disabled={mmLoading} style={{ padding: '8px 16px', border: '1px solid #dc2626', borderRadius: 8, background: '#fff', color: '#dc2626', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
-                        退出喜结连理
-                      </button>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        {!mmApplication.profile_completed && (
+                          <button onClick={() => router.push('/matchmaking')} style={{ padding: '8px 16px', border: 'none', borderRadius: 8, background: '#c0392b', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                            前往完善条件 →
+                          </button>
+                        )}
+                        <button onClick={async () => { if (!confirm('确认退出喜结连理板块？退出后您的信息将不再参与匹配，已建立的联系会保留。')) return; setMmLoading(true); const res = await fetch('/api/matchmaking/application', { method: 'PUT' }); if (res.ok) { setMmMsg('✅ 已退出喜结连理'); fetchMmApplication(); } setMmLoading(false); }} disabled={mmLoading} style={{ padding: '8px 16px', border: '1px solid #dc2626', borderRadius: 8, background: '#fff', color: '#dc2626', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                          退出喜结连理
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -642,8 +656,8 @@ export default function ProfilePage() {
                         <div className="log-right">
                           <div className="log-processor-meta">
                             {log.processor_name && (
-                              <span className={`log-processor-badge ${log.processor_id === log.target_alumni_id ? 'self' : 'admin'}`}>
-                                {log.processor_id === log.target_alumni_id ? '校友自主审批' : `由 ${log.processor_name} 审批`}
+                              <span className={`log-processor-badge ${log.is_self_approved ? 'self' : 'admin'}`}>
+                                {log.is_self_approved ? '校友自主审批' : `由 ${log.processor_name} 审批`}
                               </span>
                             )}
                           </div>
