@@ -48,10 +48,23 @@ export default function MatchmakingDetailModal({ alumniId, onClose, onOpenEditAl
     return list.join('、');
   };
 
+  const formatYear = (y: any): string => {
+    if (!y) return '';
+    const s = String(y).trim();
+    const m = s.match(/^(19\d\d|20\d\d)\d?$/);
+    if (m) return m[1];
+    return s;
+  };
+
   const alumni = data?.alumni || {};
   const profile = data?.profile || {};
   const criteria = data?.criteria || {};
   const hasMmProfile = !!data?.profile;
+  const firstExp = alumni.experiences?.[0];
+
+  const genderVal = profile.gender || alumni.gender;
+  const isFemale = genderVal === 'F' || genderVal === '女';
+  const isMale = genderVal === 'M' || genderVal === '男';
 
   const comparisonRows: { label: string; self: any; partner: any }[] = [
     {
@@ -193,16 +206,16 @@ export default function MatchmakingDetailModal({ alumniId, onClose, onOpenEditAl
               <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: '#f8fafc' }}>
                 {alumni.name || '校友资料'}
               </h2>
-              {alumni.gender && (
+              {genderVal && (
                 <span style={{
                   fontSize: 12,
                   padding: '2px 8px',
                   borderRadius: 6,
                   fontWeight: 700,
-                  background: alumni.gender === 'F' ? 'rgba(244, 114, 182, 0.2)' : 'rgba(96, 165, 250, 0.2)',
-                  color: alumni.gender === 'F' ? '#f472b6' : '#60a5fa',
+                  background: isFemale ? 'rgba(244, 114, 182, 0.2)' : 'rgba(96, 165, 250, 0.2)',
+                  color: isFemale ? '#f472b6' : '#60a5fa',
                 }}>
-                  {alumni.gender === 'F' ? '女' : '男'}
+                  {isFemale ? '女' : (isMale ? '男' : genderVal)}
                 </span>
               )}
               {hasMmProfile && (
@@ -220,7 +233,11 @@ export default function MatchmakingDetailModal({ alumniId, onClose, onOpenEditAl
               )}
             </div>
             <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 6, display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-              <span>🎓 {alumni.college || '—'} · {alumni.enrollment_year ? `${alumni.enrollment_year}级` : '—'}</span>
+              <span>
+                🎓 {firstExp?.college || alumni.college || '—'}
+                {firstExp?.stage || alumni.degree ? ` · ${firstExp?.stage || alumni.degree}` : ''}
+                {(firstExp?.start_year || alumni.enrollment_year) ? ` · ${formatYear(firstExp?.start_year || alumni.enrollment_year)}级` : ''}
+              </span>
               <span style={{ color: '#34d399', fontWeight: 600 }}>💬 微信: {alumni.wechat_id || '未填写'}</span>
               {alumni.phone && <span style={{ color: '#93c5fd' }}>📱 手机: {alumni.phone}</span>}
             </div>
@@ -357,14 +374,37 @@ export default function MatchmakingDetailModal({ alumniId, onClose, onOpenEditAl
                 marginBottom: 20,
               }}>
                 <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 16 }}>
-                  <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700, marginBottom: 10, textTransform: 'uppercase' }}>学籍学历</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
-                    <div><span style={{ color: '#94a3b8' }}>学院：</span>{alumni.college || '—'}</div>
-                    <div><span style={{ color: '#94a3b8' }}>专业：</span>{alumni.major || '—'}</div>
-                    <div><span style={{ color: '#94a3b8' }}>入学年份：</span>{alumni.enrollment_year ? `${alumni.enrollment_year}级` : '—'}</div>
-                    <div><span style={{ color: '#94a3b8' }}>毕业年份：</span>{alumni.graduation_year ? `${alumni.graduation_year}届` : '—'}</div>
-                    <div><span style={{ color: '#94a3b8' }}>学历层次：</span>{alumni.degree || '—'}</div>
+                  <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700, marginBottom: 12, textTransform: 'uppercase' }}>
+                    教育经历（在校学段）
                   </div>
+                  {alumni.experiences && alumni.experiences.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {alumni.experiences.map((exp: any, idx: number) => {
+                        const start = formatYear(exp.start_year);
+                        const end = formatYear(exp.end_year);
+                        const yearStr = (start || end) ? `${start || '?'} - ${end || '?'}` : '';
+                        return (
+                          <div key={idx} style={{ borderLeft: '2px solid #3b82f6', paddingLeft: 10, fontSize: 13 }}>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                              <span style={{ fontWeight: 700, color: '#60a5fa' }}>{exp.stage || alumni.degree || '学段'}</span>
+                              {yearStr && <span style={{ color: '#94a3b8', fontSize: 12 }}>{yearStr}</span>}
+                            </div>
+                            <div style={{ color: '#f8fafc', marginTop: 2 }}>
+                              {exp.college || alumni.college || '—'}{exp.major ? ` · ${exp.major}` : ''}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
+                      <div><span style={{ color: '#94a3b8' }}>学院：</span>{alumni.college || '—'}</div>
+                      <div><span style={{ color: '#94a3b8' }}>专业：</span>{alumni.major || '—'}</div>
+                      <div><span style={{ color: '#94a3b8' }}>入学年份：</span>{alumni.enrollment_year ? `${formatYear(alumni.enrollment_year)}级` : '—'}</div>
+                      <div><span style={{ color: '#94a3b8' }}>毕业年份：</span>{alumni.graduation_year ? `${formatYear(alumni.graduation_year)}届` : '—'}</div>
+                      <div><span style={{ color: '#94a3b8' }}>学历层次：</span>{alumni.degree || '—'}</div>
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 16 }}>

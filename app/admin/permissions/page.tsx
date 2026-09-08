@@ -44,7 +44,14 @@ export default function PermissionsPage() {
       return dateStr;
     }
   };
- streams:
+
+  const formatYear = (y: any) => {
+    if (!y) return '';
+    const s = String(y).trim();
+    const m = s.match(/^(19\d\d|20\d\d)\d?$/);
+    if (m) return m[1];
+    return s;
+  };
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -392,7 +399,7 @@ export default function PermissionsPage() {
                       <span className="status-badge pending">待审核</span>
                     </div>
                     <div className="user-sub">
-                      {u.college || '未填写学院'} · {u.enrollment_year ? `${u.enrollment_year}级` : '未填写年级'}
+                      {u.college || '未填写学院'} · {u.enrollment_year ? `${formatYear(u.enrollment_year)}级` : '未填写年级'}
                     </div>
                     <div className="user-time">申请时间: {formatDateTime(u.created_at)}</div>
                   </div>
@@ -535,7 +542,7 @@ export default function PermissionsPage() {
                         <span className="status-badge pending">待审核</span>
                       </div>
                       <div className="user-sub">
-                        {item.college || '未填写学院'} · {item.enrollment_year ? `${item.enrollment_year}级` : '未填写年级'}
+                        {item.college || '未填写学院'} · {item.enrollment_year ? `${formatYear(item.enrollment_year)}级` : '未填写年级'}
                         {item.gender ? ` · ${item.gender === 'M' ? '男' : item.gender === 'F' ? '女' : item.gender}` : ''}
                       </div>
                       <div style={{ marginTop: '8px', fontSize: '13px', display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -618,7 +625,7 @@ export default function PermissionsPage() {
                         </span>
                       </div>
                       <div className="user-sub">
-                        {item.college || '未填写学院'} · {item.enrollment_year ? `${item.enrollment_year}级` : '未填写年级'}
+                        {item.college || '未填写学院'} · {item.enrollment_year ? `${formatYear(item.enrollment_year)}级` : '未填写年级'}
                         {item.gender ? ` · ${item.gender === 'M' ? '男' : item.gender === 'F' ? '女' : item.gender}` : ''}
                       </div>
                       <div style={{ marginTop: '8px', fontSize: '13px', display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -754,12 +761,21 @@ export default function PermissionsPage() {
           initial={{
             ...selectedUser,
             id: selectedUser.alumni_id || selectedUser.id,
-            userId: selectedUser.id,
-            status: selectedUser.status
+            userId: selectedUser.user_id || selectedUser.userId || (selectedUser.alumni_id ? selectedUser.id : undefined),
+            status: selectedUser.status || selectedUser.user_status,
+            experiences: selectedUser.experiences || [],
+            registration: selectedUser.registration || ((selectedUser.user_id || selectedUser.userId || (selectedUser.id && selectedUser.alumni_id)) ? {
+              isRegistered: selectedUser.user_status === 'APPROVED' || selectedUser.status === 'APPROVED',
+              userId: selectedUser.user_id || selectedUser.userId || selectedUser.id,
+              status: selectedUser.user_status || selectedUser.status,
+              role: selectedUser.role || 'USER'
+            } : undefined)
           }}
           onClose={() => setSelectedUser(null)}
           onSaved={() => {
+            setSelectedUser(null);
             fetchUsers(true);
+            fetchMmDashboard();
           }}
           onApprove={selectedUser?.status?.toUpperCase() === 'PENDING' ? async () => {
             await handleStatusUpdate(selectedUser.id, 'APPROVED');

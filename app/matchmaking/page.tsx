@@ -64,6 +64,14 @@ export default function MatchmakingPage() {
   const [mockLoading, setMockLoading] = useState(false);
   const [mockResultModal, setMockResultModal] = useState<any>(null);
 
+  const formatYear = (y: any) => {
+    if (!y) return '';
+    const s = String(y).trim();
+    const m = s.match(/^(19\d\d|20\d\d)\d?$/);
+    if (m) return m[1];
+    return s;
+  };
+
   const fetchAdminDashboard = async () => {
     setAdminLoading(true);
     try {
@@ -246,7 +254,9 @@ export default function MatchmakingPage() {
   const cSet = (k: string, v: any) => setCriteria((c: any) => ({ ...c, [k]: v }));
   const toggleArr = (arr: string[], val: string): string[] => arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
 
-  const genderLabel = (g: string) => g === 'M' ? '男' : g === 'F' ? '女' : '—';
+  const isFemaleGender = (g?: string) => g === 'F' || g === '女';
+  const isMaleGender = (g?: string) => g === 'M' || g === '男';
+  const genderLabel = (g?: string) => isFemaleGender(g) ? '女' : (isMaleGender(g) ? '男' : (g || '—'));
 
   // ── Render guards ─────────────────────────────────────────────────────────
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}>加载中…</div>;
@@ -485,8 +495,15 @@ export default function MatchmakingPage() {
                           >
                             {item.name}
                           </span>
-                          <span style={{ fontSize: 11, padding: '2px 7px', borderRadius: 4, background: item.gender === 'F' ? 'rgba(244, 114, 182, 0.2)' : 'rgba(96, 165, 250, 0.2)', color: item.gender === 'F' ? '#f472b6' : '#60a5fa', fontWeight: 700 }}>
-                            {item.gender === 'F' ? '女' : '男'}
+                          <span style={{ 
+                            fontSize: 11, 
+                            padding: '2px 7px', 
+                            borderRadius: 4, 
+                            background: isFemaleGender(item.gender) ? 'rgba(244, 114, 182, 0.2)' : 'rgba(96, 165, 250, 0.2)', 
+                            color: isFemaleGender(item.gender) ? '#f472b6' : '#60a5fa', 
+                            fontWeight: 700 
+                          }}>
+                            {genderLabel(item.gender)}
                           </span>
                           <span style={{ 
                             fontSize: 11, 
@@ -502,7 +519,7 @@ export default function MatchmakingPage() {
                         </div>
 
                         <div style={{ color: '#cbd5e1', fontSize: 13.5, marginBottom: 8 }}>
-                          {item.college || '—'} · {item.enrollment_year ? item.enrollment_year + '级' : '—'} {item.major ? `· ${item.major}` : ''} {item.degree ? `(${item.degree})` : ''}
+                          {item.college || '—'} · {item.enrollment_year ? formatYear(item.enrollment_year) + '级' : '—'} {item.major ? `· ${item.major}` : ''} {item.degree ? `(${item.degree})` : ''}
                           {item.region ? ` · 现居 ${item.region}` : ''}
                         </div>
 
@@ -617,8 +634,15 @@ export default function MatchmakingPage() {
                           <tr key={item.applicant_alumni_id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }}>
                             <td style={{ padding: '12px 16px', fontWeight: 700 }}>
                               <span style={{ color: '#f8fafc' }}>{item.applicant_name}</span>
-                              <span style={{ marginLeft: 6, fontSize: 11, padding: '2px 6px', borderRadius: 4, background: item.applicant_gender === 'F' ? 'rgba(244, 114, 182, 0.2)' : 'rgba(96, 165, 250, 0.2)', color: item.applicant_gender === 'F' ? '#f472b6' : '#60a5fa' }}>
-                                {item.applicant_gender === 'F' ? '女' : '男'}
+                              <span style={{ 
+                                marginLeft: 6, 
+                                fontSize: 11, 
+                                padding: '2px 6px', 
+                                borderRadius: 4, 
+                                background: isFemaleGender(item.applicant_gender) ? 'rgba(244, 114, 182, 0.2)' : 'rgba(96, 165, 250, 0.2)', 
+                                color: isFemaleGender(item.applicant_gender) ? '#f472b6' : '#60a5fa' 
+                              }}>
+                                {genderLabel(item.applicant_gender)}
                               </span>
                             </td>
                             <td style={{ padding: '12px 16px', color: '#cbd5e1' }}>
@@ -736,8 +760,15 @@ export default function MatchmakingPage() {
                           <div style={{ minWidth: 120 }}>
                             <div style={{ fontWeight: 700, fontSize: 15, color: '#f8fafc' }}>
                               {item.applicant_name}
-                              <span style={{ marginLeft: 6, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: item.applicant_gender === 'F' ? 'rgba(244, 114, 182, 0.2)' : 'rgba(96, 165, 250, 0.2)', color: item.applicant_gender === 'F' ? '#f472b6' : '#60a5fa' }}>
-                                {item.applicant_gender === 'F' ? '女' : '男'}
+                              <span style={{ 
+                                marginLeft: 6, 
+                                fontSize: 11, 
+                                padding: '1px 5px', 
+                                borderRadius: 4, 
+                                background: isFemaleGender(item.applicant_gender) ? 'rgba(244, 114, 182, 0.2)' : 'rgba(96, 165, 250, 0.2)', 
+                                color: isFemaleGender(item.applicant_gender) ? '#f472b6' : '#60a5fa' 
+                              }}>
+                                {genderLabel(item.applicant_gender)}
                               </span>
                             </div>
                             <div style={{ fontSize: 12, color: '#34d399', marginTop: 2 }}>💬 {item.applicant_wechat || '未填'}</div>
@@ -749,8 +780,15 @@ export default function MatchmakingPage() {
                           <div style={{ minWidth: 120 }}>
                             <div style={{ fontWeight: 700, fontSize: 15, color: '#f8fafc' }}>
                               {item.target_name}
-                              <span style={{ marginLeft: 6, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: item.target_gender === 'F' ? 'rgba(244, 114, 182, 0.2)' : 'rgba(96, 165, 250, 0.2)', color: item.target_gender === 'F' ? '#f472b6' : '#60a5fa' }}>
-                                {item.target_gender === 'F' ? '女' : '男'}
+                              <span style={{ 
+                                marginLeft: 6, 
+                                fontSize: 11, 
+                                padding: '1px 5px', 
+                                borderRadius: 4, 
+                                background: isFemaleGender(item.target_gender) ? 'rgba(244, 114, 182, 0.2)' : 'rgba(96, 165, 250, 0.2)', 
+                                color: isFemaleGender(item.target_gender) ? '#f472b6' : '#60a5fa' 
+                              }}>
+                                {genderLabel(item.target_gender)}
                               </span>
                             </div>
                             <div style={{ fontSize: 12, color: '#34d399', marginTop: 2 }}>💬 {item.target_wechat || '未填'}</div>
@@ -800,11 +838,19 @@ export default function MatchmakingPage() {
               initial={{
                 ...selectedAdminUser,
                 id: selectedAdminUser.alumni_id || selectedAdminUser.id,
-                userId: selectedAdminUser.userId || selectedAdminUser.user_id || selectedAdminUser.id,
-                status: selectedAdminUser.status || 'APPROVED'
+                userId: selectedAdminUser.userId || selectedAdminUser.user_id || (selectedAdminUser.alumni_id ? selectedAdminUser.id : undefined),
+                status: selectedAdminUser.status || selectedAdminUser.user_status || 'APPROVED',
+                experiences: selectedAdminUser.experiences || [],
+                registration: selectedAdminUser.registration || ((selectedAdminUser.user_id || selectedAdminUser.userId || (selectedAdminUser.id && selectedAdminUser.alumni_id)) ? {
+                  isRegistered: selectedAdminUser.user_status === 'APPROVED' || selectedAdminUser.status === 'APPROVED',
+                  userId: selectedAdminUser.user_id || selectedAdminUser.userId || selectedAdminUser.id,
+                  status: selectedAdminUser.user_status || selectedAdminUser.status || 'APPROVED',
+                  role: selectedAdminUser.role || 'USER'
+                } : undefined)
               }}
               onClose={() => setSelectedAdminUser(null)}
               onSaved={() => {
+                setSelectedAdminUser(null);
                 fetchAdminDashboard();
               }}
             />
@@ -1128,7 +1174,7 @@ export default function MatchmakingPage() {
               {mutual.map(m => (
                 <div key={m.alumni_id} style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: m.gender === 'F' ? '#fce4ec' : '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: m.gender === 'F' ? '#c2185b' : '#1565c0', flexShrink: 0 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: isFemaleGender(m.gender) ? '#fce4ec' : '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: isFemaleGender(m.gender) ? '#c2185b' : '#1565c0', flexShrink: 0 }}>
                       {genderLabel(m.gender)}
                     </div>
                     <div>
@@ -1185,7 +1231,7 @@ export default function MatchmakingPage() {
 
                 return (
                   <div key={m.alumni_id} style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: m.gender === 'F' ? '#fce4ec' : '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: m.gender === 'F' ? '#c2185b' : '#1565c0', flexShrink: 0 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: isFemaleGender(m.gender) ? '#fce4ec' : '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: isFemaleGender(m.gender) ? '#c2185b' : '#1565c0', flexShrink: 0 }}>
                       {genderLabel(m.gender)}
                     </div>
                     <div style={{ flex: 1, minWidth: 200 }}>
@@ -1302,7 +1348,7 @@ function EmptyState({ text }: { text: string }) {
 
 function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }) {
   const rows: [string, any][] = [
-    ['性别', m.gender === 'M' ? '男' : m.gender === 'F' ? '女' : '—'],
+    ['性别', genderLabel(m.gender)],
     ['周岁年龄', m.age ? m.age + ' 岁' : '—'],
     ['身高', m.height ? m.height + ' cm' : '—'],
     ['体重', m.weight ? m.weight + ' kg' : '—'],

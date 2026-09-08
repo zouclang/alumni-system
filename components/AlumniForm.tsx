@@ -233,6 +233,22 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
   const [experiences, setExperiences] = useState<any[]>(() => {
     const existing = Array.isArray((initial as any)?.experiences) ? (initial as any).experiences : [];
     if (existing.length === 0) {
+      if (initial?.degree || initial?.college || initial?.major || initial?.enrollment_year) {
+        const rawYear = String(initial?.enrollment_year || '').trim();
+        const m = rawYear.match(/^(19\d\d|20\d\d)\d?$/);
+        const cleanStart = m ? m[1] : rawYear;
+        const rawGrad = String(initial?.graduation_year || '').trim();
+        const mg = rawGrad.match(/^(19\d\d|20\d\d)\d?$/);
+        const cleanEnd = mg ? mg[1] : rawGrad;
+        return [{
+          stage: initial?.degree || '',
+          start_year: cleanStart,
+          end_year: cleanEnd,
+          college: initial?.college || '',
+          major: initial?.major || '',
+          sort_order: 0
+        }];
+      }
       return [{ stage: '', start_year: '', end_year: '', college: '', major: '', sort_order: 0 }];
     }
     return existing;
@@ -298,7 +314,11 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
       if (onApprove) {
         await onApprove();
       }
+      alert('校友基础资料已成功保存！');
       onSaved();
+      if (!inline && onClose) {
+        onClose();
+      }
     } catch (err) {
       setError(String(err));
     } finally {
@@ -497,27 +517,40 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
 
           {isEdit && currentUser?.role === 'ADMIN' && (
             <div style={{ gridColumn: '1 / -1', marginTop: '16px', borderTop: '1px dashed #e5e7eb', paddingTop: '16px' }}>
-                <div className="detail-item span-2 registration-status-box" style={{ background: 'rgba(59, 130, 246, 0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.1)', marginBottom: '16px' }}>
-                  <div className="detail-label" style={{ color: '#60a5fa', marginBottom: '12px', fontWeight: 700 }}>帐号注册状态</div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    {(initial as any)?.registration?.isRegistered ? (
-                      <div className="status-label approved">✅ 已注册用户 (角色: {(initial as any)?.registration?.role || (initial as any)?.role || 'USER'})</div>
-                    ) : (
-                      <div className="status-label pending" style={{ background: 'rgba(148, 163, 184, 0.1)', color: '#94a3b8', border: 'none' }}>未注册登录帐号</div>
-                    )}
+                {(() => {
+                  const isRegistered = !!(
+                    (initial as any)?.registration?.isRegistered ||
+                    (initial as any)?.user_status === 'APPROVED' ||
+                    ((initial as any)?.userId && (initial as any)?.status === 'APPROVED') ||
+                    ((initial as any)?.user_id && ((initial as any)?.status === 'APPROVED' || (initial as any)?.user_status === 'APPROVED'))
+                  );
+                  const userRole = (initial as any)?.registration?.role || (initial as any)?.role || 'USER';
+                  const targetId = (initial as any)?.registration?.userId || (initial as any)?.userId || (initial as any)?.user_id;
 
-                    {(initial as any)?.registration?.isRegistered && currentUser?.role === 'ADMIN' && (
-                      <button 
-                        type="button"
-                        className="btn btn-outline btn-sm delete-user-btn"
-                        style={{ color: '#ef4444', borderColor: '#fee2e2' }}
-                        onClick={() => setShowDeleteUserConfirm(true)}
-                      >
-                        🗑️ 删除注册账号
-                      </button>
-                    )}
-                  </div>
-                </div>
+                  return (
+                    <div className="detail-item span-2 registration-status-box" style={{ background: 'rgba(59, 130, 246, 0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.1)', marginBottom: '16px' }}>
+                      <div className="detail-label" style={{ color: '#60a5fa', marginBottom: '12px', fontWeight: 700 }}>帐号注册状态</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        {isRegistered ? (
+                          <div className="status-label approved">✅ 已注册用户 (角色: {userRole})</div>
+                        ) : (
+                          <div className="status-label pending" style={{ background: 'rgba(148, 163, 184, 0.1)', color: '#94a3b8', border: 'none' }}>未注册登录帐号</div>
+                        )}
+
+                        {isRegistered && currentUser?.role === 'ADMIN' && (
+                          <button 
+                            type="button"
+                            className="btn btn-outline btn-sm delete-user-btn"
+                            style={{ color: '#ef4444', borderColor: '#fee2e2' }}
+                            onClick={() => setShowDeleteUserConfirm(true)}
+                          >
+                            🗑️ 删除注册账号
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {showDeleteUserConfirm && (
                   <div className="modal-overlay" style={{ zIndex: 1100 }}>
@@ -543,7 +576,7 @@ export default function AlumniForm({ initial, onClose, onSaved, onApprove, onRej
                               setShowDeleteUserConfirm(false);
                               setSaving(true);
                               try {
-                                const targetId = (initial as any)?.registration?.userId || (initial as any)?.userId;
+                                const targetId = (initial as any)?.registration?.userId || (initial as any)?.userId || (initial as any)?.user_id;
                                 if (!targetId) {
                                   alert('错误：未找到相关的用户 ID');
                                   setSaving(false);

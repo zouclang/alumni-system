@@ -23,12 +23,29 @@ export async function GET(req: NextRequest) {
   if (alumniIdParam) {
     const aid = Number(alumniIdParam);
     const alumni = db.prepare(`
-      SELECT a.*, u.id as user_id, u.username, u.status as user_status 
+      SELECT a.*, u.id as user_id, u.username, u.status as user_status, u.role 
       FROM alumni a 
       LEFT JOIN users u ON u.alumni_id = a.id 
       WHERE a.id = ?
-    `).get(aid);
+    `).get(aid) as any;
     if (!alumni) return NextResponse.json({ error: '未找到校友' }, { status: 404 });
+
+    // Attach full educational experiences
+    alumni.experiences = db.prepare('SELECT * FROM school_experiences WHERE alumni_id = ? ORDER BY sort_order ASC').all(aid);
+
+    // Build structured registration info
+    if (alumni.user_id) {
+      alumni.registration = {
+        isRegistered: alumni.user_status === 'APPROVED',
+        userId: alumni.user_id,
+        status: alumni.user_status,
+        role: alumni.role || 'USER'
+      };
+      alumni.userId = alumni.user_id;
+    } else {
+      alumni.registration = { isRegistered: false };
+    }
+
     const profile = db.prepare('SELECT * FROM matchmaking_profiles WHERE alumni_id = ?').get(aid) || null;
     const criteria = db.prepare('SELECT * FROM matchmaking_criteria WHERE alumni_id = ?').get(aid) || null;
     const application = db.prepare('SELECT * FROM matchmaking_applications WHERE alumni_id = ?').get(aid) || null;
@@ -48,7 +65,19 @@ export async function GET(req: NextRequest) {
       LEFT JOIN users u ON u.alumni_id = a.id
       WHERE ma.status = 'PENDING'
       ORDER BY ma.created_at ASC
-    `).all();
+    `).all() as any[];
+
+    for (const r of rows) {
+      r.experiences = db.prepare('SELECT * FROM school_experiences WHERE alumni_id = ? ORDER BY sort_order ASC').all(r.alumni_id);
+      r.registration = {
+        isRegistered: r.user_status === 'APPROVED',
+        userId: r.user_id,
+        status: r.user_status,
+        role: r.role || 'USER'
+      };
+      r.userId = r.user_id;
+    }
+
     return NextResponse.json({ applications: rows });
   }
 
@@ -65,7 +94,19 @@ export async function GET(req: NextRequest) {
       LEFT JOIN matchmaking_profiles mp ON mp.alumni_id = ma.alumni_id
       WHERE ma.status = 'APPROVED'
       ORDER BY ma.updated_at DESC
-    `).all();
+    `).all() as any[];
+
+    for (const r of rows) {
+      r.experiences = db.prepare('SELECT * FROM school_experiences WHERE alumni_id = ? ORDER BY sort_order ASC').all(r.alumni_id);
+      r.registration = {
+        isRegistered: r.user_status === 'APPROVED',
+        userId: r.user_id,
+        status: r.user_status,
+        role: r.role || 'USER'
+      };
+      r.userId = r.user_id;
+    }
+
     return NextResponse.json({ members: rows });
   }
 
