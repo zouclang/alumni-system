@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { computePotentialMatches } from '@/lib/matchmaking';
 
 export const dynamic = 'force-dynamic';
 
@@ -147,7 +148,10 @@ export async function GET(req: NextRequest) {
         a.phone as applicant_phone,
         a.wechat_id as applicant_wechat,
         a.college as applicant_college,
-        a.enrollment_year as applicant_year,
+        COALESCE(
+          (SELECT start_year FROM school_experiences WHERE alumni_id = a.id ORDER BY sort_order ASC, id ASC LIMIT 1),
+          a.enrollment_year
+        ) as applicant_year,
         COUNT(*) as total_applied,
         SUM(CASE WHEN mc.status = 'PENDING' THEN 1 ELSE 0 END) as pending_count,
         SUM(CASE WHEN mc.status = 'APPROVED' THEN 1 ELSE 0 END) as approved_count,
@@ -211,6 +215,24 @@ export async function GET(req: NextRequest) {
       ORDER BY ma.updated_at DESC
     `).all();
 
+    // 算法互相匹配与单向匹配统计
+    const { totalMutualPairs, mutualPairs, totalOneWayPairs, oneWayPairs, totalApprovedConnections, memberMutualCountMap } = computePotentialMatches(db);
+
+    const oneWayApprovedMap = new Map<number, number>();
+    for (const p of oneWayPairs) {
+      if (p.isConnected) {
+        oneWayApprovedMap.set(p.from.alumni_id, (oneWayApprovedMap.get(p.from.alumni_id) || 0) + 1);
+        oneWayApprovedMap.set(p.to.alumni_id, (oneWayApprovedMap.get(p.to.alumni_id) || 0) + 1);
+      }
+    }
+
+    for (const member of approvedMemberList as any[]) {
+      const mutuals = memberMutualCountMap.get(member.alumni_id) || 0;
+      const oneWayApproved = oneWayApprovedMap.get(member.alumni_id) || 0;
+      member.potential_mutual_count = mutuals;
+      member.mutual_count = mutuals + oneWayApproved;
+    }
+
     return NextResponse.json({
       overview: {
         totalApps,
@@ -219,11 +241,16 @@ export async function GET(req: NextRequest) {
         maleMembers,
         femaleMembers,
         completedProfiles,
+        potentialMutualMatches: totalMutualPairs,
+        potentialOneWayMatches: totalOneWayPairs,
         totalConnections,
-        approvedConnections,
+        approvedConnections: totalApprovedConnections,
         pendingConnections,
         rejectedConnections,
       },
+      potentialMutualPairs: mutualPairs,
+      mutualPairs,
+      oneWayPairs,
       approvedMemberList,
       applicantStats,
       recentConnections,

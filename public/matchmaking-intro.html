@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>喜结连理 · 大工苏州校友相亲平台</title>
+  <style>
+    :root {
+      --primary: #f43f5e;
+      --primary-dark: #e11d48;
+      --primary-light: #ffe4e6;
+      --secondary: #ec4899;
+      --accent: #fb7185;
+      --bg: #fff8f8;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: rgba(244, 63, 94, 0.12);
+      --card-shadow: 0 10px 30px -5px rgba(244, 63, 94, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+      --hover-shadow: 0 20px 35px -5px rgba(244, 63, 94, 0.15), 0 8px 16px -4px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #fff1f2 0%, #fffbfb 25%, #ffffff 100%);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header Nav */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(16px);
+      background: rgba(255, 255, 255, 0.85);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 70px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #f43f5e, #fb7185);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+    }
+
+    .logo-text h1 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text p {
+      font-size: 11.5px;
+      color: #64748b;
+      margin-top: -2px;
+    }
+
+    .nav-actions a {
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 9px 20px;
+      border-radius: 9999px;
+      transition: all 0.25s ease;
+    }
+
+    .btn-login {
+      color: #e11d48;
+      background: var(--primary-light);
+      margin-right: 8px;
+    }
+
+    .btn-login:hover {
+      background: #fecdd3;
+    }
+
+    .btn-main {
+      color: #fff;
+      background: linear-gradient(135deg, #f43f5e, #e11d48);
+      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.35);
+    }
+
+    .btn-main:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(244, 63, 94, 0.45);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 70px 0 60px;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(244, 63, 94, 0.2);
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #e11d48;
+      margin-bottom: 24px;
+    }
+
+    .hero-title {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Serif SC", "Source Han Serif SC", "Songti SC", STSong, serif;
+      font-size: 48px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.25;
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, #e11d48, #f43f5e, #fb7185);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      font-size: 18px;
+      color: #475569;
+      max-width: 680px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      max-width: 880px;
+      margin: 40px auto 0;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 32px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .stat-item h3 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #e11d48;
+      line-height: 1.2;
+    }
+
+    .stat-item p {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* Section common */
+    section {
+      padding: 60px 0;
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 48px;
+    }
+
+    .section-tag {
+      font-size: 12px;
+      font-weight: 800;
+      color: #e11d48;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Serif SC", "Source Han Serif SC", "Songti SC", STSong, serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 12px;
+    }
+
+    .section-desc {
+      font-size: 15px;
+      color: #64748b;
+    }
+
+    /* Core Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--hover-shadow);
+      border-color: rgba(244, 63, 94, 0.3);
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: #fff1f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 20px;
+      color: #e11d48;
+    }
+
+    .feature-card h3 {
+      font-size: 19px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 10px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.65;
+    }
+
+    /* Workflow Steps */
+    .steps-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      position: relative;
+    }
+
+    .step-card {
+      background: var(--surface);
+      border: 1px solid #f1f5f9;
+      border-radius: 18px;
+      padding: 28px 22px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+      position: relative;
+      transition: all 0.25s;
+    }
+
+    .step-card:hover {
+      border-color: #fecdd3;
+      transform: translateY(-4px);
+    }
+
+    .step-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f43f5e, #fb7185);
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 10px rgba(244, 63, 94, 0.3);
+    }
+
+    .step-card h4 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    .step-card p {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    /* Match Modes Highlight */
+    .modes-box {
+      background: linear-gradient(135deg, #fff5f6, #fff1f2);
+      border: 1px solid #fecdd3;
+      border-radius: 24px;
+      padding: 40px;
+      margin-top: 40px;
+    }
+
+    .modes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 28px;
+    }
+
+    .mode-item {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 24px;
+      border: 1px solid rgba(244, 63, 94, 0.15);
+      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.04);
+    }
+
+    .mode-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .tag-mutual { background: #dcfce7; color: #15803d; }
+    .tag-them { background: #e0e7ff; color: #3730a3; }
+    .tag-me { background: #fef3c7; color: #92400e; }
+
+    .mode-item h4 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    .mode-item p {
+      font-size: 13.5px;
+      color: #475569;
+      line-height: 1.6;
+    }
+
+    /* Privacy & Safety Guarantee */
+    .privacy-banner {
+      background: #0f172a;
+      color: #fff;
+      border-radius: 24px;
+      padding: 50px 48px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 40px;
+      align-items: center;
+      box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.3);
+    }
+
+    .privacy-content h3 {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Serif SC", "Source Han Serif SC", "Songti SC", STSong, serif;
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      color: #f8fafc;
+    }
+
+    .privacy-content p {
+      font-size: 15px;
+      color: #94a3b8;
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .privacy-points {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .privacy-points li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: #cbd5e1;
+    }
+
+    .privacy-points li span {
+      color: #38bdf8;
+      font-weight: bold;
+    }
+
+    .privacy-card-right {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 32px;
+      backdrop-filter: blur(10px);
+    }
+
+    .trust-badge {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .trust-badge:last-child {
+      margin-bottom: 0;
+    }
+
+    .trust-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .trust-info h5 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 3px;
+    }
+
+    .trust-info p {
+      font-size: 12.5px;
+      color: #94a3b8;
+    }
+
+    /* FAQ Section */
+    .faq-list {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .faq-item {
+      background: var(--surface);
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 20px 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .faq-item:hover {
+      border-color: #fecdd3;
+    }
+
+    .faq-question {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 16px;
+      color: #0f172a;
+    }
+
+    .faq-answer {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #475569;
+      line-height: 1.7;
+      border-top: 1px dashed #f1f5f9;
+      padding-top: 12px;
+    }
+
+    /* CTA Bottom */
+    .cta-section {
+      text-align: center;
+      padding: 80px 0;
+      background: radial-gradient(circle at center, #fff1f2 0%, #ffffff 70%);
+    }
+
+    .cta-box {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .cta-box h2 {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Serif SC", "Source Han Serif SC", "Songti SC", STSong, serif;
+      font-size: 34px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 14px;
+    }
+
+    .cta-box p {
+      font-size: 16px;
+      color: #64748b;
+      margin-bottom: 32px;
+    }
+
+    /* Footer */
+    footer {
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      padding: 40px 0;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    footer p {
+      margin-bottom: 8px;
+    }
+
+    .btn-text-full { display: inline; }
+    .btn-text-short { display: none; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .hero-title { font-size: 36px; }
+      .hero-stats { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .steps-container { grid-template-columns: repeat(2, 1fr); }
+      .modes-grid { grid-template-columns: 1fr; }
+      .privacy-banner { grid-template-columns: 1fr; padding: 32px 24px; }
+    }
+
+    @media (max-width: 640px) {
+      .container { padding: 0 16px; }
+      .nav-content { height: 56px; }
+      .logo { gap: 8px; }
+      .logo-badge { width: 34px; height: 34px; font-size: 18px; border-radius: 9px; flex-shrink: 0; }
+      .logo-text h1 { font-size: 16px; }
+      .logo-text p { display: none; }
+      .nav-actions { gap: 6px; flex-shrink: 0; }
+      .nav-actions a { padding: 6px 12px; font-size: 12px; white-space: nowrap; }
+      .btn-login { margin-right: 0; }
+      .btn-text-full { display: none; }
+      .btn-text-short { display: inline; }
+      
+      .hero { padding: 40px 0 32px; }
+      .hero-pill { font-size: 12px; padding: 5px 12px; margin-bottom: 16px; }
+      .hero-title { font-size: 26px; line-height: 1.3; margin-bottom: 14px; }
+      .hero-desc { font-size: 14px; line-height: 1.65; margin-bottom: 24px; }
+      .hero-stats { grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px 12px; margin-top: 28px; }
+      .stat-item h3 { font-size: 22px; }
+      .stat-item p { font-size: 11.5px; }
+
+      section { padding: 44px 0; }
+      .section-header { margin-bottom: 32px; }
+      .section-title { font-size: 24px; }
+      .section-desc { font-size: 13.5px; }
+      .feature-card { padding: 24px 20px; }
+      .steps-container { grid-template-columns: 1fr; gap: 14px; }
+      .modes-box { padding: 24px 18px; margin-top: 28px; }
+      .modes-grid { gap: 14px; margin-top: 18px; }
+      .privacy-banner { padding: 28px 18px; }
+      .privacy-content h3 { font-size: 22px; }
+      .privacy-card-right { padding: 20px 16px; }
+      .cta-section { padding: 52px 0; }
+      .cta-box h2 { font-size: 24px; }
+      .cta-box p { font-size: 14px; margin-bottom: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="container nav-content">
+      <a href="/" class="logo">
+        <div class="logo-badge">💞</div>
+        <div class="logo-text">
+          <h1>喜结连理</h1>
+          <p>大工苏州校友会 · 单身校友相亲平台</p>
+        </div>
+      </a>
+      <div class="nav-actions">
+        <a href="javascript:void(0)" onclick="openLoginModal('/matchmaking')" class="btn-login"><span class="btn-text-full">登录系统</span><span class="btn-text-short">登录</span></a>
+        <a href="/matchmaking" onclick="return handleEnterTarget(event, '/matchmaking')" class="btn-main"><span class="btn-text-full">进入喜结连理 ➔</span><span class="btn-text-short">进入相亲 ➔</span></a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-pill">
+        <span>🌸 大工人的纯粹缘分空间</span>
+      </div>
+      <h2 class="hero-title">
+        母校为桥 · 校友为缘<br>
+        <span>喜结连理，相伴一生</span>
+      </h2>
+      <p class="hero-desc">
+        大连理工大学苏州校友会专为单身校友倾心打造的私密、真实、靠谱的相亲空间。<br>
+        没有繁杂虚华的中介，只有同出一门、底蕴相契的大工同窗。
+      </p>
+
+      <div style="display: flex; justify-content: center; gap: 16px;">
+        <a href="/matchmaking" onclick="return handleEnterTarget(event, '/matchmaking')" class="btn-main" style="padding: 12px 32px; font-size: 16px; border-radius: 9999px; text-decoration: none; font-weight: 700;">立即开启缘分之旅</a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-item">
+          <h3>100%</h3>
+          <p>大工实名校友</p>
+        </div>
+        <div class="stat-item">
+          <h3>20+</h3>
+          <p>细粒度匹配维度</p>
+        </div>
+        <div class="stat-item">
+          <h3>双向</h3>
+          <p>精准条件筛选</p>
+        </div>
+        <div class="stat-item">
+          <h3>零干扰</h3>
+          <p>隐私安全授权</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Highlights -->
+  <section style="background: #ffffff;">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Platform Highlights</div>
+        <h3 class="section-title">四大核心特色，专为大工校友定制</h3>
+        <p class="section-desc">从源头把关信任门槛，让心与心的碰撞更加纯净与安心。</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎓</div>
+          <h3>实名校友背书</h3>
+          <p>平台入驻均与校友通讯录官方学籍数据库绑定。管理员逐一微信人工确认单身意愿，从源头杜绝虚假、欺诈或非单身群体。</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>双向隐私屏障</h3>
+          <p>相亲档案仅对已通过单身审核的成员开放；微信与联系电话深度加密，唯有双方均确认同意对接后，方可解锁联络通道。</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>科学双向匹配</h3>
+          <p>涵盖年龄、身高、学历、职业性质、常住区域、父母医保、生活习惯（烟酒/作息）等 20 多项条件，不仅你期望对方，更确保对方亦期待你。</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">💖</div>
+          <h3>三大视角呈现</h3>
+          <p>独创“互相匹配（情投意合）”、“与我匹配（心仪于我）”、“我匹配的（我有引力）”三维聚合算法，让缘分清晰可感、不漏良缘。</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📝</div>
+          <h3>条件对比表盘</h3>
+          <p>“自身实际条件”与“期望择偶标准”同表清晰比对，支持范围设定与多选容忍度，让彼此认知坦诚透明，省去繁琐无效试探。</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🤝</div>
+          <h3>校友会温馨护航</h3>
+          <p>非商业、纯公益，秉持“大工人帮大工人”的互助初心。更有红娘志愿理事提供线下联谊与情感牵线支持。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section style="background: #fff8f8;">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">How It Works</div>
+        <h3 class="section-title">四步结缘 · 简单从容</h3>
+        <p class="section-desc">清晰顺畅的入驻与对接流程，保障每一步都有迹可循。</p>
+      </div>
+
+      <div class="steps-container">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <h4>提交申请入驻</h4>
+          <p>登录校友系统后点击「喜结连理」，确认单身意愿并提交，管理员将在 1-2 个工作日内核实。</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h4>完善择偶标准</h4>
+          <p>进入板块填写您的自身实际情况与择偶期待，填写越完整，系统匹配精准度越高。</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h4>查阅匹配校友</h4>
+          <p>系统自动推荐契合校友，支持查阅对方的生活方式、家庭观念与择偶诉求。</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <h4>申请双向对接</h4>
+          <p>发现合心意者一键发起申请；对方确认同意后，立即解锁微信与手机号，开启心动交流。</p>
+        </div>
+      </div>
+
+      <!-- Matching Modes Box -->
+      <div class="modes-box">
+        <div style="text-align: center; max-width: 600px; margin: 0 auto;">
+          <h3 style="font-size: 22px; font-weight: 800; color: #9f1239; margin-bottom: 6px;">智能算法 · 三维缘分矩阵</h3>
+          <p style="font-size: 13.5px; color: #be123c;">喜结连理打破传统单向列表，以严密逻辑为您寻找真正适合的人：</p>
+        </div>
+
+        <div class="modes-grid">
+          <div class="mode-item">
+            <span class="mode-tag tag-mutual">💞 互相匹配 · 双向契合</span>
+            <h4>天作之合 · 优先推荐</h4>
+            <p>您的所有核心条件均满足对方要求，同时对方的各项特质均在您的期待区间之内。无需迟疑，成功率最高！</p>
+          </div>
+
+          <div class="mode-item">
+            <span class="mode-tag tag-them">💌 与我匹配 · 心仪于我</span>
+            <h4>符合您标准 · 主动结缘</h4>
+            <p>对方各方面均符合您的择偶理想，但可能在个别次要条件上与对方期望稍有出入。可主动发起对接，以诚意打动良人。</p>
+          </div>
+
+          <div class="mode-item">
+            <span class="mode-tag tag-me">🌸 我匹配的 · 我有引力</span>
+            <h4>对方期待您 · 静候知音</h4>
+            <p>您的优秀品质正符合对方的择偶期盼。若对方发起对接，您将收到专属通知，静候知音，掌握主动选择权。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security & Privacy Banner -->
+  <section style="background: #ffffff;">
+    <div class="container">
+      <div class="privacy-banner">
+        <div class="privacy-content">
+          <div style="font-size: 13px; font-weight: 800; color: #fb7185; text-transform: uppercase; margin-bottom: 8px;">Security & Privacy</div>
+          <h3>将隐私与安全，刻在平台底座</h3>
+          <p>
+            我们深知单身交友对隐私与体面的苛刻要求。在喜结连理，所有数据严格遵照三级权限隔离，任何非入驻成员及未授权校友均无法获取您的敏感联系方式。
+          </p>
+          <ul class="privacy-points">
+            <li><span>✓</span> <strong>严格单身准入：</strong>仅面向单身校友开放，杜绝任何非诚勿扰与婚内人员。</li>
+            <li><span>✓</span> <strong>联系方式防骚扰：</strong>电话与微信号默认脱敏，未经双方互相同意永不公开。</li>
+            <li><span>✓</span> <strong>随时安全隐身：</strong>脱单后或需要暂停时，一键即可切换隐身或退出板块。</li>
+          </ul>
+        </div>
+
+        <div class="privacy-card-right">
+          <div class="trust-badge">
+            <div class="trust-icon">🏛️</div>
+            <div class="trust-info">
+              <h5>母校校友会官方权威</h5>
+              <p>苏州校友会理事会直接管理与监督运营</p>
+            </div>
+          </div>
+          <div class="trust-badge">
+            <div class="trust-icon">🔐</div>
+            <div class="trust-info">
+              <h5>防爬虫与防窥探机制</h5>
+              <p>端到端数据鉴权，外部网络无法抓取信息</p>
+            </div>
+          </div>
+          <div class="trust-badge">
+            <div class="trust-icon">💬</div>
+            <div class="trust-info">
+              <h5>站内即时对接提醒</h5>
+              <p>对接申请实时直达对方系统消息与通知中心</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section style="background: #fff8f8;">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Frequently Asked Questions</div>
+        <h3 class="section-title">常见问题解答</h3>
+        <p class="section-desc">解答您在加入与使用过程中的疑虑</p>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Q1：哪些校友可以申请加入「喜结连理」？</span>
+          </div>
+          <div class="faq-answer">
+            已在校友系统注册并获得认证的大连理工大学单身校友（目前在苏州工作或生活，或有意向在苏沪地区发展）均可申请。提交申请后管理员会与您进行单身状态简短核实。
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Q2：我的相亲档案会被普通校友在通讯录里看到吗？</span>
+          </div>
+          <div class="faq-answer">
+            不会。您的择偶条件、家庭背景、生活习惯等相亲专属信息仅对<strong>已审核通过并入驻喜结连理板块的单身校友</strong>可见。在普通校友通讯录中，仅展示您公开的基础职业与学籍信息。
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Q3：发起对接后，对方怎样联系我？</span>
+          </div>
+          <div class="faq-answer">
+            当您点击“申请对接”后，对方的系统通知中心与喜结连理看板会收到醒目的对接提醒。对方查阅您的条件并点击“同意对接”后，双方的微信号和手机号将同时在系统内向彼此解锁。
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Q4：如果我成功脱单了，如何隐藏或退出？</span>
+          </div>
+          <div class="faq-answer">
+            恭喜您！您可以在喜结连理的「择偶标准」页面右上角将状态切换为“暂时隐身”，或者随时联系校友会管理员为您办理移出版块，所有档案将立即停止对外匹配。
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-box">
+        <div style="font-size: 40px; margin-bottom: 12px;">🌸</div>
+        <h2>在大工的底色上，遇见知心同路人</h2>
+        <p>山海相隔，弦歌不辍；千回百转，良缘终至。<br>大工苏州校友会愿做您幸福路上的温暖红娘。</p>
+        <a href="/matchmaking" onclick="return handleEnterTarget(event, '/matchmaking')" class="btn-main" style="padding: 14px 38px; font-size: 16px; border-radius: 9999px; text-decoration: none; font-weight: 700; display: inline-block;">
+          立即申请进入「喜结连理」板块
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>大连理工大学苏州校友会 · 喜结连理项目组</p>
+      <p style="font-size: 12px; color: #cbd5e1;">海纳百川 · 传理启真 · 寻觅知心 · 喜结良缘</p>
+    </div>
+  </footer>
+
+  <!-- Quick Login Modal -->
+  <div id="loginModal" style="display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #ffffff; border-radius: 24px; padding: 36px 30px; width: 100%; max-width: 380px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); position: relative;" onclick="event.stopPropagation()">
+      <button onclick="closeLoginModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px 8px; border-radius: 8px;">✕</button>
+      
+      <div style="text-align: center; margin-bottom: 22px;">
+        <div style="width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, #f43f5e, #fb7185); display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.25);">💞</div>
+        <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">校友快捷登录</h3>
+        <p style="font-size: 13px; color: #64748b;">请输入真实姓名与密码进入系统</p>
+      </div>
+
+      <div id="loginErrorMsg" style="display: none; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 16px;"></div>
+
+      <form onsubmit="handleQuickLogin(event)" style="display: flex; flex-direction: column; gap: 15px;">
+        <div>
+          <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">真实姓名</label>
+          <input type="text" id="loginRealName" required placeholder="请输入您的真实姓名" style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 14px; outline: none; box-sizing: border-box;">
+        </div>
+        <div>
+          <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">登录密码</label>
+          <input type="password" id="loginPassword" required placeholder="请输入密码" style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 14px; outline: none; box-sizing: border-box;">
+        </div>
+        <button type="submit" id="loginSubmitBtn" style="padding: 12px; background: linear-gradient(135deg, #f43f5e, #e11d48); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3); margin-top: 4px;">立即登录 ➔</button>
+      </form>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px dashed #e2e8f0; font-size: 13px;">
+        <a href="/register" style="color: #f43f5e; text-decoration: none; font-weight: 600;">申请注册账号 ➔</a>
+        <a href="/login" style="color: #64748b; text-decoration: none;">前往完整登录页</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isUserLoggedIn = false;
+    let redirectTarget = '/matchmaking';
+
+    // Check login status without redirecting
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.authenticated && data.user) {
+          isUserLoggedIn = true;
+          const loginBtn = document.querySelector('.btn-login');
+          if (loginBtn) {
+            loginBtn.innerHTML = '<span class="btn-text-full">已登录: ' + (data.user.name || data.user.realName || '校友') + '</span><span class="btn-text-short">已登录</span>';
+            loginBtn.href = '/matchmaking';
+            loginBtn.onclick = null;
+          }
+        }
+      })
+      .catch(() => {});
+
+    function openLoginModal(target) {
+      if (target) redirectTarget = target;
+      const modal = document.getElementById('loginModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => document.getElementById('loginRealName')?.focus(), 50);
+      }
+    }
+
+    function closeLoginModal() {
+      const modal = document.getElementById('loginModal');
+      if (modal) modal.style.display = 'none';
+      const errorMsg = document.getElementById('loginErrorMsg');
+      if (errorMsg) errorMsg.style.display = 'none';
+    }
+
+    document.getElementById('loginModal')?.addEventListener('click', closeLoginModal);
+
+    function handleEnterTarget(e, targetUrl) {
+      if (isUserLoggedIn) {
+        return true;
+      }
+      e.preventDefault();
+      openLoginModal(targetUrl);
+      return false;
+    }
+
+    async function handleQuickLogin(e) {
+      e.preventDefault();
+      const realName = document.getElementById('loginRealName').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const submitBtn = document.getElementById('loginSubmitBtn');
+      const errorMsg = document.getElementById('loginErrorMsg');
+      
+      submitBtn.disabled = true;
+      submitBtn.textContent = '登录中...';
+      errorMsg.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ realName, password }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          submitBtn.textContent = '登录成功！跳转中...';
+          submitBtn.style.background = '#10b981';
+          setTimeout(() => {
+            window.location.href = redirectTarget;
+          }, 350);
+        } else {
+          errorMsg.textContent = data.error || '姓名或密码错误';
+          errorMsg.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = '立即登录 ➔';
+        }
+      } catch (err) {
+        errorMsg.textContent = '连接服务器失败，请稍后重试';
+        errorMsg.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = '立即登录 ➔';
+      }
+    }
+  </script>
+</body>
+</html>

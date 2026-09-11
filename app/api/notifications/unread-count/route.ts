@@ -52,12 +52,27 @@ export async function GET(_request: NextRequest) {
       `).get(alumniId) as { count: number }).count;
     }
 
+    // 4. Matchmaking pending incoming connection requests for ME to review
+    let matchmakingPending = 0;
+    if (alumniId) {
+      try {
+        matchmakingPending = (db.prepare(`
+          SELECT COUNT(*) as count
+          FROM matchmaking_connections
+          WHERE target_alumni_id = ? AND status = 'PENDING'
+        `).get(alumniId) as { count: number })?.count || 0;
+      } catch (e) {
+        matchmakingPending = 0;
+      }
+    }
+
     const processedTotal = contactCount + correctionCount;
     return NextResponse.json({ 
       count: processedTotal + pendingIncomingCount,
       processed: processedTotal,
       pendingIncoming: pendingIncomingCount,
       jobUnread,
+      matchmakingPending,
     });
   } catch (error) {
     console.error('GET /api/notifications/unread-count error:', error);

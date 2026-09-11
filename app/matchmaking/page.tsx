@@ -26,6 +26,19 @@ const PERSONALITY_OPTIONS = ['开朗外向','温柔体贴','理性冷静','幽�
 // ─── Types ───────────────────────────────────────────────────────────────────
 type TabType = 'criteria' | 'mutual' | 'them' | 'me';
 
+export const isFemaleGender = (g?: string) => g === 'F' || g === '女';
+export const isMaleGender = (g?: string) => g === 'M' || g === '男';
+export const genderLabel = (g?: string) => isFemaleGender(g) ? '女' : (isMaleGender(g) ? '男' : (g || '—'));
+export const parseJ = (v: any): string[] => {
+  if (!v) return [];
+  try {
+    const r = JSON.parse(v);
+    return Array.isArray(r) ? r : [];
+  } catch {
+    return [];
+  }
+};
+
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function MatchmakingPage() {
   const router = useRouter();
@@ -54,7 +67,7 @@ export default function MatchmakingPage() {
   // ── Admin State ─────────────────────────────────────────────────────────
   const [userRole, setUserRole] = useState<string | null>(null);
   const [adminData, setAdminData] = useState<any>(null);
-  const [adminTab, setAdminTab] = useState<'members' | 'monitoring' | 'connections'>('members');
+  const [adminTab, setAdminTab] = useState<'members' | 'one_way_pairs' | 'mutual_pairs' | 'monitoring' | 'connections'>('members');
   const [adminSearch, setAdminSearch] = useState('');
   const [memberSearch, setMemberSearch] = useState('');
   const [adminStatusFilter, setAdminStatusFilter] = useState('');
@@ -244,19 +257,50 @@ export default function MatchmakingPage() {
     });
     const d = await res.json();
     if (!res.ok) { alert(d.error || '操作失败'); }
-    else { setReviewModal(null); loadMatches(); }
+    else {
+      setReviewModal(null);
+      loadMatches();
+      window.dispatchEvent(new Event('unreadCountUpdate'));
+    }
     setActionLoading(false);
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  const parseJ = (v: any): string[] => { if (!v) return []; try { const r = JSON.parse(v); return Array.isArray(r) ? r : []; } catch { return []; } };
   const pSet = (k: string, v: any) => setProfile((p: any) => ({ ...p, [k]: v }));
   const cSet = (k: string, v: any) => setCriteria((c: any) => ({ ...c, [k]: v }));
   const toggleArr = (arr: string[], val: string): string[] => arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
 
-  const isFemaleGender = (g?: string) => g === 'F' || g === '女';
-  const isMaleGender = (g?: string) => g === 'M' || g === '男';
-  const genderLabel = (g?: string) => isFemaleGender(g) ? '女' : (isMaleGender(g) ? '男' : (g || '—'));
+  const renderPairConnectionStatus = (conn: any) => {
+    if (!conn || conn.status === 'NONE') {
+      return (
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', background: 'rgba(255,255,255,0.06)', padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)' }}>
+          ✨ 未发起对接
+        </span>
+      );
+    }
+    if (conn.status === 'APPROVED') {
+      return (
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#34d399', background: 'rgba(16, 185, 129, 0.15)', padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+          💖 已经对接成功（互相解锁）
+        </span>
+      );
+    }
+    if (conn.status === 'PENDING') {
+      return (
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#fbbf24', background: 'rgba(245, 158, 11, 0.15)', padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+          ⏳ 对接待审核 {conn.applicant_name ? `(${conn.applicant_name}发起)` : ''}
+        </span>
+      );
+    }
+    if (conn.status === 'REJECTED') {
+      return (
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#f87171', background: 'rgba(239, 68, 68, 0.15)', padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(239, 68, 68, 0.3)' }} title={conn.reject_reason ? `拒绝原因: ${conn.reject_reason}` : '已被拒绝'}>
+          ❌ 对接已被拒绝 {conn.applicant_name ? `(${conn.applicant_name}发起)` : ''}
+        </span>
+      );
+    }
+    return null;
+  };
 
   // ── Render guards ─────────────────────────────────────────────────────────
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}>加载中…</div>;
@@ -264,6 +308,8 @@ export default function MatchmakingPage() {
   // ── Admin Dashboard View ───────────────────────────────────────────────────
   if (userRole === 'ADMIN') {
     const overview = adminData?.overview || {};
+    const potentialMutualPairs = adminData?.mutualPairs || adminData?.potentialMutualPairs || [];
+    const oneWayPairs = adminData?.oneWayPairs || [];
     const applicantStats = adminData?.applicantStats || [];
     const recentConnections = (adminData?.recentConnections || []).filter((item: any) => {
       if (adminStatusFilter && item.status !== adminStatusFilter) return false;
@@ -280,62 +326,45 @@ export default function MatchmakingPage() {
     });
 
     const rawApprovedList = adminData?.approvedMemberList || [];
-    const filteredMembers = rawApprovedList.filter((item: any) => {
-      if (memberSearch) {
-        const q = memberSearch.toLowerCase();
-        return (
-          item.name?.toLowerCase().includes(q) ||
-          item.college?.toLowerCase().includes(q) ||
-          item.major?.toLowerCase().includes(q) ||
-          item.wechat_id?.toLowerCase().includes(q) ||
-          item.phone?.toLowerCase().includes(q)
-        );
-      }
-      return true;
+    const filteredMembers = rawApprovedList.filter((m: any) => {
+      if (!memberSearch) return true;
+      const q = memberSearch.toLowerCase();
+      return (
+        m.name?.toLowerCase().includes(q) ||
+        m.college?.toLowerCase().includes(q) ||
+        m.major?.toLowerCase().includes(q) ||
+        m.wechat_id?.toLowerCase().includes(q) ||
+        m.phone?.includes(q)
+      );
     });
 
     return (
-      <div style={{ minHeight: '100vh', background: '#0b1120', color: '#f8fafc', padding: '32px 24px' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)', color: '#f8fafc', padding: '32px 24px' }}>
+        <div style={{ maxWidth: 1240, margin: '0 auto' }}>
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <h1 style={{ fontSize: 26, fontWeight: 800, margin: 0, color: '#f8fafc' }}>📊 喜结连理 · 运营数据与对接监控</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <h1 style={{ fontSize: 26, fontWeight: 800, margin: 0, letterSpacing: -0.5, color: '#f8fafc' }}>
+                  喜结连理 · 管理控制台
+                </h1>
                 <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 20, background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', fontWeight: 700 }}>
-                  系统管理员模式
+                  管理员专区
                 </span>
               </div>
-              <p style={{ color: '#94a3b8', fontSize: 13.5, margin: '8px 0 0' }}>
-                监控全站校友相亲入驻情况、交友大数据及对接申请流水，排查高频申请与骚扰行为
+              <p style={{ color: '#94a3b8', fontSize: 13.5, marginTop: 6, marginBottom: 0 }}>
+                实时掌控校友单身入驻状态、审核资料与全站对接申请
               </p>
             </div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 10 }}>
               <button
-                onClick={handleGenerateMockData}
-                disabled={mockLoading || adminLoading}
-                style={{ padding: '9px 16px', background: 'rgba(99, 102, 241, 0.2)', border: '1px solid rgba(99, 102, 241, 0.4)', color: '#a5b4fc', borderRadius: 12, fontSize: 13, cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
-                title="生成测试校友数据（包含互相匹配、与我匹配、我匹配的 3 种情况）"
+                onClick={fetchAdminDashboard}
+                style={{ padding: '9px 16px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#f8fafc', borderRadius: 12, fontSize: 13, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}
               >
-                {mockLoading ? '处理中...' : '🧪 生成测试校友'}
+                <span>🔄</span> 刷新数据
               </button>
               <button
-                onClick={handleCleanMockData}
-                disabled={mockLoading || adminLoading}
-                style={{ padding: '9px 16px', background: 'rgba(244, 63, 94, 0.15)', border: '1px solid rgba(244, 63, 94, 0.3)', color: '#fda4af', borderRadius: 12, fontSize: 13, cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
-                title="一键安全清除测试校友（林互配、白与我、赵我配）"
-              >
-                🗑️ 清除测试校友
-              </button>
-              <button 
-                onClick={fetchAdminDashboard} 
-                disabled={adminLoading}
-                style={{ padding: '9px 16px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', color: '#cbd5e1', borderRadius: 12, fontSize: 13, cursor: 'pointer', fontWeight: 600 }}
-              >
-                {adminLoading ? '刷新中…' : '🔄 刷新数据'}
-              </button>
-              <button 
-                onClick={() => router.push('/admin/permissions')}
+                onClick={() => setAdminModalOpen(true)}
                 style={{ padding: '9px 18px', background: 'linear-gradient(135deg, #ef4444, #dc2626)', border: 'none', color: '#fff', borderRadius: 12, fontSize: 13, cursor: 'pointer', fontWeight: 700, boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)' }}
               >
                 去审核入驻申请 {overview.pendingApps > 0 ? `(${overview.pendingApps})` : ''} ➔
@@ -344,7 +373,8 @@ export default function MatchmakingPage() {
           </div>
 
           {/* Stats Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, marginBottom: 28 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 28 }}>
+            {/* 1. Members */}
             <div 
               onClick={() => setAdminTab('members')}
               title="点击查看已入驻校友列表"
@@ -365,10 +395,84 @@ export default function MatchmakingPage() {
               </div>
               <div style={{ fontSize: 30, fontWeight: 800, color: '#f8fafc', margin: '8px 0 6px' }}>{overview.approvedMembers || 0} <span style={{ fontSize: 14, fontWeight: 500, color: '#94a3b8' }}>人</span></div>
               <div style={{ fontSize: 12, color: '#64748b' }}>
-                <span style={{ color: '#60a5fa' }}>男 {overview.maleMembers || 0}</span> · <span style={{ color: '#f472b6' }}>女 {overview.femaleMembers || 0}</span> · <span style={{ color: '#34d399' }}>条件完善 {overview.completedProfiles || 0}</span>
+                <span style={{ color: '#60a5fa' }}>男 {overview.maleMembers || 0}</span> · <span style={{ color: '#f472b6' }}>女 {overview.femaleMembers || 0}</span> · <span style={{ color: '#34d399' }}>完善 {overview.completedProfiles || 0}</span>
               </div>
             </div>
 
+            {/* 2. One-Way Matches */}
+            <div 
+              onClick={() => setAdminTab('one_way_pairs')}
+              title="点击查看单方面满足对方择偶条件的配对"
+              style={{ 
+                background: adminTab === 'one_way_pairs' ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.04)', 
+                border: '1px solid ' + (adminTab === 'one_way_pairs' ? '#38bdf8' : 'rgba(255,255,255,0.08)'), 
+                borderRadius: 16, 
+                padding: '20px 22px', 
+                backdropFilter: 'blur(10px)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: adminTab === 'one_way_pairs' ? '0 0 20px rgba(56, 189, 248, 0.25)' : 'none'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ color: adminTab === 'one_way_pairs' ? '#38bdf8' : '#94a3b8', fontSize: 13, fontWeight: 700 }}>👉 单向匹配（算法满足）</div>
+                <span style={{ fontSize: 12, color: '#38bdf8', fontWeight: 600 }}>查看列表 ➔</span>
+              </div>
+              <div style={{ fontSize: 30, fontWeight: 800, color: '#38bdf8', margin: '8px 0 6px' }}>
+                {overview.potentialOneWayMatches || 0} <span style={{ fontSize: 14, fontWeight: 500, color: '#94a3b8' }}>对</span>
+              </div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>
+                单方满足条件 · A ➔ B
+              </div>
+            </div>
+
+            {/* 3. Mutual Matches */}
+            <div 
+              onClick={() => setAdminTab('mutual_pairs')}
+              title="点击查看算法双向完全契合的互相匹配列表"
+              style={{ 
+                background: adminTab === 'mutual_pairs' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255,255,255,0.04)', 
+                border: '1px solid ' + (adminTab === 'mutual_pairs' ? '#f59e0b' : 'rgba(255,255,255,0.08)'), 
+                borderRadius: 16, 
+                padding: '20px 22px', 
+                backdropFilter: 'blur(10px)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: adminTab === 'mutual_pairs' ? '0 0 20px rgba(245, 158, 11, 0.25)' : 'none'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ color: adminTab === 'mutual_pairs' ? '#fbbf24' : '#94a3b8', fontSize: 13, fontWeight: 700 }}>💕 互相匹配（算法满足）</div>
+                <span style={{ fontSize: 12, color: '#fbbf24', fontWeight: 600 }}>查看列表 ➔</span>
+              </div>
+              <div style={{ fontSize: 30, fontWeight: 800, color: '#fbbf24', margin: '8px 0 6px' }}>
+                {overview.potentialMutualMatches || 0} <span style={{ fontSize: 14, fontWeight: 500, color: '#94a3b8' }}>对</span>
+              </div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>
+                双向完全契合 · 自动对接成功
+              </div>
+            </div>
+
+            {/* 4. Connected Success */}
+            <div 
+              onClick={() => setAdminTab('connections')}
+              title="点击查看对接记录"
+              style={{ 
+                background: 'rgba(255,255,255,0.04)', 
+                border: '1px solid rgba(255,255,255,0.08)', 
+                borderRadius: 16, 
+                padding: '20px 22px', 
+                backdropFilter: 'blur(10px)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              <div style={{ color: '#94a3b8', fontSize: 13, fontWeight: 600 }}>💖 对接成功（互相解锁）</div>
+              <div style={{ fontSize: 30, fontWeight: 800, color: '#34d399', margin: '8px 0 6px' }}>{overview.approvedConnections || 0} <span style={{ fontSize: 14, fontWeight: 500, color: '#94a3b8' }}>对</span></div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>含互相匹配与单向申请成功 · 待审 {overview.pendingConnections || 0}</div>
+            </div>
+
+            {/* 5. Pending Apps */}
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '20px 22px', backdropFilter: 'blur(10px)' }}>
               <div style={{ color: '#94a3b8', fontSize: 13, fontWeight: 600 }}>⏳ 待审核入驻</div>
               <div style={{ fontSize: 30, fontWeight: 800, color: overview.pendingApps > 0 ? '#fbbf24' : '#f8fafc', margin: '8px 0 6px' }}>
@@ -376,24 +480,10 @@ export default function MatchmakingPage() {
               </div>
               <div style={{ fontSize: 12, color: '#64748b' }}>累计申请人次: {overview.totalApps || 0}</div>
             </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '20px 22px', backdropFilter: 'blur(10px)' }}>
-              <div style={{ color: '#94a3b8', fontSize: 13, fontWeight: 600 }}>💌 累计对接申请</div>
-              <div style={{ fontSize: 30, fontWeight: 800, color: '#f8fafc', margin: '8px 0 6px' }}>{overview.totalConnections || 0} <span style={{ fontSize: 14, fontWeight: 500, color: '#94a3b8' }}>次</span></div>
-              <div style={{ fontSize: 12, color: '#64748b' }}>
-                等待中 {overview.pendingConnections || 0} · 对方暂不考虑 {overview.rejectedConnections || 0}
-              </div>
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '20px 22px', backdropFilter: 'blur(10px)' }}>
-              <div style={{ color: '#94a3b8', fontSize: 13, fontWeight: 600 }}>💖 对接成功（互相解锁）</div>
-              <div style={{ fontSize: 30, fontWeight: 800, color: '#34d399', margin: '8px 0 6px' }}>{overview.approvedConnections || 0} <span style={{ fontSize: 14, fontWeight: 500, color: '#94a3b8' }}>对</span></div>
-              <div style={{ fontSize: 12, color: '#64748b' }}>已建立联系并互相解锁微信/手机</div>
-            </div>
           </div>
 
           {/* Navigation Tabs */}
-          <div style={{ display: 'flex', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: 20 }}>
+          <div style={{ display: 'flex', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: 20, overflowX: 'auto' }}>
             <button
               onClick={() => setAdminTab('members')}
               style={{
@@ -407,9 +497,46 @@ export default function MatchmakingPage() {
                 borderBottom: adminTab === 'members' ? '2px solid #3b82f6' : '2px solid transparent',
                 marginBottom: -1,
                 transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
               }}
             >
               👥 已入驻校友列表 ({rawApprovedList.length})
+            </button>
+            <button
+              onClick={() => setAdminTab('one_way_pairs')}
+              style={{
+                padding: '12px 20px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 14.5,
+                fontWeight: adminTab === 'one_way_pairs' ? 700 : 500,
+                color: adminTab === 'one_way_pairs' ? '#38bdf8' : '#94a3b8',
+                borderBottom: adminTab === 'one_way_pairs' ? '2px solid #38bdf8' : '2px solid transparent',
+                marginBottom: -1,
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              👉 单向匹配列表 ({oneWayPairs.length})
+            </button>
+            <button
+              onClick={() => setAdminTab('mutual_pairs')}
+              style={{
+                padding: '12px 20px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 14.5,
+                fontWeight: adminTab === 'mutual_pairs' ? 700 : 500,
+                color: adminTab === 'mutual_pairs' ? '#fbbf24' : '#94a3b8',
+                borderBottom: adminTab === 'mutual_pairs' ? '2px solid #f59e0b' : '2px solid transparent',
+                marginBottom: -1,
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              💕 互相匹配列表 ({potentialMutualPairs.length})
             </button>
             <button
               onClick={() => setAdminTab('monitoring')}
@@ -424,6 +551,7 @@ export default function MatchmakingPage() {
                 borderBottom: adminTab === 'monitoring' ? '2px solid #ef4444' : '2px solid transparent',
                 marginBottom: -1,
                 transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
               }}
             >
               ⚠️ 发起申请频次榜（骚扰排查）
@@ -441,6 +569,7 @@ export default function MatchmakingPage() {
                 borderBottom: adminTab === 'connections' ? '2px solid #10b981' : '2px solid transparent',
                 marginBottom: -1,
                 transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
               }}
             >
               📋 全站对接动态流水
@@ -533,6 +662,9 @@ export default function MatchmakingPage() {
                               📱 手机: {item.phone}
                             </span>
                           )}
+                          <span style={{ color: '#cbd5e1', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.25)', padding: '3px 10px', borderRadius: 6 }}>
+                            ✨ 潜在互配: <strong style={{ color: (item.potential_mutual_count || 0) > 0 ? '#fbbf24' : '#94a3b8' }}>{item.potential_mutual_count || 0}</strong> 人
+                          </span>
                           <span style={{ color: '#cbd5e1', background: 'rgba(255,255,255,0.06)', padding: '3px 10px', borderRadius: 6 }}>
                             主动发起申请: <strong style={{ color: item.applied_count > 0 ? '#60a5fa' : '#94a3b8' }}>{item.applied_count || 0}</strong> 次
                           </span>
@@ -601,6 +733,274 @@ export default function MatchmakingPage() {
             </div>
           )}
 
+          {/* Tab Content: One-Way Matches */}
+          {adminTab === 'one_way_pairs' && (
+            <div>
+              <div style={{
+                background: 'rgba(56, 189, 248, 0.08)',
+                border: '1px solid rgba(56, 189, 248, 0.25)',
+                borderRadius: 14,
+                padding: '16px 20px',
+                marginBottom: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12,
+              }}>
+                <div style={{ fontSize: 13.5, color: '#bae6fd', lineHeight: 1.6 }}>
+                  👉 <strong>单向匹配说明：</strong>当前系统检测到共有 <strong style={{ color: '#38bdf8', fontSize: 15 }}>{oneWayPairs.length}</strong> 对单向契合（<strong style={{ color: '#38bdf8' }}>A ➔ B</strong> 代表 A 的个人条件满足了 B 设定的全部择偶要求，但 B 暂未满足 A 的择偶条件）。校友进入个人中心可在【满足我的条件】或【我满足的条件】中查看并主动发起对接。
+                </div>
+              </div>
+
+              {oneWayPairs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8', background: 'rgba(255,255,255,0.02)', borderRadius: 16, border: '1px dashed rgba(255,255,255,0.1)' }}>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+                  <div style={{ fontSize: 15, fontWeight: 600 }}>暂无单向匹配的校友配对</div>
+                  <div style={{ fontSize: 13, color: '#64748b', marginTop: 6 }}>当某位校友的各项个人条件完全符合另一位校友的择偶要求时，系统将自动汇总于此。</div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {oneWayPairs.map((pair: any, idx: number) => {
+                    const isFromFemale = isFemaleGender(pair.from.gender);
+                    const isToFemale = isFemaleGender(pair.to.gender);
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          borderRadius: 16,
+                          padding: '20px 24px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          flexWrap: 'wrap',
+                          gap: 20,
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        {/* From Party (满足方) */}
+                        <div style={{
+                          flex: 1,
+                          minWidth: 260,
+                          background: isFromFemale ? 'rgba(244, 114, 182, 0.08)' : 'rgba(59, 130, 246, 0.08)',
+                          border: `1px solid ${isFromFemale ? 'rgba(244, 114, 182, 0.25)' : 'rgba(59, 130, 246, 0.25)'}`,
+                          borderRadius: 12,
+                          padding: '16px 18px'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <span style={{ fontSize: 16, fontWeight: 700, color: isFromFemale ? '#fbcfe8' : '#93c5fd' }}>
+                              {isFromFemale ? '👩' : '👨'} {pair.from.name}
+                            </span>
+                            <span style={{
+                              fontSize: 11.5,
+                              background: isFromFemale ? 'rgba(244, 114, 182, 0.25)' : 'rgba(59, 130, 246, 0.25)',
+                              color: isFromFemale ? '#f472b6' : '#60a5fa',
+                              padding: '2px 8px',
+                              borderRadius: 4,
+                              fontWeight: 600
+                            }}>
+                              条件满足方 · {genderLabel(pair.from.gender)} · {pair.from.age}岁
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 12.5, color: '#cbd5e1', lineHeight: 1.7 }}>
+                            <div>🏫 {pair.from.college || '未知学院'} · {pair.from.major || '未知专业'} {pair.from.degree ? `(${pair.from.degree})` : ''}</div>
+                            <div>💼 {pair.from.job_type || '单位类型未填'} · 年薪 {pair.from.annual_income ? `${pair.from.annual_income}万` : '保密'}</div>
+                            <div>🏠 {pair.from.property_status || '房产未填'}</div>
+                          </div>
+                          <button
+                            onClick={() => setViewingMmAlumniId(pair.from.alumni_id)}
+                            style={{
+                              marginTop: 10,
+                              padding: '5px 12px',
+                              background: isFromFemale ? 'rgba(244, 114, 182, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                              border: `1px solid ${isFromFemale ? 'rgba(244, 114, 182, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`,
+                              color: isFromFemale ? '#fbcfe8' : '#93c5fd',
+                              borderRadius: 6,
+                              fontSize: 11.5,
+                              cursor: 'pointer',
+                              fontWeight: 600
+                            }}
+                          >
+                            查看档案 ➔
+                          </button>
+                        </div>
+
+                        {/* Middle Arrow & Direction Badge */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 12px', flexShrink: 0, minWidth: 200 }}>
+                          <div style={{ fontSize: 26, color: '#38bdf8', fontWeight: 800, letterSpacing: -1, marginBottom: 2 }}>
+                            ─────➔
+                          </div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: '#38bdf8', background: 'rgba(56, 189, 248, 0.15)', padding: '2px 12px', borderRadius: 12, border: '1px solid rgba(56, 189, 248, 0.3)', marginBottom: 6 }}>
+                            单向满足
+                          </div>
+                          <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', marginBottom: 10, lineHeight: 1.4 }}>
+                            <strong style={{ color: '#f8fafc' }}>{pair.from.name}</strong> 满足了 <strong style={{ color: '#f8fafc' }}>{pair.to.name}</strong> 的要求
+                          </div>
+                          <div>
+                            {renderPairConnectionStatus(pair.connection)}
+                          </div>
+                        </div>
+
+                        {/* To Party (需求方) */}
+                        <div style={{
+                          flex: 1,
+                          minWidth: 260,
+                          background: isToFemale ? 'rgba(244, 114, 182, 0.08)' : 'rgba(59, 130, 246, 0.08)',
+                          border: `1px solid ${isToFemale ? 'rgba(244, 114, 182, 0.25)' : 'rgba(59, 130, 246, 0.25)'}`,
+                          borderRadius: 12,
+                          padding: '16px 18px'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <span style={{ fontSize: 16, fontWeight: 700, color: isToFemale ? '#fbcfe8' : '#93c5fd' }}>
+                              {isToFemale ? '👩' : '👨'} {pair.to.name}
+                            </span>
+                            <span style={{
+                              fontSize: 11.5,
+                              background: isToFemale ? 'rgba(244, 114, 182, 0.25)' : 'rgba(59, 130, 246, 0.25)',
+                              color: isToFemale ? '#f472b6' : '#60a5fa',
+                              padding: '2px 8px',
+                              borderRadius: 4,
+                              fontWeight: 600
+                            }}>
+                              择偶要求方 · {genderLabel(pair.to.gender)} · {pair.to.age}岁
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 12.5, color: '#cbd5e1', lineHeight: 1.7 }}>
+                            <div>🏫 {pair.to.college || '未知学院'} · {pair.to.major || '未知专业'} {pair.to.degree ? `(${pair.to.degree})` : ''}</div>
+                            <div>💼 {pair.to.job_type || '单位类型未填'} · 年薪 {pair.to.annual_income ? `${pair.to.annual_income}万` : '保密'}</div>
+                            <div>🏠 {pair.to.property_status || '房产未填'}</div>
+                          </div>
+                          <button
+                            onClick={() => setViewingMmAlumniId(pair.to.alumni_id)}
+                            style={{
+                              marginTop: 10,
+                              padding: '5px 12px',
+                              background: isToFemale ? 'rgba(244, 114, 182, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                              border: `1px solid ${isToFemale ? 'rgba(244, 114, 182, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`,
+                              color: isToFemale ? '#fbcfe8' : '#93c5fd',
+                              borderRadius: 6,
+                              fontSize: 11.5,
+                              cursor: 'pointer',
+                              fontWeight: 600
+                            }}
+                          >
+                            查看档案 ➔
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tab Content: Mutual Matches (Algorithm) */}
+          {adminTab === 'mutual_pairs' && (
+            <div>
+              <div style={{
+                background: 'rgba(245, 158, 11, 0.08)',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
+                borderRadius: 14,
+                padding: '16px 20px',
+                marginBottom: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12,
+              }}>
+                <div style={{ fontSize: 13.5, color: '#fde68a', lineHeight: 1.6 }}>
+                  💕 <strong>互相匹配列表说明：</strong>当前系统检测到共有 <strong style={{ color: '#fbbf24', fontSize: 15 }}>{potentialMutualPairs.length}</strong> 对男女校友自身条件与择偶期望完全双向契合。双方已自动对接成功并互相解锁联系方式，无需额外发起对接申请。
+                </div>
+              </div>
+
+              {potentialMutualPairs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8', background: 'rgba(255,255,255,0.02)', borderRadius: 16, border: '1px dashed rgba(255,255,255,0.1)' }}>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+                  <div style={{ fontSize: 15, fontWeight: 600 }}>暂无双向完全匹配的校友对</div>
+                  <div style={{ fontSize: 13, color: '#64748b', marginTop: 6 }}>当单身校友互相满足对方的年龄、学历、收入、房产、性格及生活习惯等全部指标时，系统将自动汇聚在此。</div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {potentialMutualPairs.map((pair: any, idx: number) => (
+                    <div
+                      key={idx}
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: 16,
+                        padding: '20px 24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: 20,
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {/* Male Party */}
+                      <div style={{ flex: 1, minWidth: 260, background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: 12, padding: '16px 18px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                          <span style={{ fontSize: 16, fontWeight: 700, color: '#93c5fd' }}>
+                            👨 {pair.male.name}
+                          </span>
+                          <span style={{ fontSize: 11.5, background: 'rgba(59, 130, 246, 0.25)', color: '#60a5fa', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
+                            男方 · {pair.male.age}岁
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 12.5, color: '#cbd5e1', lineHeight: 1.7 }}>
+                          <div>🏫 {pair.male.college || '未知学院'} · {pair.male.major || '未知专业'} {pair.male.degree ? `(${pair.male.degree})` : ''}</div>
+                          <div>💼 {pair.male.job_type || '单位类型未填'} · 年薪 {pair.male.annual_income ? `${pair.male.annual_income}万` : '保密'}</div>
+                          <div>🏠 {pair.male.property_status || '房产未填'}</div>
+                        </div>
+                        <button
+                          onClick={() => setViewingMmAlumniId(pair.male.alumni_id)}
+                          style={{ marginTop: 10, padding: '5px 12px', background: 'rgba(59, 130, 246, 0.15)', border: '1px solid rgba(59, 130, 246, 0.3)', color: '#93c5fd', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', fontWeight: 600 }}
+                        >
+                          查看男方相亲档案 ➔
+                        </button>
+                      </div>
+
+                      {/* Middle Badge / Heart */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 10px', flexShrink: 0, minWidth: 160 }}>
+                        <div style={{ fontSize: 30, marginBottom: 4 }}>❤️</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#34d399', background: 'rgba(52, 211, 153, 0.15)', padding: '4px 14px', borderRadius: 14, border: '1px solid rgba(52, 211, 153, 0.3)' }}>
+                          双向契合 · 自动解锁
+                        </div>
+                      </div>
+
+                      {/* Female Party */}
+                      <div style={{ flex: 1, minWidth: 260, background: 'rgba(244, 114, 182, 0.08)', border: '1px solid rgba(244, 114, 182, 0.2)', borderRadius: 12, padding: '16px 18px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                          <span style={{ fontSize: 16, fontWeight: 700, color: '#fbcfe8' }}>
+                            👩 {pair.female.name}
+                          </span>
+                          <span style={{ fontSize: 11.5, background: 'rgba(244, 114, 182, 0.25)', color: '#f472b6', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
+                            女方 · {pair.female.age}岁
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 12.5, color: '#cbd5e1', lineHeight: 1.7 }}>
+                          <div>🏫 {pair.female.college || '未知学院'} · {pair.female.major || '未知专业'} {pair.female.degree ? `(${pair.female.degree})` : ''}</div>
+                          <div>💼 {pair.female.job_type || '单位类型未填'} · 年薪 {pair.female.annual_income ? `${pair.female.annual_income}万` : '保密'}</div>
+                          <div>🏠 {pair.female.property_status || '房产未填'}</div>
+                        </div>
+                        <button
+                          onClick={() => setViewingMmAlumniId(pair.female.alumni_id)}
+                          style={{ marginTop: 10, padding: '5px 12px', background: 'rgba(244, 114, 182, 0.15)', border: '1px solid rgba(244, 114, 182, 0.3)', color: '#fbcfe8', borderRadius: 6, fontSize: 11.5, cursor: 'pointer', fontWeight: 600 }}
+                        >
+                          查看女方相亲档案 ➔
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Tab Content 1: Monitoring */}
           {adminTab === 'monitoring' && (
             <div>
@@ -614,7 +1014,22 @@ export default function MatchmakingPage() {
                 </div>
               ) : (
                 <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'hidden' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <style dangerouslySetInnerHTML={{ __html: `
+                    .admin-monitoring-table thead,
+                    .admin-monitoring-table thead tr,
+                    .admin-monitoring-table thead th {
+                      background: rgba(255, 255, 255, 0.05) !important;
+                      color: #94a3b8 !important;
+                      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+                    }
+                    .admin-monitoring-table tbody tr {
+                      background: transparent !important;
+                    }
+                    .admin-monitoring-table tbody tr:hover {
+                      background: rgba(255, 255, 255, 0.08) !important;
+                    }
+                  `}} />
+                  <table className="admin-monitoring-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                     <thead>
                       <tr style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                         <th style={{ padding: '12px 16px', textAlign: 'left', color: '#94a3b8', fontWeight: 600 }}>申请人</th>
@@ -631,7 +1046,12 @@ export default function MatchmakingPage() {
                         const isHighFreq = item.total_applied >= 8;
                         const isMedFreq = item.total_applied >= 4;
                         return (
-                          <tr key={item.applicant_alumni_id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }}>
+                          <tr
+                            key={item.applicant_alumni_id}
+                            style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                          >
                             <td style={{ padding: '12px 16px', fontWeight: 700 }}>
                               <span style={{ color: '#f8fafc' }}>{item.applicant_name}</span>
                               <span style={{ 
@@ -646,7 +1066,7 @@ export default function MatchmakingPage() {
                               </span>
                             </td>
                             <td style={{ padding: '12px 16px', color: '#cbd5e1' }}>
-                              {item.applicant_college || '—'} · {item.applicant_year ? item.applicant_year + '级' : '—'}
+                              {item.applicant_college || '—'} · {item.applicant_year ? (formatYear(item.applicant_year) || item.applicant_year) + '级' : '—'}
                             </td>
                             <td style={{ padding: '12px 16px' }}>
                               <div style={{ color: '#34d399', fontWeight: 600, fontSize: 12 }}>💬 {item.applicant_wechat || '未填'}</div>
@@ -936,20 +1356,24 @@ export default function MatchmakingPage() {
     </div>
   );
 
-  // ── Tab counts ────────────────────────────────────────────────────────────
-  const tabLabels: Record<TabType, string> = {
-    criteria: '择偶标准',
-    mutual: `互相匹配 (${mutual.length})`,
-    them: `与我匹配 (${them.length})`,
-    me: `我匹配的 (${me.length})`,
-  };
+  // ── Tab counts & Pending Reviews ───────────────────────────────────────────
+  const themPendingCount = them.filter(m => m.connection?.theirRequest?.status === 'PENDING').length;
+  const mePendingCount = me.filter(m => m.connection?.theirRequest?.status === 'PENDING').length;
+  const totalPendingReviews = themPendingCount + mePendingCount;
+
+  const tabList: { key: TabType; label: string; count?: number; pendingCount?: number }[] = [
+    { key: 'criteria', label: '择偶标准' },
+    { key: 'mutual', label: '互相匹配', count: mutual.length },
+    { key: 'them', label: '与我匹配', count: them.length, pendingCount: themPendingCount },
+    { key: 'me', label: '我匹配的', count: me.length, pendingCount: mePendingCount },
+  ];
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh', background: '#f8f9fa' }}>
       {/* Guide Modal */}
       {showGuide && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowGuide(false)}>
           <div style={{ background: '#fff', borderRadius: 16, padding: '32px 28px', maxWidth: 460, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
               <div style={{ fontSize: 48 }}>🎉</div>
@@ -1013,13 +1437,104 @@ export default function MatchmakingPage() {
           <p style={{ color: '#888', fontSize: 13, margin: '4px 0 0' }}>大工苏州校友会 · 校友相亲平台</p>
         </div>
 
-        {/* Tabs */}
-        <div style={{ display: 'flex', borderBottom: '2px solid #f0f0f0', marginBottom: 24, gap: 0 }}>
-          {(Object.keys(tabLabels) as TabType[]).map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} style={{ padding: '10px 20px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, fontWeight: activeTab === tab ? 700 : 400, color: activeTab === tab ? '#c0392b' : '#666', borderBottom: activeTab === tab ? '2px solid #c0392b' : '2px solid transparent', marginBottom: -2, transition: 'all 0.2s' }}>
-              {tabLabels[tab]}
+        {/* Incoming Review Notification Banner */}
+        {totalPendingReviews > 0 && (
+          <div style={{
+            background: 'linear-gradient(135deg, #fff1f2, #ffe4e6)',
+            border: '1px solid #fecdd3',
+            borderRadius: 14,
+            padding: '14px 20px',
+            marginBottom: 20,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+            boxShadow: '0 4px 14px rgba(244, 63, 94, 0.08)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 24 }}>💌</span>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#be123c' }}>
+                  您收到了 {totalPendingReviews} 位校友发起的对接申请！
+                </div>
+                <div style={{ fontSize: 12.5, color: '#e11d48', marginTop: 2 }}>
+                  {themPendingCount > 0 ? `【与我匹配】中有 ${themPendingCount} 位校友等待您的回应` : ''}
+                  {themPendingCount > 0 && mePendingCount > 0 ? '，' : ''}
+                  {mePendingCount > 0 ? `【我匹配的】中有 ${mePendingCount} 位校友等待您的回应` : ''}。审核通过后双方即可互相解锁联系方式。
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveTab(themPendingCount > 0 ? 'them' : 'me')}
+              style={{
+                padding: '8px 18px',
+                background: '#e11d48',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(225, 29, 72, 0.3)',
+                transition: 'all 0.2s',
+              }}
+            >
+              立即前往审核 ➔
             </button>
-          ))}
+          </div>
+        )}
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', borderBottom: '2px solid #f0f0f0', marginBottom: 24, gap: 4, overflowX: 'auto' }}>
+          {tabList.map(item => {
+            const isActive = activeTab === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => setActiveTab(item.key)}
+                style={{
+                  padding: '10px 18px',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: isActive ? 700 : 400,
+                  color: isActive ? '#c0392b' : '#666',
+                  borderBottom: isActive ? '2px solid #c0392b' : '2px solid transparent',
+                  marginBottom: -2,
+                  transition: 'all 0.2s',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <span>{item.label}</span>
+                {item.count !== undefined && (
+                  <span style={{ fontSize: 13, color: isActive ? '#c0392b' : '#94a3b8' }}>
+                    ({item.count})
+                  </span>
+                )}
+                {item.pendingCount !== undefined && item.pendingCount > 0 && (
+                  <span style={{
+                    background: '#ef4444',
+                    color: '#fff',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '1px 7px',
+                    borderRadius: 10,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 3,
+                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
+                  }}>
+                    <span style={{ fontSize: 8 }}>●</span> {item.pendingCount} 待审核
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Incomplete Conditions Permanent Banner */}
@@ -1230,7 +1745,40 @@ export default function MatchmakingPage() {
                 const theirReqPending = conn?.theirRequest?.status === 'PENDING';
 
                 return (
-                  <div key={m.alumni_id} style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                  <div
+                    key={m.alumni_id}
+                    style={{
+                      background: theirReqPending && !approved ? 'linear-gradient(180deg, #fffbf5, #ffffff)' : '#fff',
+                      borderRadius: 12,
+                      padding: '16px 20px',
+                      boxShadow: theirReqPending && !approved ? '0 4px 16px rgba(249, 115, 22, 0.15)' : '0 2px 8px rgba(0,0,0,0.06)',
+                      border: theirReqPending && !approved ? '1.5px solid #f97316' : '1px solid #f1f5f9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 16,
+                      flexWrap: 'wrap',
+                      position: 'relative',
+                    }}
+                  >
+                    {theirReqPending && !approved && (
+                      <div style={{
+                        position: 'absolute',
+                        top: -9,
+                        right: 18,
+                        background: '#f97316',
+                        color: '#fff',
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        padding: '2px 9px',
+                        borderRadius: 10,
+                        boxShadow: '0 2px 6px rgba(249, 115, 22, 0.35)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 3,
+                      }}>
+                        💌 待您审核
+                      </div>
+                    )}
                     <div style={{ width: 44, height: 44, borderRadius: '50%', background: isFemaleGender(m.gender) ? '#fce4ec' : '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: isFemaleGender(m.gender) ? '#c2185b' : '#1565c0', flexShrink: 0 }}>
                       {genderLabel(m.gender)}
                     </div>
@@ -1347,7 +1895,18 @@ function EmptyState({ text }: { text: string }) {
 }
 
 function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }) {
+  if (!m) return null;
+
+  const parseSafeArray = (val: any) => {
+    if (!val) return '—';
+    if (Array.isArray(val)) return val.length > 0 ? val.join('、') : '—';
+    const parsed = parseJ(val);
+    if (parsed.length > 0) return parsed.join('、');
+    return String(val);
+  };
+
   const rows: [string, any][] = [
+    ['姓名', (showContact ? (m.name || m.display_name) : (m.display_name || m.name)) || '—'],
     ['性别', genderLabel(m.gender)],
     ['周岁年龄', m.age ? m.age + ' 岁' : '—'],
     ['身高', m.height ? m.height + ' cm' : '—'],
@@ -1364,8 +1923,8 @@ function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }
     ['吸烟', m.smoking || '—'],
     ['饮酒', m.drinking || '—'],
     ['作息', m.schedule || '—'],
-    ['个人爱好', Array.isArray(m.hobbies) ? m.hobbies.join('、') : '—'],
-    ['性格特质', Array.isArray(m.personality) ? m.personality.join('、') : '—'],
+    ['个人爱好', parseSafeArray(m.hobbies)],
+    ['性格特质', parseSafeArray(m.personality)],
   ];
   if (showContact) {
     rows.push(['手机号', m.phone || '—']);

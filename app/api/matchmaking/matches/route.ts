@@ -1,86 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { meetsTheirCriteria, maskName, parseJ } from '@/lib/matchmaking';
 
 export const dynamic = 'force-dynamic';
-
-function parseJ(v: any): string[] {
-  if (!v) return [];
-  try { const r = JSON.parse(v); return Array.isArray(r) ? r : []; } catch { return []; }
-}
-
-function maskName(name: string): string {
-  if (!name) return '**';
-  if (name.length === 1) return name;
-  return name[0] + '*'.repeat(name.length - 1);
-}
-
-function inRange(val: number | null, min: number | null, max: number | null): boolean {
-  if (val === null) return true; // if we don't know, treat as ok
-  if (min !== null && val < min) return false;
-  if (max !== null && val > max) return false;
-  return true;
-}
-
-function arrAccepts(myVal: string | null, theirArr: string[]): boolean {
-  if (!theirArr || theirArr.length === 0) return true; // no preference
-  if (!myVal) return true; // we don't know, treat as ok
-  return theirArr.includes(myVal);
-}
-
-function arrIntersects(myArr: string[], theirArr: string[]): boolean {
-  if (!theirArr || theirArr.length === 0) return true;
-  if (!myArr || myArr.length === 0) return true;
-  return myArr.some(v => theirArr.includes(v));
-}
-
-function smokeAccepts(myVal: string | null, theirPref: string | null): boolean {
-  if (!theirPref || theirPref === '不限') return true;
-  if (!myVal) return true;
-  if (theirPref === '不吸烟') return myVal === '不吸烟';
-  if (theirPref === '可接受偶尔') return myVal === '不吸烟' || myVal === '偶尔';
-  return true;
-}
-
-function drinkAccepts(myVal: string | null, theirPref: string | null): boolean {
-  if (!theirPref || theirPref === '不限') return true;
-  if (!myVal) return true;
-  if (theirPref === '不喝酒') return myVal === '不喝酒';
-  if (theirPref === '可接受偶尔') return myVal === '不喝酒' || myVal === '偶尔小酌';
-  return true;
-}
-
-function scheduleAccepts(myVal: string | null, theirPref: string | null): boolean {
-  if (!theirPref || theirPref === '不限') return true;
-  if (!myVal) return true;
-  if (theirPref === '规律') return myVal === '规律（早睡早起）';
-  if (theirPref === '基本规律即可') return myVal === '规律（早睡早起）' || myVal === '基本规律';
-  return true;
-}
-
-function degreeRank(d: string | null): number {
-  const map: Record<string, number> = { '大专': 1, '本科': 2, '硕士': 3, '博士': 4 };
-  return d ? (map[d] || 0) : 0;
-}
-
-// Does myProfile satisfy theirCriteria?
-function meetsTheirCriteria(myProfile: any, theirCriteria: any): boolean {
-  if (!theirCriteria) return true;
-  if (!inRange(myProfile.age, theirCriteria.age_min, theirCriteria.age_max)) return false;
-  if (!inRange(myProfile.height, theirCriteria.height_min, theirCriteria.height_max)) return false;
-  if (!inRange(myProfile.weight, theirCriteria.weight_min, theirCriteria.weight_max)) return false;
-  if (!inRange(myProfile.annual_income, theirCriteria.income_min, theirCriteria.income_max)) return false;
-  if (!arrAccepts(myProfile.marital_status, parseJ(theirCriteria.marital_status))) return false;
-  if (!arrAccepts(myProfile.property_status, parseJ(theirCriteria.property_status))) return false;
-  if (!arrAccepts(myProfile.job_type, parseJ(theirCriteria.job_type))) return false;
-  if (theirCriteria.degree && degreeRank(myProfile.degree) < degreeRank(theirCriteria.degree)) return false;
-  if (!smokeAccepts(myProfile.smoking, theirCriteria.smoking)) return false;
-  if (!drinkAccepts(myProfile.drinking, theirCriteria.drinking)) return false;
-  if (!scheduleAccepts(myProfile.schedule, theirCriteria.schedule)) return false;
-  if (!arrIntersects(parseJ(myProfile.hobbies), parseJ(theirCriteria.hobbies))) return false;
-  if (!arrIntersects(parseJ(myProfile.personality), parseJ(theirCriteria.personality))) return false;
-  return true;
-}
 
 function getConnectionStatus(db: any, myAlumniId: number, theirAlumniId: number) {
   const myReq = db.prepare(`SELECT * FROM matchmaking_connections WHERE applicant_alumni_id=? AND target_alumni_id=?`).get(myAlumniId, theirAlumniId) as any;
@@ -136,7 +59,8 @@ export async function GET(req: NextRequest) {
 
     results.push({
       alumni_id: them.alumni_id,
-      display_name: maskName(them.name),
+      name: them.name,
+      display_name: showContact ? them.name : maskName(them.name),
       gender: them.gender,
       age: them.age,
       height: them.height,

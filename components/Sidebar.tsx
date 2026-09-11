@@ -11,6 +11,7 @@ export default function Sidebar() {
   const [pendingCount, setPendingCount] = useState(0);
   const [userUnreadCount, setUserUnreadCount] = useState(0);
   const [jobUnreadCount, setJobUnreadCount] = useState(0);
+  const [mmPendingCount, setMmPendingCount] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const [targetHref, setTargetHref] = useState<string | null>(null);
@@ -33,10 +34,10 @@ export default function Sidebar() {
           } else {
             setShowIncompleteModal(false);
           }
+          fetchUserUnreadCount();
           if (data.user.role === 'ADMIN') {
             fetchPendingCount();
           } else {
-            fetchUserUnreadCount();
             // Fetch matchmaking status
             fetch('/api/matchmaking/application')
               .then(r => r.json())
@@ -61,10 +62,16 @@ export default function Sidebar() {
     window.addEventListener('profileUpdate', handleProfileUpdate);
     window.addEventListener('pendingCountUpdate', handleProfileUpdate);
     window.addEventListener('unreadCountUpdate', handleProfileUpdate);
+    window.addEventListener('focus', handleProfileUpdate);
+
+    const intervalId = setInterval(fetchAuthUser, 45000);
+
     return () => {
       window.removeEventListener('profileUpdate', handleProfileUpdate);
       window.removeEventListener('pendingCountUpdate', handleProfileUpdate);
       window.removeEventListener('unreadCountUpdate', handleProfileUpdate);
+      window.removeEventListener('focus', handleProfileUpdate);
+      clearInterval(intervalId);
     };
   }, []);
 
@@ -86,6 +93,7 @@ export default function Sidebar() {
       .then(data => {
         setUserUnreadCount(data.count || 0);
         setJobUnreadCount(data.jobUnread || 0);
+        setMmPendingCount(data.matchmakingPending || 0);
       })
       .catch(() => {});
   }
@@ -115,6 +123,7 @@ export default function Sidebar() {
       href: '/matchmaking',
       icon: '💞',
       label: '喜结连理',
+      badge: mmPendingCount > 0 ? mmPendingCount : null,
     });
     navItems.push({ 
       href: '/admin/permissions', 
@@ -127,7 +136,7 @@ export default function Sidebar() {
       href: '/matchmaking',
       icon: '💞',
       label: '喜结连理',
-      badge: mmStatus === 'PENDING' ? null : null,
+      badge: mmPendingCount > 0 ? mmPendingCount : null,
     });
   }
 

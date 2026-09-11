@@ -33,8 +33,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Public intro & static pages (allow unauthenticated access)
+  if (
+    pathname === '/matchmaking-intro' ||
+    pathname === '/matchmaking-intro.html' ||
+    pathname === '/jobs-intro' ||
+    pathname === '/jobs-intro.html' ||
+    pathname.endsWith('.html')
+  ) {
+    return NextResponse.next();
+  }
+
   // API auth endpoints are public
-  if (pathname.startsWith('/api/auth/login') || pathname.startsWith('/api/auth/register')) {
+  if (
+    pathname.startsWith('/api/auth/login') ||
+    pathname.startsWith('/api/auth/register') ||
+    pathname === '/api/auth/me'
+  ) {
     return NextResponse.next();
   }
 
@@ -74,6 +89,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|logo.png|.*\\.png|.*\\.svg).*)',
+    '/((?!_next/static|_next/image|favicon.ico|logo.png|.*\\.png|.*\\.svg|.*\\.html).*)',
   ],
 };
