@@ -27,6 +27,7 @@ export async function GET() {
         '管理员' as processor_name,
         NULL as processor_id,
         u.alumni_id as target_alumni_id,
+        NULL as requester_alumni_id,
         0 as is_self_approved
       FROM users u
       JOIN alumni a ON u.alumni_id = a.id
@@ -49,6 +50,7 @@ export async function GET() {
         END as processor_name,
         cr.processed_by_user_id as processor_id,
         cr.target_alumni_id as target_alumni_id,
+        ru.alumni_id as requester_alumni_id,
         CASE 
           WHEN (pu.role IS NULL OR pu.role != 'ADMIN') AND pu.alumni_id IS NOT NULL AND pu.alumni_id = cr.target_alumni_id THEN 1 
           ELSE 0 
@@ -74,6 +76,7 @@ export async function GET() {
         '管理员' as processor_name,
         cor.processed_by_user_id as processor_id,
         cor.alumni_id as target_alumni_id,
+        ru.alumni_id as requester_alumni_id,
         0 as is_self_approved
       FROM correction_requests cor
       JOIN alumni ta ON cor.alumni_id = ta.id

@@ -643,12 +643,30 @@ export default function ProfilePage() {
                           <div className="log-content-main">
                             {log.requester_name ? (
                               <>
-                                <span className="log-user requester">{log.requester_name}</span>
+                                <span 
+                                  className={`log-user requester ${log.requester_alumni_id ? 'clickable' : ''}`}
+                                  onClick={() => log.requester_alumni_id && handleOpenApplicantResume(log.requester_alumni_id)}
+                                  title={log.requester_alumni_id ? '点击查看校友资料' : undefined}
+                                >
+                                  {log.requester_name}
+                                </span>
                                 <span className="log-arrow">→</span>
-                                <span className="log-user target">{log.target_name}</span>
+                                <span 
+                                  className={`log-user target ${log.target_alumni_id ? 'clickable' : ''}`}
+                                  onClick={() => log.target_alumni_id && handleOpenApplicantResume(log.target_alumni_id)}
+                                  title={log.target_alumni_id ? '点击查看校友资料' : undefined}
+                                >
+                                  {log.target_name}
+                                </span>
                               </>
                             ) : (
-                              <span className="log-user target">{log.target_name}</span>
+                              <span 
+                                className={`log-user target ${log.target_alumni_id ? 'clickable' : ''}`}
+                                onClick={() => log.target_alumni_id && handleOpenApplicantResume(log.target_alumni_id)}
+                                title={log.target_alumni_id ? '点击查看校友资料' : undefined}
+                              >
+                                {log.target_name}
+                              </span>
                             )}
                             {log.remark && <span className="log-remark-inline">({log.remark})</span>}
                           </div>
@@ -965,113 +983,6 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              {/* Applicant Resume Detail Modal */}
-              {viewingResume && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '20px' }}>
-                  <div style={{ background: '#fff', borderRadius: '24px', padding: '32px', width: '100%', maxWidth: '680px', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.25)' }}>
-                    
-                    {/* Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>{viewingResume.name}</h2>
-                          {viewingResume.gender && <span style={{ fontSize: '14px', color: '#64748b' }}>({viewingResume.gender})</span>}
-                          {viewingResume.dut_verified === '是' && <span style={{ fontSize: '11px', background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '100px', fontWeight: 700 }}>✓ 大工人认证</span>}
-                        </div>
-                        <div style={{ fontSize: '14px', color: '#475569', marginTop: '6px' }}>
-                          {viewingResume.company ? `🏢 ${viewingResume.company}` : ''} {viewingResume.position ? ` · ${viewingResume.position}` : ''} {viewingResume.region ? `📍 ${viewingResume.region}` : ''}
-                        </div>
-                      </div>
-                      <button onClick={() => setViewingResume(null)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '100px', width: '32px', height: '32px', fontSize: '18px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-                    </div>
-
-                    {/* Contact Card */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: '#f8fafc', padding: '14px 18px', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '24px', fontSize: '14px', color: '#374151' }}>
-                      <div>📞 电话：<strong>{viewingResume.phone || '—'}</strong></div>
-                      <div>💬 微信：<strong>{viewingResume.wechat_id || '—'}</strong></div>
-                      <div>✉️ QQ/邮箱：<strong>{viewingResume.qq || '—'}</strong></div>
-                      <div>📍 籍贯：<strong>{viewingResume.hometown || '—'}</strong></div>
-                    </div>
-
-                    {/* Education History */}
-                    <div style={{ marginBottom: '24px' }}>
-                      <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>🎓 教育背景</h3>
-                      {viewingResume.experiences?.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          {viewingResume.experiences.map((exp: any, i: number) => (
-                            <div key={i} style={{ padding: '12px 16px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px', color: '#334155' }}>
-                              <span style={{ fontWeight: 700 }}>{exp.stage}</span>
-                              {(exp.start_year || exp.end_year) && <span style={{ color: '#64748b', marginLeft: '8px' }}>{exp.start_year}—{exp.end_year || '至今'}</span>}
-                              {exp.college && <span style={{ marginLeft: '8px' }}>· {exp.college}</span>}
-                              {exp.major && <span style={{ marginLeft: '8px' }}>· {exp.major}</span>}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div style={{ fontSize: '13px', color: '#94a3b8' }}>未填写详细教育背景</div>
-                      )}
-                    </div>
-
-                    {/* Work Experiences */}
-                    <div style={{ marginBottom: '24px' }}>
-                      <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>💼 工作经历</h3>
-                      {viewingResume.work_experiences?.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          {viewingResume.work_experiences.map((work: any) => (
-                            <div key={work.id} style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>{work.company}</span>
-                                <span style={{ fontSize: '12px', color: '#64748b' }}>{work.start_year} — {work.is_current ? '至今' : (work.end_year || '')}</span>
-                              </div>
-                              <div style={{ fontSize: '13px', fontWeight: 600, color: '#2563eb', marginBottom: '4px' }}>{work.position} {work.location ? `· ${work.location}` : ''}</div>
-                              {work.description && <div style={{ fontSize: '13px', color: '#475569', lineHeight: 1.6, marginTop: '6px', whiteSpace: 'pre-wrap' }}>{work.description}</div>}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div style={{ fontSize: '13px', color: '#94a3b8' }}>未添加独立工作经历</div>
-                      )}
-                    </div>
-
-                    {/* Skills & Bio */}
-                    <div style={{ marginBottom: '24px' }}>
-                      <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>🛠️ 技能 & 自我介绍</h3>
-                      <div style={{ background: '#f8fafc', borderRadius: '14px', padding: '16px', border: '1px solid #e2e8f0' }}>
-                        {(() => {
-                          try {
-                            const tags = JSON.parse(viewingResume.resume_skills?.skill_tags || '[]');
-                            return tags.length > 0 ? (
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
-                                {tags.map((tag: string) => (
-                                  <span key={tag} style={{ padding: '3px 10px', background: '#dbeafe', color: '#1d4ed8', borderRadius: '8px', fontSize: '12px', fontWeight: 600 }}>{tag}</span>
-                                ))}
-                              </div>
-                            ) : null;
-                          } catch { return null; }
-                        })()}
-                        {viewingResume.resume_skills?.bio ? (
-                          <div style={{ fontSize: '14px', color: '#334155', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-                            {viewingResume.resume_skills.bio}
-                          </div>
-                        ) : (
-                          <div style={{ fontSize: '13px', color: '#94a3b8' }}>暂未填写自我介绍</div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
-                      <a href={`/alumni/${viewingResume.id}`} target="_blank" style={{ padding: '10px 20px', background: '#f1f5f9', color: '#475569', borderRadius: '10px', fontSize: '14px', fontWeight: 600, textDecoration: 'none' }}>
-                        👤 查看校友完整主页 ↗
-                      </a>
-                      <button onClick={() => setViewingResume(null)} style={{ padding: '10px 24px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
-                        关闭
-                      </button>
-                    </div>
-
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
@@ -1108,6 +1019,131 @@ export default function ProfilePage() {
 
         </div>
       </div>
+
+      {/* Alumni Detail / Resume Modal */}
+      {viewingResume && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '20px' }}>
+          <div style={{ background: '#fff', borderRadius: '24px', padding: '32px', width: '100%', maxWidth: '680px', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.25)' }}>
+            
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>{viewingResume.name}</h2>
+                  {viewingResume.gender && <span style={{ fontSize: '14px', color: '#64748b' }}>({viewingResume.gender})</span>}
+                  {viewingResume.dut_verified === '是' && <span style={{ fontSize: '11px', background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '100px', fontWeight: 700 }}>✓ 大工人认证</span>}
+                  {viewingResume.association_role && <span style={{ fontSize: '11px', background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '100px', fontWeight: 700 }}>🏅 {viewingResume.association_role}</span>}
+                </div>
+                <div style={{ fontSize: '14px', color: '#475569', marginTop: '6px' }}>
+                  {viewingResume.company ? `🏢 ${viewingResume.company}` : ''} {viewingResume.position ? ` · ${viewingResume.position}` : ''} {viewingResume.region ? `📍 ${viewingResume.region}` : ''}
+                </div>
+              </div>
+              <button onClick={() => setViewingResume(null)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '100px', width: '32px', height: '32px', fontSize: '18px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+            </div>
+
+            {/* Contact Card */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: '#f8fafc', padding: '14px 18px', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '24px', fontSize: '14px', color: '#374151' }}>
+              <div>📞 电话：<strong>{viewingResume.phone || '—'}</strong></div>
+              <div>💬 微信：<strong>{viewingResume.wechat_id || '—'}</strong></div>
+              <div>✉️ QQ/邮箱：<strong>{viewingResume.qq || '—'}</strong></div>
+              <div>📍 籍贯：<strong>{viewingResume.hometown || '—'}</strong></div>
+            </div>
+
+            {/* Education History */}
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>🎓 教育背景</h3>
+              {viewingResume.experiences?.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {viewingResume.experiences.map((exp: any, i: number) => (
+                    <div key={i} style={{ padding: '12px 16px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px', color: '#334155' }}>
+                      <span style={{ fontWeight: 700 }}>{exp.stage}</span>
+                      {(exp.start_year || exp.end_year) && <span style={{ color: '#64748b', marginLeft: '8px' }}>{exp.start_year}—{exp.end_year || '至今'}</span>}
+                      {exp.college && <span style={{ marginLeft: '8px' }}>· {exp.college}</span>}
+                      {exp.major && <span style={{ marginLeft: '8px' }}>· {exp.major}</span>}
+                    </div>
+                  ))}
+                </div>
+              ) : (viewingResume.college || viewingResume.major || viewingResume.enrollment_year) ? (
+                <div style={{ padding: '12px 16px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px', color: '#334155' }}>
+                  <span style={{ fontWeight: 700 }}>{viewingResume.degree || '校友'}</span>
+                  {viewingResume.enrollment_year && <span style={{ color: '#64748b', marginLeft: '8px' }}>{viewingResume.enrollment_year}入学</span>}
+                  {viewingResume.college && <span style={{ marginLeft: '8px' }}>· {viewingResume.college}</span>}
+                  {viewingResume.major && <span style={{ marginLeft: '8px' }}>· {viewingResume.major}</span>}
+                </div>
+              ) : (
+                <div style={{ fontSize: '13px', color: '#94a3b8' }}>未填写详细教育背景</div>
+              )}
+            </div>
+
+            {/* Work Experiences */}
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>💼 工作经历</h3>
+              {viewingResume.work_experiences?.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {viewingResume.work_experiences.map((work: any) => (
+                    <div key={work.id} style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>{work.company}</span>
+                        <span style={{ fontSize: '12px', color: '#64748b' }}>{work.start_year} — {work.is_current ? '至今' : (work.end_year || '')}</span>
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#2563eb', marginBottom: '4px' }}>{work.position} {work.location ? `· ${work.location}` : ''}</div>
+                      {work.description && <div style={{ fontSize: '13px', color: '#475569', lineHeight: 1.6, marginTop: '6px', whiteSpace: 'pre-wrap' }}>{work.description}</div>}
+                    </div>
+                  ))}
+                </div>
+              ) : (viewingResume.company || viewingResume.position) ? (
+                <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>{viewingResume.company || '未知单位'}</span>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>当前单位</span>
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#2563eb' }}>{viewingResume.position || '校友'} {viewingResume.region ? `· ${viewingResume.region}` : ''}</div>
+                  {viewingResume.industry && <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>行业：{viewingResume.industry}</div>}
+                </div>
+              ) : (
+                <div style={{ fontSize: '13px', color: '#94a3b8' }}>未添加工作经历</div>
+              )}
+            </div>
+
+            {/* Skills & Bio */}
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>🛠️ 技能 & 自我介绍</h3>
+              <div style={{ background: '#f8fafc', borderRadius: '14px', padding: '16px', border: '1px solid #e2e8f0' }}>
+                {(() => {
+                  try {
+                    const tags = JSON.parse(viewingResume.resume_skills?.skill_tags || '[]');
+                    return tags.length > 0 ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+                        {tags.map((tag: string) => (
+                          <span key={tag} style={{ padding: '3px 10px', background: '#dbeafe', color: '#1d4ed8', borderRadius: '8px', fontSize: '12px', fontWeight: 600 }}>{tag}</span>
+                        ))}
+                      </div>
+                    ) : null;
+                  } catch { return null; }
+                })()}
+                {viewingResume.resume_skills?.bio ? (
+                  <div style={{ fontSize: '14px', color: '#334155', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                    {viewingResume.resume_skills.bio}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '13px', color: '#94a3b8' }}>暂未填写自我介绍</div>
+                )}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+              <a href={`/alumni/${viewingResume.id}`} target="_blank" rel="noreferrer" style={{ padding: '10px 20px', background: '#f1f5f9', color: '#475569', borderRadius: '10px', fontSize: '14px', fontWeight: 600, textDecoration: 'none' }}>
+                👤 查看校友完整主页 ↗
+              </a>
+              <button onClick={() => setViewingResume(null)} style={{ padding: '10px 24px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+                关闭
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .profile-page { 
@@ -1382,8 +1418,17 @@ export default function ProfilePage() {
           text-overflow: ellipsis; 
         }
         .log-user { font-weight: 600; }
+        .log-user.clickable {
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .log-user.clickable:hover {
+          text-decoration: underline;
+        }
         .log-user.requester { color: #475569; }
+        .log-user.requester.clickable:hover { color: #1e293b; }
         .log-user.target { color: #2563eb; }
+        .log-user.target.clickable:hover { color: #1d4ed8; }
         .log-arrow { color: #94a3b8; font-family: monospace; }
         .log-remark-inline { color: #64748b; font-size: 12px; font-style: italic; }
         

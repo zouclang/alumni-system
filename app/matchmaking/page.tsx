@@ -6,9 +6,10 @@ import AlumniForm from '@/components/AlumniForm';
 import MatchmakingDetailModal from '@/components/MatchmakingDetailModal';
 
 // ─── Options ─────────────────────────────────────────────────────────────────
+const REGION_OPTIONS = ['工业园区', '吴中区', '姑苏区', '高新区', '相城区', '吴江区', '昆山', '太仓', '常熟', '张家港'];
 const MARITAL_OPTIONS = ['未婚', '离异未育', '离异带娃', '丧偶'];
 const PROPERTY_OPTIONS = ['无房', '独立全款购房', '贷款购房', '与父母同住'];
-const JOB_OPTIONS = ['体制内（公务员/事业编）', '国企', '外企', '大厂', '创业或自由职业', '其他'];
+const JOB_OPTIONS = ['体制内（公务员/事业编）', '央国企', '外企', '上市公司/科技大厂/大型民企', '普通民企', '创业或自由职业', '其他'];
 const DEGREE_OPTIONS = ['大专', '本科', '硕士', '博士'];
 const PARENTS_JOB_OPTIONS = ['退休', '体制内', '企业', '务农', '其他'];
 const PARENTS_INS_OPTIONS = ['有健全养老与医疗保障', '暂无', '部分有'];
@@ -1595,7 +1596,7 @@ export default function MatchmakingPage() {
                     <CheckboxGroup vals={criteria.marital_status || []} opts={MARITAL_OPTIONS} onChange={v => cSet('marital_status', toggleArr(criteria.marital_status||[], v))} />
                   </CriteriaRow>
                   <CriteriaRow i={6} label="目前居住区域">
-                    <TextInput val={profile.region} onChange={v => pSet('region', v)} placeholder="如：苏州工业园区" />
+                    <SelectInput val={profile.region} opts={REGION_OPTIONS} onChange={v => pSet('region', v)} placeholder="请选择区域" />
                     <TextInput val={criteria.region?.[0] || ''} onChange={v => cSet('region', v ? [v] : [])} placeholder="如：苏州，不限可留空" />
                   </CriteriaRow>
                   <CriteriaRow i={7} label="房产状况">
@@ -1608,7 +1609,7 @@ export default function MatchmakingPage() {
                   </CriteriaRow>
                   <CriteriaRow i={9} label="最高学历">
                     <SelectInput val={profile.degree} opts={DEGREE_OPTIONS} onChange={v => pSet('degree', v)} />
-                    <SelectInput val={criteria.degree} opts={['不限', ...DEGREE_OPTIONS]} onChange={v => cSet('degree', v === '不限' ? null : v)} placeholder="最低要求（不限可留空）" />
+                    <SelectInput val={criteria.degree} opts={DEGREE_OPTIONS} placeholder="不限" onChange={v => cSet('degree', v)} />
                   </CriteriaRow>
                   <CriteriaRow i={10} label="籍贯">
                     <TextInput val={profile.hometown} onChange={v => pSet('hometown', v)} placeholder="省/市" />
@@ -1620,27 +1621,27 @@ export default function MatchmakingPage() {
                   </CriteriaRow>
                   <CriteriaRow i={12} label="父母医社保">
                     <SelectInput val={profile.parents_insurance} opts={PARENTS_INS_OPTIONS} onChange={v => pSet('parents_insurance', v)} />
-                    <SelectInput val={criteria.parents_insurance} opts={['不限', ...PARENTS_INS_OPTIONS]} onChange={v => cSet('parents_insurance', v === '不限' ? null : v)} />
+                    <SelectInput val={criteria.parents_insurance} opts={PARENTS_INS_OPTIONS} placeholder="不限" onChange={v => cSet('parents_insurance', v)} />
                   </CriteriaRow>
                   <CriteriaRow i={13} label="原生家庭结构">
                     <SelectInput val={profile.family_structure} opts={FAMILY_STR_OPTIONS} onChange={v => pSet('family_structure', v)} />
-                    <SelectInput val={criteria.family_structure} opts={['不限', ...FAMILY_STR_OPTIONS]} onChange={v => cSet('family_structure', v === '不限' ? null : v)} />
+                    <SelectInput val={criteria.family_structure} opts={FAMILY_STR_OPTIONS} placeholder="不限" onChange={v => cSet('family_structure', v)} />
                   </CriteriaRow>
                   <CriteriaRow i={14} label="父母婚姻状况">
                     <SelectInput val={profile.parents_marital} opts={PARENTS_MARITAL_OPTIONS} onChange={v => pSet('parents_marital', v)} />
-                    <SelectInput val={criteria.parents_marital} opts={['不限', ...PARENTS_MARITAL_OPTIONS]} onChange={v => cSet('parents_marital', v === '不限' ? null : v)} />
+                    <SelectInput val={criteria.parents_marital} opts={PARENTS_MARITAL_OPTIONS} placeholder="不限" onChange={v => cSet('parents_marital', v)} />
                   </CriteriaRow>
                   <CriteriaRow i={15} label="吸烟">
                     <SelectInput val={profile.smoking} opts={SMOKING_OPTIONS} onChange={v => pSet('smoking', v)} />
-                    <SelectInput val={criteria.smoking} opts={SMOKING_PREF_OPTIONS} onChange={v => cSet('smoking', v === '不限' ? null : v)} />
+                    <SelectInput val={criteria.smoking} opts={SMOKING_PREF_OPTIONS} placeholder="不限" onChange={v => cSet('smoking', v)} />
                   </CriteriaRow>
                   <CriteriaRow i={16} label="酗酒">
                     <SelectInput val={profile.drinking} opts={DRINKING_OPTIONS} onChange={v => pSet('drinking', v)} />
-                    <SelectInput val={criteria.drinking} opts={DRINKING_PREF_OPTIONS} onChange={v => cSet('drinking', v === '不限' ? null : v)} />
+                    <SelectInput val={criteria.drinking} opts={DRINKING_PREF_OPTIONS} placeholder="不限" onChange={v => cSet('drinking', v)} />
                   </CriteriaRow>
                   <CriteriaRow i={17} label="作息规律">
                     <SelectInput val={profile.schedule} opts={SCHEDULE_OPTIONS} onChange={v => pSet('schedule', v)} />
-                    <SelectInput val={criteria.schedule} opts={SCHEDULE_PREF_OPTIONS} onChange={v => cSet('schedule', v === '不限' ? null : v)} />
+                    <SelectInput val={criteria.schedule} opts={SCHEDULE_PREF_OPTIONS} placeholder="不限" onChange={v => cSet('schedule', v)} />
                   </CriteriaRow>
                   <CriteriaRow i={18} label="个人爱好">
                     <TagSelect vals={profile.hobbies || []} opts={HOBBIES_OPTIONS} onChange={v => pSet('hobbies', toggleArr(profile.hobbies||[], v))} />
@@ -1850,10 +1851,26 @@ function RangeInput({ minVal, maxVal, onMin, onMax, unit, step }: any) {
 }
 
 function SelectInput({ val, opts, onChange, placeholder }: any) {
+  const emptyLabel = placeholder || '请选择';
+  const isNoLimit = emptyLabel === '不限';
+  const selectedVal = (!val || (isNoLimit && val === '不限')) ? '' : val;
+
   return (
-    <select value={val || ''} onChange={e => onChange(e.target.value || null)} style={{ padding: '5px 8px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, maxWidth: 200 }}>
-      <option value="">{placeholder || '请选择'}</option>
-      {opts.map((o: string) => <option key={o} value={o}>{o}</option>)}
+    <select
+      value={selectedVal}
+      onChange={e => {
+        const raw = e.target.value;
+        onChange(raw ? raw : (isNoLimit ? null : null));
+      }}
+      style={{ padding: '5px 8px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, maxWidth: 200 }}
+    >
+      <option value="">{emptyLabel}</option>
+      {opts.filter((o: string) => o !== emptyLabel && o !== '不限').map((o: string) => (
+        <option key={o} value={o}>{o}</option>
+      ))}
+      {val && !opts.includes(val) && val !== emptyLabel && val !== '不限' && (
+        <option key={val} value={val}>{val}</option>
+      )}
     </select>
   );
 }

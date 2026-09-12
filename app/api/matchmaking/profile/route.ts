@@ -13,12 +13,17 @@ export async function GET() {
   const app = db.prepare(`SELECT status FROM matchmaking_applications WHERE alumni_id = ?`).get(session.alumniId) as any;
   if (!app || app.status !== 'APPROVED') return NextResponse.json({ error: '未加入喜结连理' }, { status: 403 });
 
+  const alumni = db.prepare('SELECT gender, region, degree, birth_month FROM alumni WHERE id = ?').get(session.alumniId) as any;
   const profile = db.prepare('SELECT * FROM matchmaking_profiles WHERE alumni_id = ?').get(session.alumniId) as any;
   if (!profile) {
-    const alumni = db.prepare('SELECT gender, region, degree, birth_month FROM alumni WHERE id = ?').get(session.alumniId) as any;
     const currentYear = new Date().getFullYear();
     const age = alumni?.birth_month ? currentYear - Math.floor(alumni.birth_month / 100) : null;
     return NextResponse.json({ profile: alumni ? { gender: alumni.gender, region: alumni.region, degree: alumni.degree, age, profile_completed: 0, hobbies: '[]', personality: '[]', parents_job: '[]' } : null });
+  }
+
+  // Read region from alumni table if matchmaking profile region is not yet set
+  if (!profile.region && alumni?.region) {
+    profile.region = alumni.region;
   }
   return NextResponse.json({ profile });
 }
@@ -49,8 +54,14 @@ export async function PUT(req: NextRequest) {
   }
 
   // Sync back to alumni table
-  if (gender || region || degree) {
-    db.prepare(`UPDATE alumni SET gender=COALESCE(?,gender), region=COALESCE(?,region), degree=COALESCE(?,degree), updated_at=CURRENT_TIMESTAMP WHERE id=?`).run(gender||null, region||null, degree||null, session.alumniId);
+  if (region) {
+    db.prepare(`UPDATE alumni SET region = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(region, session.alumniId);
+  }
+  if (gender) {
+    db.prepare(`UPDATE alumni SET gender = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(gender, session.alumniId);
+  }
+  if (degree) {
+    db.prepare(`UPDATE alumni SET degree = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(degree, session.alumniId);
   }
   return NextResponse.json({ success: true });
 }

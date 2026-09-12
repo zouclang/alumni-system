@@ -21,10 +21,22 @@ export function inRange(val: number | null, min: number | null, max: number | nu
   return true;
 }
 
+const ALIAS_MAP: Record<string, string[]> = {
+  '国企': ['国企', '央国企'],
+  '央国企': ['国企', '央国企'],
+  '大厂': ['大厂', '上市公司/科技大厂/大型民企'],
+  '上市公司/科技大厂/大型民企': ['大厂', '上市公司/科技大厂/大型民企'],
+  '大型民企': ['大型民企', '上市公司/科技大厂/大型民企', '普通民企', '民营企业'],
+  '普通民企': ['普通民企', '民营企业'],
+  '民营企业': ['普通民企', '民营企业']
+};
+
 export function arrAccepts(myVal: string | null, theirArr: string[]): boolean {
   if (!theirArr || theirArr.length === 0) return true;
   if (!myVal) return true;
-  return theirArr.includes(myVal);
+  if (theirArr.includes(myVal)) return true;
+  const aliases = ALIAS_MAP[myVal] || [myVal];
+  return aliases.some(a => theirArr.includes(a));
 }
 
 export function arrIntersects(myArr: string[], theirArr: string[]): boolean {
@@ -73,6 +85,9 @@ export function meetsTheirCriteria(myProfile: any, theirCriteria: any): boolean 
   if (!arrAccepts(myProfile.property_status, parseJ(theirCriteria.property_status))) return false;
   if (!arrAccepts(myProfile.job_type, parseJ(theirCriteria.job_type))) return false;
   if (theirCriteria.degree && degreeRank(myProfile.degree) < degreeRank(theirCriteria.degree)) return false;
+  if (theirCriteria.parents_insurance && theirCriteria.parents_insurance !== '不限' && myProfile.parents_insurance && myProfile.parents_insurance !== theirCriteria.parents_insurance) return false;
+  if (theirCriteria.family_structure && theirCriteria.family_structure !== '不限' && myProfile.family_structure && myProfile.family_structure !== theirCriteria.family_structure) return false;
+  if (theirCriteria.parents_marital && theirCriteria.parents_marital !== '不限' && myProfile.parents_marital && myProfile.parents_marital !== theirCriteria.parents_marital) return false;
   if (!smokeAccepts(myProfile.smoking, theirCriteria.smoking)) return false;
   if (!drinkAccepts(myProfile.drinking, theirCriteria.drinking)) return false;
   if (!scheduleAccepts(myProfile.schedule, theirCriteria.schedule)) return false;
