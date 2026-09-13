@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   if (action === 'apply') {
     // Check if previously rejected (I was applicant, they rejected)
     const rejected = db.prepare(`SELECT id FROM matchmaking_connections WHERE applicant_alumni_id=? AND target_alumni_id=? AND status='REJECTED'`).get(session.alumniId, target_alumni_id);
-    if (rejected) return NextResponse.json({ error: '对方已拒绝，无法再次申请' }, { status: 400 });
+    if (rejected) return NextResponse.json({ error: '已拒绝，不能再次申请' }, { status: 400 });
 
     const existing = db.prepare(`SELECT * FROM matchmaking_connections WHERE applicant_alumni_id=? AND target_alumni_id=?`).get(session.alumniId, target_alumni_id) as any;
     if (existing) {

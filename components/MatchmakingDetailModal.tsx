@@ -12,6 +12,7 @@ export default function MatchmakingDetailModal({ alumniId, onClose, onOpenEditAl
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'matchmaking' | 'basic'>('matchmaking');
+  const [isPhotoZoomed, setIsPhotoZoomed] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -198,14 +199,36 @@ export default function MatchmakingDetailModal({ alumniId, onClose, onOpenEditAl
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'flex-start',
+          alignItems: 'center',
           background: 'rgba(255, 255, 255, 0.02)',
         }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: '#f8fafc' }}>
-                {alumni.name || '校友资料'}
-              </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {profile.photo_url ? (
+              <img
+                src={profile.photo_url}
+                alt={alumni.name || '照片'}
+                onClick={() => setIsPhotoZoomed(true)}
+                title="点击放大查看大图"
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '2px solid rgba(244, 114, 182, 0.6)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                  flexShrink: 0,
+                  cursor: 'zoom-in',
+                  transition: 'transform 0.2s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.08)')}
+                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+              />
+            ) : null}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+                  {alumni.name || '校友资料'}
+                </h2>
               {genderVal && (
                 <span style={{
                   fontSize: 12,
@@ -242,7 +265,8 @@ export default function MatchmakingDetailModal({ alumniId, onClose, onOpenEditAl
               {alumni.phone && <span style={{ color: '#93c5fd' }}>📱 手机: {alumni.phone}</span>}
             </div>
           </div>
-          <button
+        </div>
+        <button
             onClick={onClose}
             style={{
               background: 'rgba(255, 255, 255, 0.06)',
@@ -480,6 +504,76 @@ export default function MatchmakingDetailModal({ alumniId, onClose, onOpenEditAl
           </button>
         </div>
       </div>
+
+      {/* 照片放大灯箱弹窗 */}
+      {isPhotoZoomed && profile.photo_url && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+            cursor: 'zoom-out',
+          }}
+          onClick={() => setIsPhotoZoomed(false)}
+        >
+          <div
+            style={{
+              position: 'relative',
+              maxWidth: '92vw',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setIsPhotoZoomed(false)}
+              style={{
+                position: 'absolute',
+                top: -44,
+                right: 0,
+                background: 'rgba(255, 255, 255, 0.25)',
+                border: 'none',
+                color: '#fff',
+                fontSize: 22,
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              }}
+              title="关闭"
+            >
+              ✕
+            </button>
+            <img
+              src={profile.photo_url}
+              alt={alumni.name || '照片大图'}
+              style={{
+                maxWidth: '92vw',
+                maxHeight: '82vh',
+                objectFit: 'contain',
+                borderRadius: 16,
+                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+              }}
+            />
+            <div style={{ color: '#e2e8f0', fontSize: 13, marginTop: 14, textAlign: 'center', fontWeight: 500 }}>
+              {alumni.name} 的个人近期照片 · 点击任意空白区域关闭
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

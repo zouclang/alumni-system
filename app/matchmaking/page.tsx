@@ -40,6 +40,64 @@ export const parseJ = (v: any): string[] => {
   }
 };
 
+// ─── Photo Compression ────────────────────────────────────────────────────────
+async function compressPhoto(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      const maxDim = 1200;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('无法创建画布环境'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Target 300KB ~ 500KB
+      const tryCompress = (quality: number) => {
+        canvas.toBlob(
+          blob => {
+            if (!blob) {
+              reject(new Error('图片压缩失败'));
+              return;
+            }
+            if (blob.size > 500 * 1024 && quality > 0.35) {
+              tryCompress(Math.max(0.35, quality - 0.1));
+            } else {
+              resolve(blob);
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+
+      tryCompress(0.85);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('无法读取图片'));
+    };
+    img.src = url;
+  });
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function MatchmakingPage() {
   const router = useRouter();
@@ -63,7 +121,12 @@ export default function MatchmakingPage() {
   const [showGuide, setShowGuide] = useState(false);
   const [detailModal, setDetailModal] = useState<any>(null);
   const [reviewModal, setReviewModal] = useState<any>(null);
+  const [applyModal, setApplyModal] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [applyPhotoBlob, setApplyPhotoBlob] = useState<Blob | null>(null);
+  const [applyPhotoPreview, setApplyPhotoPreview] = useState<string | null>(null);
 
   // ── Admin State ─────────────────────────────────────────────────────────
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -264,6 +327,108 @@ export default function MatchmakingPage() {
       window.dispatchEvent(new Event('unreadCountUpdate'));
     }
     setActionLoading(false);
+  };
+
+  const handlePhotoFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    try {
+      const compressedBlob = await compressPhoto(file);
+      const formData = new FormData();
+      formData.append('photo', compressedBlob, 'photo.jpg');
+      const res = await fetch('/api/matchmaking/upload-photo', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '上传失败');
+      pSet('photo_url', data.photo_url);
+      alert('照片上传成功！已压缩至约 ' + Math.round(compressedBlob.size / 1024) + ' KB');
+    } catch (err: any) {
+      alert(err.message || '上传照片失败，请重试');
+    } finally {
+      setPhotoUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeletePhoto = async () => {
+    if (!confirm('确认删除当前相亲照片？')) return;
+    setPhotoUploading(true);
+    try {
+      pSet('photo_url', null);
+      const res = await fetch('/api/matchmaking/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...profile, photo_url: null }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        alert(d.error || '删除失败');
+      } else {
+        alert('照片已删除');
+      }
+    } catch {
+      alert('网络错误');
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  const handleApplyClick = (target: any) => {
+    if (profile.photo_url) {
+      handleConnection('apply', target.alumni_id);
+    } else {
+      setApplyPhotoBlob(null);
+      setApplyPhotoPreview(null);
+      setApplyModal(target);
+    }
+  };
+
+  const handleApplyModalFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressPhoto(file);
+      setApplyPhotoBlob(compressed);
+      setApplyPhotoPreview(URL.createObjectURL(compressed));
+    } catch (err: any) {
+      alert(err.message || '图片压缩失败');
+    }
+  };
+
+  const handleApplyWithPhoto = async () => {
+    if (!applyModal || !applyPhotoBlob) return;
+    setActionLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('photo', applyPhotoBlob, 'photo.jpg');
+      const upRes = await fetch('/api/matchmaking/upload-photo', {
+        method: 'POST',
+        body: formData,
+      });
+      const upData = await upRes.json();
+      if (!upRes.ok) throw new Error(upData.error || '上传照片失败');
+      pSet('photo_url', upData.photo_url);
+
+      await handleConnection('apply', applyModal.alumni_id);
+      setApplyModal(null);
+      setApplyPhotoBlob(null);
+      setApplyPhotoPreview(null);
+    } catch (err: any) {
+      alert(err.message || '操作失败');
+      setActionLoading(false);
+    }
+  };
+
+  const handleApplyDirectly = async () => {
+    if (!applyModal) return;
+    const targetId = applyModal.alumni_id;
+    setApplyModal(null);
+    setApplyPhotoBlob(null);
+    setApplyPhotoPreview(null);
+    handleConnection('apply', targetId);
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -1431,6 +1596,138 @@ export default function MatchmakingPage() {
         </div>
       )}
 
+      {/* Apply Modal (Prompt for optional photo if none uploaded) */}
+      {applyModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setApplyModal(null)}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '28px 24px', maxWidth: 480, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#1e293b' }}>💌 申请对接</h3>
+              <button onClick={() => setApplyModal(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#666' }}>✕</button>
+            </div>
+
+            <p style={{ color: '#475569', fontSize: 14, marginBottom: 16, lineHeight: 1.6 }}>
+              即将向「<strong>{applyModal.display_name}</strong>」发起对接申请。
+            </p>
+
+            <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 12, padding: '14px 16px', marginBottom: 20 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: '#9f1239', marginBottom: 6 }}>
+                💡 温馨提示：您尚未上传个人近期照片
+              </div>
+              <div style={{ fontSize: 13, color: '#be123c', lineHeight: 1.5 }}>
+                附带近期照片的申请往往更容易获得对方通过哦！您可以现在选择上传，上传后将同步保存至您的个人相亲条件中。
+              </div>
+            </div>
+
+            {/* Photo Picker */}
+            <div style={{ border: '2px dashed #cbd5e1', borderRadius: 12, padding: 16, textAlign: 'center', marginBottom: 20, background: '#f8fafc' }}>
+              {applyPhotoPreview ? (
+                <div>
+                  <img
+                    src={applyPhotoPreview}
+                    alt="预览照片"
+                    style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', margin: '0 auto 10px', display: 'block', border: '3px solid #fda4af' }}
+                  />
+                  <div style={{ fontSize: 12, color: '#059669', marginBottom: 8 }}>
+                    ✅ 照片已就绪（已智能压缩至约 {applyPhotoBlob ? Math.round(applyPhotoBlob.size / 1024) : 0} KB）
+                  </div>
+                  <button
+                    onClick={() => { setApplyPhotoBlob(null); setApplyPhotoPreview(null); }}
+                    style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    更换 / 移除
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>📷</div>
+                  <label style={{
+                    display: 'inline-block',
+                    padding: '8px 18px',
+                    background: '#e11d48',
+                    color: '#fff',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(225,29,72,0.25)'
+                  }}>
+                    选择个人照片（非必选）
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleApplyModalFileSelect}
+                    />
+                  </label>
+                  <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 8 }}>
+                    支持常见图片格式，系统将自动压缩至 300~500KB
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {applyPhotoBlob ? (
+                <button
+                  onClick={handleApplyWithPhoto}
+                  disabled={actionLoading}
+                  style={{
+                    width: '100%',
+                    padding: '12px 0',
+                    background: '#c0392b',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 10,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: actionLoading ? 'wait' : 'pointer'
+                  }}
+                >
+                  {actionLoading ? '提交中...' : '上传照片并申请对接 ✓'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleApplyDirectly}
+                  disabled={actionLoading}
+                  style={{
+                    width: '100%',
+                    padding: '12px 0',
+                    background: '#c0392b',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 10,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: actionLoading ? 'wait' : 'pointer'
+                  }}
+                >
+                  {actionLoading ? '提交中...' : '暂不上传，直接申请对接'}
+                </button>
+              )}
+              {applyPhotoBlob && (
+                <button
+                  onClick={handleApplyDirectly}
+                  disabled={actionLoading}
+                  style={{
+                    width: '100%',
+                    padding: '10px 0',
+                    background: '#fff',
+                    border: '1px solid #e2e8f0',
+                    color: '#64748b',
+                    borderRadius: 10,
+                    fontSize: 13,
+                    cursor: 'pointer'
+                  }}
+                >
+                  放弃上传，直接申请
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 16px' }}>
         {/* Header */}
         <div style={{ marginBottom: 20 }}>
@@ -1538,6 +1835,61 @@ export default function MatchmakingPage() {
           })}
         </div>
 
+        {/* Photo Feature Banner */}
+        {!profile.photo_url && !bannerDismissed && (
+          <div style={{
+            background: 'linear-gradient(135deg, #fff1f2, #ffe4e6)',
+            border: '1px solid #fecdd3',
+            borderRadius: 12,
+            padding: '13px 18px',
+            marginBottom: 20,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+            boxShadow: '0 2px 8px rgba(225, 29, 72, 0.08)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5, color: '#9f1239' }}>
+              <span style={{ fontSize: 20 }}>✨</span>
+              <span><strong>功能上新：</strong>喜结连理现已支持上传个人近期照片！附带真实照片可大幅提升相互了解效率与对接成功率～</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              {activeTab !== 'criteria' && (
+                <button
+                  onClick={() => setActiveTab('criteria')}
+                  style={{
+                    padding: '6px 14px',
+                    background: '#be123c',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 8,
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  去上传照片 →
+                </button>
+              )}
+              <button
+                onClick={() => setBannerDismissed(true)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#9f1239',
+                  fontSize: 16,
+                  cursor: 'pointer',
+                  padding: '2px 6px'
+                }}
+                title="关闭提示"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Incomplete Conditions Permanent Banner */}
         {!profile.profile_completed && (
           <div style={{
@@ -1564,6 +1916,96 @@ export default function MatchmakingPage() {
         {/* ── Tab 1: 择偶标准 ── */}
         {activeTab === 'criteria' && (
           <div style={{ background: '#fff', borderRadius: 12, padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            {/* 个人相亲照片上传卡片 */}
+            <div style={{
+              background: '#fff9f9',
+              border: '1px solid #ffd6db',
+              borderRadius: 12,
+              padding: '16px 20px',
+              marginBottom: 20,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 20,
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: '50%',
+                  background: profile.photo_url ? 'none' : '#ffe4e6',
+                  border: '2px solid #fda4af',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(225, 29, 72, 0.12)'
+                }}>
+                  {profile.photo_url ? (
+                    <img src={profile.photo_url} alt="个人相亲照片" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: 32 }}>📷</span>
+                  )}
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: '#1e293b' }}>个人近期照片</span>
+                    {profile.photo_url ? (
+                      <span style={{ fontSize: 11, background: '#ecfdf5', color: '#059669', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>已上传</span>
+                    ) : (
+                      <span style={{ fontSize: 11, background: '#fef2f2', color: '#e11d48', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>未上传</span>
+                    )}
+                  </div>
+                  <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>
+                    📸 <strong style={{ color: '#be123c' }}>备注：</strong>有照片更容易找到心仪的另一半（系统自动压缩至 300~500KB，不会对择偶对象是否有照片做限制，仅认证校友审核对接后可见）
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <label style={{
+                  padding: '8px 16px',
+                  background: '#c0392b',
+                  color: '#fff',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: photoUploading ? 'wait' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}>
+                  {photoUploading ? '正在压缩上传...' : (profile.photo_url ? '🔄 更换照片' : '➕ 上传照片')}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    disabled={photoUploading}
+                    onChange={handlePhotoFileSelect}
+                  />
+                </label>
+                {profile.photo_url && (
+                  <button
+                    onClick={handleDeletePhoto}
+                    disabled={photoUploading}
+                    style={{
+                      padding: '8px 14px',
+                      background: '#fff',
+                      border: '1px solid #e2e8f0',
+                      color: '#64748b',
+                      borderRadius: 8,
+                      fontSize: 13,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    删除
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
@@ -1690,8 +2132,26 @@ export default function MatchmakingPage() {
               {mutual.map(m => (
                 <div key={m.alumni_id} style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: isFemaleGender(m.gender) ? '#fce4ec' : '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: isFemaleGender(m.gender) ? '#c2185b' : '#1565c0', flexShrink: 0 }}>
-                      {genderLabel(m.gender)}
+                    <div style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      flexShrink: 0,
+                      border: m.photo_url ? '2px solid #fda4af' : 'none',
+                      background: isFemaleGender(m.gender) ? '#fce4ec' : '#e3f2fd',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 20,
+                      fontWeight: 700,
+                      color: isFemaleGender(m.gender) ? '#c2185b' : '#1565c0',
+                    }}>
+                      {m.photo_url ? (
+                        <img src={m.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        genderLabel(m.gender)
+                      )}
                     </div>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 16 }}>{m.display_name}</div>
@@ -1744,6 +2204,7 @@ export default function MatchmakingPage() {
                 const myReqPending = conn?.myRequest?.status === 'PENDING';
                 const myReqRejected = conn?.myRequest?.status === 'REJECTED';
                 const theirReqPending = conn?.theirRequest?.status === 'PENDING';
+                const theirReqRejected = conn?.theirRequest?.status === 'REJECTED';
 
                 return (
                   <div
@@ -1780,8 +2241,26 @@ export default function MatchmakingPage() {
                         💌 待您审核
                       </div>
                     )}
-                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: isFemaleGender(m.gender) ? '#fce4ec' : '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: isFemaleGender(m.gender) ? '#c2185b' : '#1565c0', flexShrink: 0 }}>
-                      {genderLabel(m.gender)}
+                    <div style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      flexShrink: 0,
+                      border: m.photo_url ? '2px solid #fda4af' : 'none',
+                      background: isFemaleGender(m.gender) ? '#fce4ec' : '#e3f2fd',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: isFemaleGender(m.gender) ? '#c2185b' : '#1565c0',
+                    }}>
+                      {m.photo_url ? (
+                        <img src={m.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        genderLabel(m.gender)
+                      )}
                     </div>
                     <div style={{ flex: 1, minWidth: 200 }}>
                       <div style={{ fontWeight: 700, marginBottom: 4 }}>{m.display_name}</div>
@@ -1792,15 +2271,31 @@ export default function MatchmakingPage() {
                       {approved && <div style={{ marginTop: 6, fontSize: 12, color: '#27ae60', fontWeight: 600 }}>✅ 已对接 {m.phone ? '| 📱 ' + m.phone : ''} {m.wechat_id ? '| 💬 ' + m.wechat_id : ''}</div>}
                       {myReqPending && <div style={{ marginTop: 4, fontSize: 11, color: '#e67e22' }}>已申请，等待对方回应</div>}
                       {theirReqPending && !myReqPending && <div style={{ marginTop: 4, fontSize: 11, color: '#e67e22', fontWeight: 600 }}>对方已申请对接，点击审核</div>}
+                      {theirReqRejected && !myReqPending && !myReqRejected && <div style={{ marginTop: 4, fontSize: 11, color: '#888' }}>您曾拒绝对方申请，可在此反向申请对接</div>}
                     </div>
                     {!approved && (
                       <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                         {myReqRejected ? (
-                          <span style={{ padding: '7px 14px', background: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: 8, fontSize: 12, color: '#999' }}>对方暂不考虑</span>
+                          <span style={{ padding: '7px 14px', background: '#fef2f2', border: '1px solid #fecdd3', borderRadius: 8, fontSize: 12, color: '#ef4444', fontWeight: 600 }}>已拒绝，不能再次申请</span>
                         ) : myReqPending ? (
                           <button onClick={() => handleConnection('withdraw', m.alumni_id)} disabled={actionLoading} style={{ padding: '7px 14px', border: '1px solid #e67e22', borderRadius: 8, background: '#fff', color: '#e67e22', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>撤回申请</button>
                         ) : (
-                          <button onClick={() => handleConnection('apply', m.alumni_id)} disabled={actionLoading} style={{ padding: '7px 14px', border: '1px solid #c0392b', borderRadius: 8, background: '#fff', color: '#c0392b', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>申请对接</button>
+                          <button
+                            onClick={() => handleApplyClick(m)}
+                            disabled={actionLoading}
+                            style={{
+                              padding: '7px 14px',
+                              border: '1px solid #c0392b',
+                              borderRadius: 8,
+                              background: theirReqRejected ? '#fff5f5' : '#fff',
+                              color: '#c0392b',
+                              cursor: 'pointer',
+                              fontSize: 13,
+                              fontWeight: 600
+                            }}
+                          >
+                            {theirReqRejected ? '反向申请对接' : '申请对接'}
+                          </button>
                         )}
                         <button onClick={() => theirReqPending ? setReviewModal(m) : undefined} disabled={!theirReqPending || actionLoading} style={{ padding: '7px 14px', border: 'none', borderRadius: 8, background: theirReqPending ? '#e67e22' : '#e9ecef', color: theirReqPending ? '#fff' : '#aaa', cursor: theirReqPending ? 'pointer' : 'default', fontSize: 13, fontWeight: 600, position: 'relative' }}>
                           审核对接{theirReqPending && <span style={{ position: 'absolute', top: -4, right: -4, width: 10, height: 10, background: '#c0392b', borderRadius: '50%' }}></span>}
@@ -1912,6 +2407,7 @@ function EmptyState({ text }: { text: string }) {
 }
 
 function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }) {
+  const [isZoomed, setIsZoomed] = useState(false);
   if (!m) return null;
 
   const parseSafeArray = (val: any) => {
@@ -1948,15 +2444,160 @@ function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }
     rows.push(['微信号', m.wechat_id || '—']);
   }
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-      <tbody>
-        {rows.map(([label, val]) => (
-          <tr key={label} style={{ borderBottom: '1px solid #f0f0f0' }}>
-            <td style={{ padding: '7px 10px', color: '#888', whiteSpace: 'nowrap', width: 100 }}>{label}</td>
-            <td style={{ padding: '7px 10px', color: '#333' }}>{val}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div>
+      {/* 个人照片展示 */}
+      <div style={{ textAlign: 'center', marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+        {m.photo_url ? (
+          <div>
+            <div
+              onClick={() => setIsZoomed(true)}
+              style={{ display: 'inline-block', position: 'relative', cursor: 'zoom-in' }}
+              title="点击放大查看大图"
+            >
+              <img
+                src={m.photo_url}
+                alt={m.name || m.display_name || '个人照片'}
+                style={{
+                  width: 130,
+                  height: 130,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '4px solid #ffe4e6',
+                  boxShadow: '0 6px 20px rgba(225, 29, 72, 0.15)',
+                  display: 'block',
+                  transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
+                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+              />
+              <span style={{
+                position: 'absolute',
+                bottom: 4,
+                right: 4,
+                background: 'rgba(0,0,0,0.6)',
+                color: '#fff',
+                fontSize: 12,
+                width: 26,
+                height: 26,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backdropFilter: 'blur(4px)',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+              }}>
+                🔍
+              </span>
+            </div>
+            <div style={{ marginTop: 8, fontSize: 12.5, color: '#059669', fontWeight: 600 }}>
+              📸 已实名提供近期个人照片 · <span onClick={() => setIsZoomed(true)} style={{ color: '#be123c', cursor: 'pointer', textDecoration: 'underline' }}>点击查看大图</span>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div style={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              background: isFemaleGender(m.gender) ? '#fce4ec' : '#e3f2fd',
+              color: isFemaleGender(m.gender) ? '#c2185b' : '#1565c0',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 32,
+              fontWeight: 700,
+              margin: '0 auto',
+              border: '2px dashed #cbd5e1'
+            }}>
+              {genderLabel(m.gender)}
+            </div>
+            <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8' }}>
+              未上传个人照片
+            </div>
+          </div>
+        )}
+      </div>
+
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <tbody>
+          {rows.map(([label, val]) => (
+            <tr key={label} style={{ borderBottom: '1px solid #f0f0f0' }}>
+              <td style={{ padding: '7px 10px', color: '#888', whiteSpace: 'nowrap', width: 100 }}>{label}</td>
+              <td style={{ padding: '7px 10px', color: '#333' }}>{val}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* 照片放大灯箱弹窗 */}
+      {isZoomed && m.photo_url && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+            cursor: 'zoom-out',
+          }}
+          onClick={() => setIsZoomed(false)}
+        >
+          <div
+            style={{
+              position: 'relative',
+              maxWidth: '92vw',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setIsZoomed(false)}
+              style={{
+                position: 'absolute',
+                top: -44,
+                right: 0,
+                background: 'rgba(255, 255, 255, 0.25)',
+                border: 'none',
+                color: '#fff',
+                fontSize: 22,
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              }}
+              title="关闭"
+            >
+              ✕
+            </button>
+            <img
+              src={m.photo_url}
+              alt={m.name || m.display_name || '照片大图'}
+              style={{
+                maxWidth: '92vw',
+                maxHeight: '82vh',
+                objectFit: 'contain',
+                borderRadius: 16,
+                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+              }}
+            />
+            <div style={{ color: '#e2e8f0', fontSize: 13, marginTop: 14, textAlign: 'center', fontWeight: 500 }}>
+              {m.name || m.display_name} 的个人近期照片 · 点击任意空白区域关闭
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

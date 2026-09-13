@@ -352,6 +352,10 @@ function initializeSchema(database: Database.Database) {
     `);
   } catch(e) {}
 
+  try {
+    database.exec("ALTER TABLE matchmaking_profiles ADD COLUMN photo_url TEXT;");
+  } catch(e) {}
+
   // 择偶标准表
   try {
     database.exec(`
@@ -411,5 +415,18 @@ function initializeSchema(database: Database.Database) {
   try { database.exec('CREATE INDEX IF NOT EXISTS idx_mm_criteria_alumni ON matchmaking_criteria(alumni_id)'); } catch(e) {}
   try { database.exec('CREATE INDEX IF NOT EXISTS idx_mm_connections_applicant ON matchmaking_connections(applicant_alumni_id)'); } catch(e) {}
   try { database.exec('CREATE INDEX IF NOT EXISTS idx_mm_connections_target ON matchmaking_connections(target_alumni_id)'); } catch(e) {}
+
+  try {
+    database.exec(`
+      INSERT INTO notifications (user_id, type, message)
+      SELECT u.id, 'matchmaking', '【喜结连理】功能升级提醒：平台现已支持上传个人近期生活/职业照片，有照片更容易促成心仪对接，快来完善您的相亲档案吧 💖'
+      FROM matchmaking_applications ma
+      JOIN users u ON u.alumni_id = ma.alumni_id
+      WHERE ma.status = 'APPROVED'
+      AND NOT EXISTS (
+        SELECT 1 FROM notifications n WHERE n.user_id = u.id AND n.message LIKE '%功能升级提醒：平台现已支持上传个人近期生活/职业照片%'
+      )
+    `);
+  } catch(e) {}
 }
 

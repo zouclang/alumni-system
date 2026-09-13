@@ -79,6 +79,7 @@ export async function GET(req: NextRequest) {
       annual_income: them.annual_income,
       family_structure: them.family_structure,
       parents_marital: them.parents_marital,
+      photo_url: them.photo_url || null,
       phone: showContact ? them.phone : null,
       wechat_id: showContact ? them.wechat_id : null,
       connection: conn,

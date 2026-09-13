@@ -38,7 +38,7 @@ export async function PUT(req: NextRequest) {
   if (!app || app.status !== 'APPROVED') return NextResponse.json({ error: '未加入喜结连理' }, { status: 403 });
 
   const body = await req.json();
-  const { gender, age, height, weight, hometown, marital_status, region, property_status, annual_income, job_type, degree, parents_job, parents_insurance, family_structure, parents_marital, smoking, drinking, schedule, hobbies, personality } = body;
+  const { gender, age, height, weight, hometown, marital_status, region, property_status, annual_income, job_type, degree, parents_job, parents_insurance, family_structure, parents_marital, smoking, drinking, schedule, hobbies, personality, photo_url } = body;
 
   if (!age || !height || !marital_status) return NextResponse.json({ error: '年龄、身高、婚姻状况为必填项' }, { status: 400 });
 
@@ -46,11 +46,11 @@ export async function PUT(req: NextRequest) {
   const existing = db.prepare('SELECT id FROM matchmaking_profiles WHERE alumni_id = ?').get(session.alumniId);
 
   if (existing) {
-    db.prepare(`UPDATE matchmaking_profiles SET gender=?,age=?,height=?,weight=?,hometown=?,marital_status=?,region=?,property_status=?,annual_income=?,job_type=?,degree=?,parents_job=?,parents_insurance=?,family_structure=?,parents_marital=?,smoking=?,drinking=?,schedule=?,hobbies=?,personality=?,profile_completed=1,is_active=1,updated_at=CURRENT_TIMESTAMP WHERE alumni_id=?`)
-      .run(gender,age,height,weight,hometown,marital_status,region,property_status,annual_income,job_type,degree,j(parents_job),parents_insurance,family_structure,parents_marital,smoking,drinking,schedule,j(hobbies),j(personality),session.alumniId);
+    db.prepare(`UPDATE matchmaking_profiles SET gender=?,age=?,height=?,weight=?,hometown=?,marital_status=?,region=?,property_status=?,annual_income=?,job_type=?,degree=?,parents_job=?,parents_insurance=?,family_structure=?,parents_marital=?,smoking=?,drinking=?,schedule=?,hobbies=?,personality=?,photo_url=COALESCE(?,photo_url),profile_completed=1,is_active=1,updated_at=CURRENT_TIMESTAMP WHERE alumni_id=?`)
+      .run(gender,age,height,weight,hometown,marital_status,region,property_status,annual_income,job_type,degree,j(parents_job),parents_insurance,family_structure,parents_marital,smoking,drinking,schedule,j(hobbies),j(personality),photo_url!==undefined?photo_url:null,session.alumniId);
   } else {
-    db.prepare(`INSERT INTO matchmaking_profiles (alumni_id,gender,age,height,weight,hometown,marital_status,region,property_status,annual_income,job_type,degree,parents_job,parents_insurance,family_structure,parents_marital,smoking,drinking,schedule,hobbies,personality,profile_completed) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)`)
-      .run(session.alumniId,gender,age,height,weight,hometown,marital_status,region,property_status,annual_income,job_type,degree,j(parents_job),parents_insurance,family_structure,parents_marital,smoking,drinking,schedule,j(hobbies),j(personality));
+    db.prepare(`INSERT INTO matchmaking_profiles (alumni_id,gender,age,height,weight,hometown,marital_status,region,property_status,annual_income,job_type,degree,parents_job,parents_insurance,family_structure,parents_marital,smoking,drinking,schedule,hobbies,personality,photo_url,profile_completed) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)`)
+      .run(session.alumniId,gender,age,height,weight,hometown,marital_status,region,property_status,annual_income,job_type,degree,j(parents_job),parents_insurance,family_structure,parents_marital,smoking,drinking,schedule,j(hobbies),j(personality),photo_url||null);
   }
 
   // Sync back to alumni table
