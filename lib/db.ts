@@ -391,6 +391,10 @@ function initializeSchema(database: Database.Database) {
     `);
   } catch(e) {}
 
+  try {
+    database.exec("ALTER TABLE matchmaking_criteria ADD COLUMN match_threshold INTEGER DEFAULT 80;");
+  } catch(e) {}
+
   // 对接申请表
   try {
     database.exec(`

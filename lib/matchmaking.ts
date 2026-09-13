@@ -74,26 +74,131 @@ export function degreeRank(d: string | null): number {
   return d ? (map[d] || 0) : 0;
 }
 
+export interface MatchScoreDetail {
+  passed: boolean;
+  label: string;
+}
+
+export interface MatchScoreResult {
+  score: number; // 0 to 100
+  passedCount: number;
+  totalCount: number; // 15
+  hardConstraintPassed: boolean; // marital status
+  isEligible: boolean; // hardConstraintPassed && score >= threshold
+  threshold: number;
+  details: Record<string, MatchScoreDetail>;
+}
+
+// Evaluate how well myProfile satisfies theirCriteria
+export function evaluateMatchScore(myProfile: any, theirCriteria: any): MatchScoreResult {
+  if (!myProfile || !theirCriteria) {
+    return {
+      score: 100,
+      passedCount: 15,
+      totalCount: 15,
+      hardConstraintPassed: true,
+      isEligible: true,
+      threshold: 80,
+      details: {},
+    };
+  }
+
+  const threshold = (theirCriteria.match_threshold !== undefined && theirCriteria.match_threshold !== null)
+    ? Number(theirCriteria.match_threshold)
+    : 80;
+
+  // 1. Hard constraint: Marital status (一票否决)
+  const maritalCriteria = parseJ(theirCriteria.marital_status);
+  const hardConstraintPassed = arrAccepts(myProfile.marital_status, maritalCriteria);
+
+  // 2. 15 Quantitative items
+  const details: Record<string, MatchScoreDetail> = {
+    age: {
+      passed: inRange(myProfile.age, theirCriteria.age_min, theirCriteria.age_max),
+      label: '周岁年龄',
+    },
+    height: {
+      passed: inRange(myProfile.height, theirCriteria.height_min, theirCriteria.height_max),
+      label: '身高',
+    },
+    weight: {
+      passed: inRange(myProfile.weight, theirCriteria.weight_min, theirCriteria.weight_max),
+      label: '体重',
+    },
+    annual_income: {
+      passed: inRange(myProfile.annual_income, theirCriteria.income_min, theirCriteria.income_max),
+      label: '税后年收入',
+    },
+    property_status: {
+      passed: arrAccepts(myProfile.property_status, parseJ(theirCriteria.property_status)),
+      label: '房产状况',
+    },
+    job_type: {
+      passed: arrAccepts(myProfile.job_type, parseJ(theirCriteria.job_type)),
+      label: '职业性质',
+    },
+    degree: {
+      passed: !theirCriteria.degree || degreeRank(myProfile.degree) >= degreeRank(theirCriteria.degree),
+      label: '最高学历',
+    },
+    parents_insurance: {
+      passed: !theirCriteria.parents_insurance || theirCriteria.parents_insurance === '不限' || !myProfile.parents_insurance || myProfile.parents_insurance === theirCriteria.parents_insurance,
+      label: '父母医社保',
+    },
+    family_structure: {
+      passed: !theirCriteria.family_structure || theirCriteria.family_structure === '不限' || !myProfile.family_structure || myProfile.family_structure === theirCriteria.family_structure,
+      label: '原生家庭',
+    },
+    parents_marital: {
+      passed: !theirCriteria.parents_marital || theirCriteria.parents_marital === '不限' || !myProfile.parents_marital || myProfile.parents_marital === theirCriteria.parents_marital,
+      label: '父母婚姻',
+    },
+    smoking: {
+      passed: smokeAccepts(myProfile.smoking, theirCriteria.smoking),
+      label: '吸烟习惯',
+    },
+    drinking: {
+      passed: drinkAccepts(myProfile.drinking, theirCriteria.drinking),
+      label: '饮酒习惯',
+    },
+    schedule: {
+      passed: scheduleAccepts(myProfile.schedule, theirCriteria.schedule),
+      label: '作息规律',
+    },
+    hobbies: {
+      passed: arrIntersects(parseJ(myProfile.hobbies), parseJ(theirCriteria.hobbies)),
+      label: '个人爱好',
+    },
+    personality: {
+      passed: arrIntersects(parseJ(myProfile.personality), parseJ(theirCriteria.personality)),
+      label: '性格特质',
+    },
+  };
+
+  const totalCount = 15;
+  let passedCount = 0;
+  for (const key in details) {
+    if (details[key].passed) passedCount++;
+  }
+
+  const score = Math.round((passedCount / totalCount) * 100);
+  const isEligible = hardConstraintPassed && score >= threshold;
+
+  return {
+    score,
+    passedCount,
+    totalCount,
+    hardConstraintPassed,
+    isEligible,
+    threshold,
+    details,
+  };
+}
+
 // Does myProfile satisfy theirCriteria?
 export function meetsTheirCriteria(myProfile: any, theirCriteria: any): boolean {
   if (!theirCriteria) return true;
-  if (!inRange(myProfile.age, theirCriteria.age_min, theirCriteria.age_max)) return false;
-  if (!inRange(myProfile.height, theirCriteria.height_min, theirCriteria.height_max)) return false;
-  if (!inRange(myProfile.weight, theirCriteria.weight_min, theirCriteria.weight_max)) return false;
-  if (!inRange(myProfile.annual_income, theirCriteria.income_min, theirCriteria.income_max)) return false;
-  if (!arrAccepts(myProfile.marital_status, parseJ(theirCriteria.marital_status))) return false;
-  if (!arrAccepts(myProfile.property_status, parseJ(theirCriteria.property_status))) return false;
-  if (!arrAccepts(myProfile.job_type, parseJ(theirCriteria.job_type))) return false;
-  if (theirCriteria.degree && degreeRank(myProfile.degree) < degreeRank(theirCriteria.degree)) return false;
-  if (theirCriteria.parents_insurance && theirCriteria.parents_insurance !== '不限' && myProfile.parents_insurance && myProfile.parents_insurance !== theirCriteria.parents_insurance) return false;
-  if (theirCriteria.family_structure && theirCriteria.family_structure !== '不限' && myProfile.family_structure && myProfile.family_structure !== theirCriteria.family_structure) return false;
-  if (theirCriteria.parents_marital && theirCriteria.parents_marital !== '不限' && myProfile.parents_marital && myProfile.parents_marital !== theirCriteria.parents_marital) return false;
-  if (!smokeAccepts(myProfile.smoking, theirCriteria.smoking)) return false;
-  if (!drinkAccepts(myProfile.drinking, theirCriteria.drinking)) return false;
-  if (!scheduleAccepts(myProfile.schedule, theirCriteria.schedule)) return false;
-  if (!arrIntersects(parseJ(myProfile.hobbies), parseJ(theirCriteria.hobbies))) return false;
-  if (!arrIntersects(parseJ(myProfile.personality), parseJ(theirCriteria.personality))) return false;
-  return true;
+  return evaluateMatchScore(myProfile, theirCriteria).isEligible;
 }
 
 /**
@@ -160,9 +265,10 @@ export function computePotentialMatches(db: any) {
   for (const male of males) {
     const maleCrit = criteriaMap.get(male.alumni_id);
     for (const female of females) {
-      const femaleCrit = criteriaMap.get(female.alumni_id);
-      const maleMeetsFemale = meetsTheirCriteria(male, femaleCrit);
-      const femaleMeetsMale = meetsTheirCriteria(female, maleCrit);
+      const maleScore = evaluateMatchScore(male, femaleCrit);
+      const femaleScore = evaluateMatchScore(female, maleCrit);
+      const maleMeetsFemale = maleScore.isEligible;
+      const femaleMeetsMale = femaleScore.isEligible;
 
       const conn = findConnection(male.alumni_id, female.alumni_id);
 
@@ -205,6 +311,9 @@ export function computePotentialMatches(db: any) {
           isConnected: true,
           isPending: conn.status === 'PENDING',
           isRejected: conn.status === 'REJECTED',
+          maleScore: maleScore.score,
+          femaleScore: femaleScore.score,
+          avgScore: Math.round((maleScore.score + femaleScore.score) / 2),
         });
         memberMutualCountMap.set(male.alumni_id, (memberMutualCountMap.get(male.alumni_id) || 0) + 1);
         memberMutualCountMap.set(female.alumni_id, (memberMutualCountMap.get(female.alumni_id) || 0) + 1);
@@ -214,11 +323,13 @@ export function computePotentialMatches(db: any) {
           from: femaleInfo,
           to: maleInfo,
           direction: 'FEMALE_TO_MALE',
-          summary: `${femaleInfo.name} 单方面满足 ${maleInfo.name} 的择偶条件`,
+          summary: `${femaleInfo.name} 满足 ${maleInfo.name} 择偶要求 (${femaleScore.score}%)`,
           connection: conn,
           isConnected: conn.status === 'APPROVED',
           isPending: conn.status === 'PENDING',
           isRejected: conn.status === 'REJECTED',
+          score: femaleScore.score,
+          otherScore: maleScore.score,
         });
       } else if (maleMeetsFemale && !femaleMeetsMale) {
         // 男方单方面满足女方择偶条件 (如：男方 ➔ 女方)
@@ -226,15 +337,20 @@ export function computePotentialMatches(db: any) {
           from: maleInfo,
           to: femaleInfo,
           direction: 'MALE_TO_FEMALE',
-          summary: `${maleInfo.name} 单方面满足 ${femaleInfo.name} 的择偶条件`,
+          summary: `${maleInfo.name} 满足 ${femaleInfo.name} 择偶要求 (${maleScore.score}%)`,
           connection: conn,
           isConnected: conn.status === 'APPROVED',
           isPending: conn.status === 'PENDING',
           isRejected: conn.status === 'REJECTED',
+          score: maleScore.score,
+          otherScore: femaleScore.score,
         });
       }
     }
   }
+
+  mutualPairs.sort((a, b) => b.avgScore - a.avgScore);
+  oneWayPairs.sort((a, b) => b.score - a.score);
 
   const oneWayApprovedCount = oneWayPairs.filter((p: any) => p.isConnected).length;
   const totalApprovedConnections = mutualPairs.length + oneWayApprovedCount;

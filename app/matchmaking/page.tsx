@@ -270,6 +270,7 @@ export default function MatchmakingPage() {
     setProfile(prev => ({ ...p, hobbies: parseJ(p.hobbies), personality: parseJ(p.personality), parents_job: parseJ(p.parents_job) }));
     setCriteria(prev => ({
       ...c,
+      match_threshold: (c.match_threshold !== undefined && c.match_threshold !== null) ? Number(c.match_threshold) : 80,
       marital_status: parseJ(c.marital_status),
       region: parseJ(c.region),
       property_status: parseJ(c.property_status),
@@ -1136,6 +1137,11 @@ export default function MatchmakingPage() {
                         <div style={{ fontSize: 13, fontWeight: 700, color: '#34d399', background: 'rgba(52, 211, 153, 0.15)', padding: '4px 14px', borderRadius: 14, border: '1px solid rgba(52, 211, 153, 0.3)' }}>
                           双向契合 · 自动解锁
                         </div>
+                        {pair.avgScore !== undefined && (
+                          <div style={{ fontSize: 11.5, color: '#fbbf24', marginTop: 4, fontWeight: 600 }}>
+                            综合匹配度 {pair.avgScore}% (男{pair.maleScore}% · 女{pair.femaleScore}%)
+                          </div>
+                        )}
                       </div>
 
                       {/* Female Party */}
@@ -2006,6 +2012,68 @@ export default function MatchmakingPage() {
               </div>
             </div>
 
+            {/* 智能匹配度门槛设置卡片 */}
+            <div style={{
+              background: 'linear-gradient(135deg, #fff7ed, #fffaf5)',
+              border: '1px solid #fed7aa',
+              borderRadius: 12,
+              padding: '16px 20px',
+              marginBottom: 20,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 16,
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ flex: 1, minWidth: 260 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: '#9a3412' }}>🎯 智能匹配度门槛</span>
+                  <span style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    background: '#ea580c',
+                    color: '#fff',
+                    padding: '2px 8px',
+                    borderRadius: 12
+                  }}>
+                    当前：{criteria.match_threshold ?? 80}% 及以上
+                  </span>
+                </div>
+                <p style={{ margin: 0, fontSize: 13, color: '#7c2d12', lineHeight: 1.5 }}>
+                  💡 <strong>匹配机制：</strong>婚姻状况为<strong>硬性指标（一票否决）</strong>，其余 15 项条件走百分比量化评分。
+                  当对方满足您设定的门槛（{criteria.match_threshold ?? 80}% 即至少满足 {Math.ceil(((criteria.match_threshold ?? 80) / 100) * 15)}/15 项）时进入匹配列表。
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#9a3412' }}>选择门槛：</span>
+                {[70, 75, 80, 85, 90, 100].map(val => {
+                  const isSelected = (criteria.match_threshold ?? 80) === val;
+                  return (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => cSet('match_threshold', val)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 8,
+                        fontSize: 13,
+                        fontWeight: isSelected ? 700 : 500,
+                        border: isSelected ? '2px solid #ea580c' : '1px solid #fdba74',
+                        background: isSelected ? '#ea580c' : '#fff',
+                        color: isSelected ? '#fff' : '#9a3412',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        boxShadow: isSelected ? '0 2px 6px rgba(234, 88, 12, 0.3)' : 'none'
+                      }}
+                    >
+                      {val}% {val === 80 ? '(推荐)' : ''}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
@@ -2153,12 +2221,32 @@ export default function MatchmakingPage() {
                         genderLabel(m.gender)
                       )}
                     </div>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 16 }}>{m.display_name}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
+                        <span style={{ fontWeight: 700, fontSize: 16 }}>{m.display_name}</span>
+                        {m.avg_match_score !== undefined && (
+                          <span style={{
+                            background: 'linear-gradient(135deg, #f43f5e, #e11d48)',
+                            color: '#fff',
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: 10,
+                            boxShadow: '0 2px 6px rgba(225, 29, 72, 0.25)',
+                          }}>
+                            💖 匹配度 {m.avg_match_score}%
+                          </span>
+                        )}
+                      </div>
                       <div style={{ color: '#888', fontSize: 12 }}>{genderLabel(m.gender)} · {m.age ? m.age + '岁' : '—'} · {m.height ? m.height + 'cm' : '—'}</div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                    {m.match_score !== undefined && (
+                      <Tag style={{ background: '#fdf2f8', color: '#be185d', borderColor: '#fbcfe8', fontWeight: 600 }}>
+                        满足您: {m.match_score}% ({m.my_passed_count ?? 0}/15项)
+                      </Tag>
+                    )}
                     {m.region && <Tag>{m.region}</Tag>}
                     {m.degree && <Tag>{m.degree}</Tag>}
                     {m.job_type && <Tag>{m.job_type}</Tag>}
@@ -2263,7 +2351,35 @@ export default function MatchmakingPage() {
                       )}
                     </div>
                     <div style={{ flex: 1, minWidth: 200 }}>
-                      <div style={{ fontWeight: 700, marginBottom: 4 }}>{m.display_name}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 700 }}>{m.display_name}</span>
+                        {activeTab === 'them' && m.match_score !== undefined && (
+                          <span style={{
+                            background: '#eff6ff',
+                            border: '1px solid #bfdbfe',
+                            color: '#1d4ed8',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: 10,
+                          }}>
+                            🎯 满足您的标准：{m.match_score}% ({m.my_passed_count ?? 0}/15项)
+                          </span>
+                        )}
+                        {activeTab === 'me' && m.their_match_score !== undefined && (
+                          <span style={{
+                            background: '#fdf2f8',
+                            border: '1px solid #fbcfe8',
+                            color: '#be185d',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: 10,
+                          }}>
+                            ✨ 您满足对方标准：{m.their_match_score}% ({m.their_passed_count ?? 0}/15项)
+                          </span>
+                        )}
+                      </div>
                       <div style={{ color: '#888', fontSize: 12 }}>
                         {genderLabel(m.gender)} · {m.age ? m.age + '岁' : ''} · {m.height ? m.height + 'cm' : ''}
                         {m.region ? ' | ' + m.region : ''}{m.degree ? ' | ' + m.degree : ''}{m.job_type ? ' | ' + m.job_type : ''}
@@ -2398,8 +2514,8 @@ function TagSelect({ vals, opts, onChange }: any) {
   );
 }
 
-function Tag({ children }: any) {
-  return <span style={{ padding: '2px 8px', background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: 12, fontSize: 11, color: '#666' }}>{children}</span>;
+function Tag({ children, style }: any) {
+  return <span style={{ padding: '2px 8px', background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: 12, fontSize: 11, color: '#666', ...style }}>{children}</span>;
 }
 
 function EmptyState({ text }: { text: string }) {
@@ -2416,6 +2532,23 @@ function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }
     const parsed = parseJ(val);
     if (parsed.length > 0) return parsed.join('、');
     return String(val);
+  };
+
+  const itemKeyMap: Record<string, string> = {
+    '周岁年龄': 'age',
+    '身高': 'height',
+    '体重': 'weight',
+    '税后年收入': 'annual_income',
+    '房产状况': 'property_status',
+    '职业性质': 'job_type',
+    '最高学历': 'degree',
+    '原生家庭': 'family_structure',
+    '父母婚姻': 'parents_marital',
+    '吸烟': 'smoking',
+    '饮酒': 'drinking',
+    '作息': 'schedule',
+    '个人爱好': 'hobbies',
+    '性格特质': 'personality',
   };
 
   const rows: [string, any][] = [
@@ -2445,6 +2578,42 @@ function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }
   }
   return (
     <div>
+      {/* 匹配度汇总卡片 */}
+      {(m.avg_match_score !== undefined || m.match_score !== undefined) && (
+        <div style={{
+          background: 'linear-gradient(135deg, #fff1f2, #fff7ed)',
+          border: '1px solid #fecdd3',
+          borderRadius: 12,
+          padding: '14px 16px',
+          marginBottom: 16,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#9f1239', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>📊</span> 条件量化匹配评分
+            </span>
+            <span style={{
+              background: '#e11d48',
+              color: '#fff',
+              fontSize: 12,
+              fontWeight: 700,
+              padding: '2px 9px',
+              borderRadius: 10,
+              boxShadow: '0 2px 6px rgba(225, 29, 72, 0.25)',
+            }}>
+              {m.avg_match_score !== undefined ? `双方综合 ${m.avg_match_score}%` : `满足您 ${m.match_score}%`}
+            </span>
+          </div>
+          <div style={{ fontSize: 12.5, color: '#881337', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {m.match_score !== undefined && (
+              <div>💖 <strong>对方满足您的择偶标准：</strong>{m.match_score}%（15 项量化指标满足 {m.my_passed_count ?? 0} 项，婚姻状况硬性符合）</div>
+            )}
+            {m.their_match_score !== undefined && (
+              <div>✨ <strong>您满足对方的择偶标准：</strong>{m.their_match_score}%（15 项量化指标满足 {m.their_passed_count ?? 0} 项，婚姻状况硬性符合）</div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 个人照片展示 */}
       <div style={{ textAlign: 'center', marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
         {m.photo_url ? (
@@ -2520,12 +2689,49 @@ function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }
 
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <tbody>
-          {rows.map(([label, val]) => (
-            <tr key={label} style={{ borderBottom: '1px solid #f0f0f0' }}>
-              <td style={{ padding: '7px 10px', color: '#888', whiteSpace: 'nowrap', width: 100 }}>{label}</td>
-              <td style={{ padding: '7px 10px', color: '#333' }}>{val}</td>
-            </tr>
-          ))}
+          {rows.map(([label, val]) => {
+            const key = itemKeyMap[label];
+            const detail = m.match_details?.[key];
+            const isMarital = label === '婚姻状况';
+            return (
+              <tr key={label} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                <td style={{ padding: '8px 10px', color: '#888', whiteSpace: 'nowrap', width: 95 }}>{label}</td>
+                <td style={{ padding: '8px 10px', color: '#333' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <span>{val}</span>
+                    {detail && (
+                      <span style={{
+                        fontSize: 11,
+                        padding: '1px 6px',
+                        borderRadius: 4,
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        background: detail.passed ? '#ecfdf5' : '#fef2f2',
+                        color: detail.passed ? '#059669' : '#dc2626',
+                        border: detail.passed ? '1px solid #a7f3d0' : '1px solid #fecaca',
+                      }}>
+                        {detail.passed ? '✓ 符合' : '✕ 不符'}
+                      </span>
+                    )}
+                    {isMarital && m.match_details && (
+                      <span style={{
+                        fontSize: 11,
+                        padding: '1px 6px',
+                        borderRadius: 4,
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        background: '#ecfdf5',
+                        color: '#059669',
+                        border: '1px solid #a7f3d0',
+                      }}>
+                        ✓ 硬性符合
+                      </span>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { meetsTheirCriteria, maskName, parseJ } from '@/lib/matchmaking';
+import { evaluateMatchScore, maskName, parseJ } from '@/lib/matchmaking';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,8 +44,12 @@ export async function GET(req: NextRequest) {
 
   for (const them of members) {
     const theirCriteria = db.prepare('SELECT * FROM matchmaking_criteria WHERE alumni_id = ?').get(them.alumni_id) as any;
-    const iMeetTheirs = meetsTheirCriteria(myProfile, theirCriteria);
-    const theyMeetMine = meetsTheirCriteria(them, myCriteria);
+
+    const myScoreOnThem = evaluateMatchScore(them, myCriteria);
+    const theirScoreOnMe = evaluateMatchScore(myProfile, theirCriteria);
+
+    const iMeetTheirs = theirScoreOnMe.isEligible;
+    const theyMeetMine = myScoreOnThem.isEligible;
 
     let include = false;
     if (type === 'mutual') include = iMeetTheirs && theyMeetMine;
@@ -83,8 +87,23 @@ export async function GET(req: NextRequest) {
       phone: showContact ? them.phone : null,
       wechat_id: showContact ? them.wechat_id : null,
       connection: conn,
+      match_score: myScoreOnThem.score,
+      their_match_score: theirScoreOnMe.score,
+      avg_match_score: Math.round((myScoreOnThem.score + theirScoreOnMe.score) / 2),
+      match_details: myScoreOnThem.details,
+      my_passed_count: myScoreOnThem.passedCount,
+      my_threshold: myScoreOnThem.threshold,
+      their_passed_count: theirScoreOnMe.passedCount,
+      their_threshold: theirScoreOnMe.threshold,
     });
   }
+
+  // Sort results descending by score
+  results.sort((a, b) => {
+    if (type === 'mutual') return b.avg_match_score - a.avg_match_score;
+    if (type === 'me') return b.their_match_score - a.their_match_score;
+    return b.match_score - a.match_score;
+  });
 
   return NextResponse.json({ matches: results });
 }
