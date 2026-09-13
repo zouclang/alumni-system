@@ -265,6 +265,7 @@ export function computePotentialMatches(db: any) {
   for (const male of males) {
     const maleCrit = criteriaMap.get(male.alumni_id);
     for (const female of females) {
+      const femaleCrit = criteriaMap.get(female.alumni_id);
       const maleScore = evaluateMatchScore(male, femaleCrit);
       const femaleScore = evaluateMatchScore(female, maleCrit);
       const maleMeetsFemale = maleScore.isEligible;
