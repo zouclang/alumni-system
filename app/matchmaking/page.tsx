@@ -2036,24 +2036,30 @@ export default function MatchmakingPage() {
                     padding: '2px 8px',
                     borderRadius: 12
                   }}>
-                    当前：{criteria.match_threshold ?? 80}% 及以上
+                    当前：{criteria.match_threshold ?? 80}%（需满足 {Math.ceil(((criteria.match_threshold ?? 80) / 100) * 15)}/15 项）及以上
                   </span>
                 </div>
                 <p style={{ margin: 0, fontSize: 13, color: '#7c2d12', lineHeight: 1.5 }}>
                   💡 <strong>匹配机制：</strong>婚姻状况为<strong>硬性指标（一票否决）</strong>，其余 15 项条件走百分比量化评分。
-                  当对方满足您设定的门槛（{criteria.match_threshold ?? 80}% 即至少满足 {Math.ceil(((criteria.match_threshold ?? 80) / 100) * 15)}/15 项）时进入匹配列表。
+                  当对方满足您设定的门槛（当前设定至少满足 {Math.ceil(((criteria.match_threshold ?? 80) / 100) * 15)}/15 项）时进入匹配列表。
                 </p>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#9a3412' }}>选择门槛：</span>
-                {[70, 75, 80, 85, 90, 100].map(val => {
-                  const isSelected = (criteria.match_threshold ?? 80) === val;
+                {[
+                  { pct: 70, label: '70% (满足11项)' },
+                  { pct: 80, label: '80% (满足12项·推荐)' },
+                  { pct: 85, label: '85% (满足13项)' },
+                  { pct: 90, label: '90% (满足14项)' },
+                  { pct: 100, label: '100% (满足15项)' },
+                ].map(opt => {
+                  const isSelected = (criteria.match_threshold ?? 80) === opt.pct;
                   return (
                     <button
-                      key={val}
+                      key={opt.pct}
                       type="button"
-                      onClick={() => cSet('match_threshold', val)}
+                      onClick={() => cSet('match_threshold', opt.pct)}
                       style={{
                         padding: '6px 12px',
                         borderRadius: 8,
@@ -2067,7 +2073,7 @@ export default function MatchmakingPage() {
                         boxShadow: isSelected ? '0 2px 6px rgba(234, 88, 12, 0.3)' : 'none'
                       }}
                     >
-                      {val}% {val === 80 ? '(推荐)' : ''}
+                      {opt.label}
                     </button>
                   );
                 })}
