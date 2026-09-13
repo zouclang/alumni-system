@@ -2036,23 +2036,23 @@ export default function MatchmakingPage() {
                     padding: '2px 8px',
                     borderRadius: 12
                   }}>
-                    当前：{criteria.match_threshold ?? 80}%（需满足 {Math.ceil(((criteria.match_threshold ?? 80) / 100) * 15)}/15 项）及以上
+                    当前：{criteria.match_threshold ?? 80}%（需满足 {(criteria.match_threshold ?? 80) >= 100 ? 14 : ((criteria.match_threshold ?? 80) >= 90 ? 13 : ((criteria.match_threshold ?? 80) >= 85 ? 12 : ((criteria.match_threshold ?? 80) >= 80 ? 11 : 10)))}/14 项）及以上
                   </span>
                 </div>
                 <p style={{ margin: 0, fontSize: 13, color: '#7c2d12', lineHeight: 1.5 }}>
-                  💡 <strong>匹配机制：</strong>婚姻状况为<strong>硬性指标（一票否决）</strong>，其余 15 项条件走百分比量化评分。
-                  当对方满足您设定的门槛（当前设定至少满足 {Math.ceil(((criteria.match_threshold ?? 80) / 100) * 15)}/15 项）时进入匹配列表。
+                  💡 <strong>匹配机制：</strong>婚姻状况与周岁年龄为<strong>两大硬性指标（一票否决）</strong>，其余 14 项条件走百分比量化评分。
+                  当对方满足两大硬性指标且达标您设定的门槛（当前设定至少满足 {(criteria.match_threshold ?? 80) >= 100 ? 14 : ((criteria.match_threshold ?? 80) >= 90 ? 13 : ((criteria.match_threshold ?? 80) >= 85 ? 12 : ((criteria.match_threshold ?? 80) >= 80 ? 11 : 10)))}/14 项）时进入匹配列表。
                 </p>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#9a3412' }}>选择门槛：</span>
                 {[
-                  { pct: 70, label: '70% (满足11项)' },
-                  { pct: 80, label: '80% (满足12项·推荐)' },
-                  { pct: 85, label: '85% (满足13项)' },
-                  { pct: 90, label: '90% (满足14项)' },
-                  { pct: 100, label: '100% (满足15项)' },
+                  { pct: 70, label: '70% (满足10项)' },
+                  { pct: 80, label: '80% (满足11项·推荐)' },
+                  { pct: 85, label: '85% (满足12项)' },
+                  { pct: 90, label: '90% (满足13项)' },
+                  { pct: 100, label: '100% (满足14项)' },
                 ].map(opt => {
                   const isSelected = (criteria.match_threshold ?? 80) === opt.pct;
                   return (
@@ -2263,12 +2263,12 @@ export default function MatchmakingPage() {
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
                     {m.match_score !== undefined && (
                       <Tag style={{ background: '#fff1f2', color: '#be123c', borderColor: '#fecdd3', fontWeight: 600 }}>
-                        满足您: {m.my_passed_count ?? 0}/15项
+                        满足您: {m.my_passed_count ?? 0}/14项
                       </Tag>
                     )}
                     {m.their_match_score !== undefined && (
                       <Tag style={{ background: '#fdf4ff', color: '#a21caf', borderColor: '#f5d0fe', fontWeight: 600 }}>
-                        满足对方: {m.their_passed_count ?? 0}/15项
+                        满足对方: {m.their_passed_count ?? 0}/14项
                       </Tag>
                     )}
                     {m.region && <Tag>{m.region}</Tag>}
@@ -2387,7 +2387,7 @@ export default function MatchmakingPage() {
                             padding: '2px 8px',
                             borderRadius: 10,
                           }}>
-                            🎯 满足您的标准：{m.match_score}% ({m.my_passed_count ?? 0}/15项)
+                            🎯 满足您的标准：{m.match_score}% ({m.my_passed_count ?? 0}/14项)
                           </span>
                         )}
                         {activeTab === 'me' && m.their_match_score !== undefined && (
@@ -2400,7 +2400,7 @@ export default function MatchmakingPage() {
                             padding: '2px 8px',
                             borderRadius: 10,
                           }}>
-                            ✨ 您满足对方标准：{m.their_match_score}% ({m.their_passed_count ?? 0}/15项)
+                            ✨ 您满足对方标准：{m.their_match_score}% ({m.their_passed_count ?? 0}/14项)
                           </span>
                         )}
                       </div>
@@ -2559,7 +2559,6 @@ function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }
   };
 
   const itemKeyMap: Record<string, string> = {
-    '周岁年龄': 'age',
     '身高': 'height',
     '体重': 'weight',
     '税后年收入': 'annual_income',
@@ -2646,10 +2645,10 @@ function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }
           </div>
           <div style={{ fontSize: 12.5, color: '#881337', display: 'flex', flexDirection: 'column', gap: 6, lineHeight: 1.6 }}>
             {m.match_score !== undefined && (
-              <div>💖 <strong>对方满足您的择偶标准：</strong><span style={{ color: '#be123c', fontWeight: 700 }}>{m.match_score}%</span>（15项量化指标满足 {m.my_passed_count ?? 0} 项，已达标您设定的 {m.my_threshold ?? 80}% 门槛，婚姻状况硬性符合）</div>
+              <div>💖 <strong>对方满足您的择偶标准：</strong><span style={{ color: '#be123c', fontWeight: 700 }}>{m.match_score}%</span>（14项量化指标满足 {m.my_passed_count ?? 0} 项，已达标您设定的 {m.my_threshold ?? 80}% 门槛，婚姻状况与年龄硬性符合）</div>
             )}
             {m.their_match_score !== undefined && (
-              <div>✨ <strong>您满足对方的择偶标准：</strong><span style={{ color: '#9d174d', fontWeight: 700 }}>{m.their_match_score}%</span>（15项量化指标满足 {m.their_passed_count ?? 0} 项，已达标对方设定的 {m.their_threshold ?? 80}% 门槛，婚姻状况硬性符合）</div>
+              <div>✨ <strong>您满足对方的择偶标准：</strong><span style={{ color: '#9d174d', fontWeight: 700 }}>{m.their_match_score}%</span>（14项量化指标满足 {m.their_passed_count ?? 0} 项，已达标对方设定的 {m.their_threshold ?? 80}% 门槛，婚姻状况与年龄硬性符合）</div>
             )}
           </div>
         </div>
@@ -2734,6 +2733,7 @@ function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }
             const key = itemKeyMap[label];
             const detail = m.match_details?.[key];
             const isMarital = label === '婚姻状况';
+            const isAge = label === '周岁年龄';
             return (
               <tr key={label} style={{ borderBottom: '1px solid #f0f0f0' }}>
                 <td style={{ padding: '8px 10px', color: '#888', whiteSpace: 'nowrap', width: 95 }}>{label}</td>
@@ -2761,11 +2761,25 @@ function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }
                         borderRadius: 4,
                         fontWeight: 600,
                         whiteSpace: 'nowrap',
-                        background: '#ecfdf5',
-                        color: '#059669',
-                        border: '1px solid #a7f3d0',
+                        background: m.my_marital_passed !== false ? '#ecfdf5' : '#fef2f2',
+                        color: m.my_marital_passed !== false ? '#059669' : '#dc2626',
+                        border: m.my_marital_passed !== false ? '1px solid #a7f3d0' : '1px solid #fecaca',
                       }}>
-                        ✓ 硬性符合
+                        {m.my_marital_passed !== false ? '✓ 硬性符合' : '✕ 硬性未达'}
+                      </span>
+                    )}
+                    {isAge && m.match_details && (
+                      <span style={{
+                        fontSize: 11,
+                        padding: '1px 6px',
+                        borderRadius: 4,
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        background: m.my_age_passed !== false ? '#ecfdf5' : '#fef2f2',
+                        color: m.my_age_passed !== false ? '#059669' : '#dc2626',
+                        border: m.my_age_passed !== false ? '1px solid #a7f3d0' : '1px solid #fecaca',
+                      }}>
+                        {m.my_age_passed !== false ? '✓ 硬性符合' : '✕ 硬性未达'}
                       </span>
                     )}
                   </div>

@@ -82,11 +82,22 @@ export interface MatchScoreDetail {
 export interface MatchScoreResult {
   score: number; // 0 to 100
   passedCount: number;
-  totalCount: number; // 15
-  hardConstraintPassed: boolean; // marital status
-  isEligible: boolean; // hardConstraintPassed && score >= threshold
+  totalCount: number; // 14
+  hardConstraintPassed: boolean; // marital status and age
+  maritalPassed: boolean;
+  agePassed: boolean;
+  isEligible: boolean; // hardConstraintPassed && (passedCount >= requiredCount || score >= threshold)
   threshold: number;
   details: Record<string, MatchScoreDetail>;
+}
+
+export function getRequiredPassedCount(threshold: number, total: number = 14): number {
+  if (threshold >= 100) return 14;
+  if (threshold >= 90) return 13;
+  if (threshold >= 85) return 12;
+  if (threshold >= 80) return 11;
+  if (threshold >= 70) return 10;
+  return Math.ceil((threshold / 100) * total);
 }
 
 // Evaluate how well myProfile satisfies theirCriteria
@@ -94,9 +105,11 @@ export function evaluateMatchScore(myProfile: any, theirCriteria: any): MatchSco
   if (!myProfile || !theirCriteria) {
     return {
       score: 100,
-      passedCount: 15,
-      totalCount: 15,
+      passedCount: 14,
+      totalCount: 14,
       hardConstraintPassed: true,
+      maritalPassed: true,
+      agePassed: true,
       isEligible: true,
       threshold: 80,
       details: {},
@@ -107,16 +120,14 @@ export function evaluateMatchScore(myProfile: any, theirCriteria: any): MatchSco
     ? Number(theirCriteria.match_threshold)
     : 80;
 
-  // 1. Hard constraint: Marital status (一票否决)
+  // 1. Hard constraints: Marital status + Age (一票否决)
   const maritalCriteria = parseJ(theirCriteria.marital_status);
-  const hardConstraintPassed = arrAccepts(myProfile.marital_status, maritalCriteria);
+  const maritalPassed = arrAccepts(myProfile.marital_status, maritalCriteria);
+  const agePassed = inRange(myProfile.age, theirCriteria.age_min, theirCriteria.age_max);
+  const hardConstraintPassed = maritalPassed && agePassed;
 
-  // 2. 15 Quantitative items
+  // 2. 14 Quantitative items
   const details: Record<string, MatchScoreDetail> = {
-    age: {
-      passed: inRange(myProfile.age, theirCriteria.age_min, theirCriteria.age_max),
-      label: '周岁年龄',
-    },
     height: {
       passed: inRange(myProfile.height, theirCriteria.height_min, theirCriteria.height_max),
       label: '身高',
@@ -175,20 +186,23 @@ export function evaluateMatchScore(myProfile: any, theirCriteria: any): MatchSco
     },
   };
 
-  const totalCount = 15;
+  const totalCount = 14;
   let passedCount = 0;
   for (const key in details) {
     if (details[key].passed) passedCount++;
   }
 
   const score = Math.round((passedCount / totalCount) * 100);
-  const isEligible = hardConstraintPassed && score >= threshold;
+  const requiredCount = getRequiredPassedCount(threshold, totalCount);
+  const isEligible = hardConstraintPassed && (passedCount >= requiredCount || score >= threshold);
 
   return {
     score,
     passedCount,
     totalCount,
     hardConstraintPassed,
+    maritalPassed,
+    agePassed,
     isEligible,
     threshold,
     details,

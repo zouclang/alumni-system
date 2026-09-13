@@ -93,8 +93,11 @@ export async function GET(req: NextRequest) {
       match_details: myScoreOnThem.details,
       my_passed_count: myScoreOnThem.passedCount,
       my_threshold: myScoreOnThem.threshold,
+      my_age_passed: myScoreOnThem.agePassed,
+      my_marital_passed: myScoreOnThem.maritalPassed,
       their_passed_count: theirScoreOnMe.passedCount,
       their_threshold: theirScoreOnMe.threshold,
+      total_count: 14,
     });
   }
 
