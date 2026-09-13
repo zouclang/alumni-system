@@ -100,7 +100,10 @@ export async function GET(req: NextRequest) {
 
   // Sort results descending by score
   results.sort((a, b) => {
-    if (type === 'mutual') return b.avg_match_score - a.avg_match_score;
+    if (type === 'mutual') {
+      if (b.match_score !== a.match_score) return b.match_score - a.match_score;
+      return b.their_match_score - a.their_match_score;
+    }
     if (type === 'me') return b.their_match_score - a.their_match_score;
     return b.match_score - a.match_score;
   });

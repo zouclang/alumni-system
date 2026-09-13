@@ -2222,19 +2222,32 @@ export default function MatchmakingPage() {
                       )}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
                         <span style={{ fontWeight: 700, fontSize: 16 }}>{m.display_name}</span>
-                        {m.avg_match_score !== undefined && (
+                        {m.match_score !== undefined && (
                           <span style={{
                             background: 'linear-gradient(135deg, #f43f5e, #e11d48)',
                             color: '#fff',
-                            fontSize: 11.5,
+                            fontSize: 11,
                             fontWeight: 700,
                             padding: '2px 8px',
                             borderRadius: 10,
                             boxShadow: '0 2px 6px rgba(225, 29, 72, 0.25)',
                           }}>
-                            💖 匹配度 {m.avg_match_score}%
+                            💖 对方满足您 {m.match_score}%
+                          </span>
+                        )}
+                        {m.their_match_score !== undefined && (
+                          <span style={{
+                            background: '#fdf2f8',
+                            border: '1px solid #fbcfe8',
+                            color: '#be185d',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: 10,
+                          }}>
+                            ✨ 您满足对方 {m.their_match_score}%
                           </span>
                         )}
                       </div>
@@ -2243,8 +2256,13 @@ export default function MatchmakingPage() {
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
                     {m.match_score !== undefined && (
-                      <Tag style={{ background: '#fdf2f8', color: '#be185d', borderColor: '#fbcfe8', fontWeight: 600 }}>
-                        满足您: {m.match_score}% ({m.my_passed_count ?? 0}/15项)
+                      <Tag style={{ background: '#fff1f2', color: '#be123c', borderColor: '#fecdd3', fontWeight: 600 }}>
+                        满足您: {m.my_passed_count ?? 0}/15项
+                      </Tag>
+                    )}
+                    {m.their_match_score !== undefined && (
+                      <Tag style={{ background: '#fdf4ff', color: '#a21caf', borderColor: '#f5d0fe', fontWeight: 600 }}>
+                        满足对方: {m.their_passed_count ?? 0}/15项
                       </Tag>
                     )}
                     {m.region && <Tag>{m.region}</Tag>}
@@ -2587,28 +2605,45 @@ function ProfileDetailTable({ m, showContact }: { m: any; showContact: boolean }
           padding: '14px 16px',
           marginBottom: 16,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 6 }}>
             <span style={{ fontSize: 14, fontWeight: 700, color: '#9f1239', display: 'flex', alignItems: 'center', gap: 6 }}>
               <span>📊</span> 条件量化匹配评分
             </span>
-            <span style={{
-              background: '#e11d48',
-              color: '#fff',
-              fontSize: 12,
-              fontWeight: 700,
-              padding: '2px 9px',
-              borderRadius: 10,
-              boxShadow: '0 2px 6px rgba(225, 29, 72, 0.25)',
-            }}>
-              {m.avg_match_score !== undefined ? `双方综合 ${m.avg_match_score}%` : `满足您 ${m.match_score}%`}
-            </span>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {m.match_score !== undefined && (
+                <span style={{
+                  background: '#e11d48',
+                  color: '#fff',
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: 10,
+                  boxShadow: '0 2px 6px rgba(225, 29, 72, 0.25)',
+                }}>
+                  💖 对方满足您 {m.match_score}%
+                </span>
+              )}
+              {m.their_match_score !== undefined && (
+                <span style={{
+                  background: '#be185d',
+                  color: '#fff',
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: 10,
+                  boxShadow: '0 2px 6px rgba(190, 24, 93, 0.25)',
+                }}>
+                  ✨ 您满足对方 {m.their_match_score}%
+                </span>
+              )}
+            </div>
           </div>
-          <div style={{ fontSize: 12.5, color: '#881337', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ fontSize: 12.5, color: '#881337', display: 'flex', flexDirection: 'column', gap: 6, lineHeight: 1.6 }}>
             {m.match_score !== undefined && (
-              <div>💖 <strong>对方满足您的择偶标准：</strong>{m.match_score}%（15 项量化指标满足 {m.my_passed_count ?? 0} 项，婚姻状况硬性符合）</div>
+              <div>💖 <strong>对方满足您的择偶标准：</strong><span style={{ color: '#be123c', fontWeight: 700 }}>{m.match_score}%</span>（15项量化指标满足 {m.my_passed_count ?? 0} 项，已达标您设定的 {m.my_threshold ?? 80}% 门槛，婚姻状况硬性符合）</div>
             )}
             {m.their_match_score !== undefined && (
-              <div>✨ <strong>您满足对方的择偶标准：</strong>{m.their_match_score}%（15 项量化指标满足 {m.their_passed_count ?? 0} 项，婚姻状况硬性符合）</div>
+              <div>✨ <strong>您满足对方的择偶标准：</strong><span style={{ color: '#9d174d', fontWeight: 700 }}>{m.their_match_score}%</span>（15项量化指标满足 {m.their_passed_count ?? 0} 项，已达标对方设定的 {m.their_threshold ?? 80}% 门槛，婚姻状况硬性符合）</div>
             )}
           </div>
         </div>
