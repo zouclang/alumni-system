@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 import * as XLSX from 'xlsx';
 import { generatePinyin } from '@/lib/name-utils';
 
@@ -162,6 +163,11 @@ function parseExperiences(expStr: string | null) {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session || session.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized: 仅超级管理员可导入校友数据' }, { status: 403 });
+    }
+
     const formData = await req.formData();
     const file = formData.get('file') as File;
     if (!file) {

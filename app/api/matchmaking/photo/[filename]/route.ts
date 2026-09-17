@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { getSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +10,11 @@ export async function GET(
   { params }: { params: Promise<{ filename: string }> }
 ) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     const { filename } = await params;
 
     // Security: sanitize filename against path traversal

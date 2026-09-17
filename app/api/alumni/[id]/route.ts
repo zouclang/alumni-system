@@ -112,6 +112,10 @@ export async function GET(_req: NextRequest, { params }: Params) {
         }));
       }
       
+      // Mask career history and resume skills for unapproved users
+      row.work_experiences = [];
+      row.resume_skills = { skill_tags: '[]', languages: '[]', bio: '' };
+
       row.is_redacted = true;
     } else {
       row.is_redacted = false;

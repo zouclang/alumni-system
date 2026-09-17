@@ -60,11 +60,12 @@ export async function GET(req: NextRequest) {
 
     const conn = getConnectionStatus(db, session.alumniId, them.alumni_id);
     const showContact = type === 'mutual' || conn.approved;
+    const maskedOrRealName = showContact ? them.name : maskName(them.name);
 
     results.push({
       alumni_id: them.alumni_id,
-      name: them.name,
-      display_name: showContact ? them.name : maskName(them.name),
+      name: maskedOrRealName,
+      display_name: maskedOrRealName,
       gender: them.gender,
       age: them.age,
       height: them.height,

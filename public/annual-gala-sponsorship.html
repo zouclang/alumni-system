@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>2026年大连理工大学苏州校友年会 · 赞助合作方案</title>
+  <style>
+    :root {
+      --navy-900: #0f172a;
+      --navy-800: #1e293b;
+      --navy-700: #334155;
+      --navy-600: #475569;
+      --blue-primary: #1d4ed8;
+      --blue-dark: #1e40af;
+      --blue-soft: #eff6ff;
+      --blue-border: #bfdbfe;
+      
+      --gold-primary: #b45309;
+      --gold-accent: #d97706;
+      --gold-soft: #fffbeb;
+      --gold-border: #fde68a;
+
+      --emerald: #059669;
+      --emerald-soft: #ecfdf5;
+      --emerald-border: #a7f3d0;
+
+      --bg-page: #f8fafc;
+      --card-bg: #ffffff;
+      --border-light: #e2e8f0;
+      --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 6px 16px rgba(15, 23, 42, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: #e2e8f0;
+      color: var(--navy-800);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* 移动端主容器 (手机上100%全宽，PC/平板上模拟精致手机H5) */
+    .app-wrapper {
+      max-width: 480px;
+      margin: 0 auto;
+      background-color: #f8fafc;
+      min-height: 100vh;
+      position: relative;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
+      padding-bottom: 76px; /* 为底部吸底悬浮栏留空 */
+      overflow-x: hidden;
+    }
+
+    /* 顶部吸顶导航 */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+    .nav-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px 6px;
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo-badge {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      flex-shrink: 0;
+      box-shadow: 0 3px 8px rgba(29, 78, 216, 0.25);
+    }
+    .nav-brand-text h1 {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: var(--navy-900);
+      line-height: 1.2;
+    }
+    .nav-brand-text p {
+      font-size: 11px;
+      color: var(--navy-600);
+      font-weight: 500;
+    }
+    .nav-cta-btn {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 20px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    }
+
+    /* 手机水平滑动分类标签栏 */
+    .mobile-tab-nav {
+      display: flex;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      gap: 6px;
+      padding: 6px 12px 10px;
+    }
+    .mobile-tab-nav::-webkit-scrollbar {
+      display: none;
+    }
+    .tab-pill {
+      flex-shrink: 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--navy-700);
+      background: #f1f5f9;
+      padding: 5px 12px;
+      border-radius: 16px;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-pill.highlight {
+      background: #fffbeb;
+      color: #b45309;
+      border-color: #fde68a;
+      font-weight: 700;
+    }
+    .tab-pill:active {
+      background: #e2e8f0;
+    }
+
+    /* 容器内间距 */
+    .container {
+      padding: 0 16px;
+    }
+
+    /* 首屏头部 Banner */
+    .hero-section {
+      background: radial-gradient(100% 70% at 50% 0%, #dbeafe 0%, #eff6ff 45%, #f8fafc 100%);
+      border-bottom: 1px solid var(--border-light);
+      padding: 22px 16px 20px;
+      position: relative;
+    }
+    .hero-badge-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .org-tag {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border-light);
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--navy-700);
+      display: inline-block;
+      width: fit-content;
+    }
+    .org-tag.primary {
+      background: var(--blue-soft);
+      border-color: var(--blue-border);
+      color: var(--blue-primary);
+      font-weight: 700;
+    }
+
+    .hero-title {
+      font-size: 23px;
+      font-weight: 900;
+      color: var(--navy-900);
+      line-height: 1.3;
+      letter-spacing: -0.3px;
+      margin-bottom: 6px;
+    }
+    .hero-title span {
+      color: var(--blue-primary);
+    }
+    .hero-slogan {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--gold-accent);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 核心概况 2x2 宫格卡片 */
+    .hero-quick-facts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .fact-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      padding: 12px 12px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .fact-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--blue-soft);
+      color: var(--blue-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .fact-card:nth-child(2) .fact-icon { background: var(--gold-soft); color: var(--gold-primary); }
+    .fact-card:nth-child(3) .fact-icon { background: var(--emerald-soft); color: var(--emerald); }
+    .fact-card:nth-child(4) .fact-icon { background: #faf5ff; color: #7c3aed; }
+    .fact-label { font-size: 11px; color: var(--navy-600); font-weight: 600; }
+    .fact-value { font-size: 14px; font-weight: 800; color: var(--navy-900); margin-top: 1px; }
+
+    /* 通用章节区块 */
+    .section-wrap {
+      padding: 34px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .section-wrap.alt-bg {
+      background: #ffffff;
+    }
+
+    .section-header {
+      margin-bottom: 20px;
+    }
+    .section-num-tag {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--blue-primary);
+      background: var(--blue-soft);
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .section-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--navy-900);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-desc {
+      font-size: 12.5px;
+      color: var(--navy-600);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    /* 模块 1：活动概述 */
+    .overview-col {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .info-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 18px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .info-card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--navy-900);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .info-row {
+      display: flex;
+      margin-bottom: 10px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .info-row:last-child { margin-bottom: 0; }
+    .info-label {
+      width: 78px;
+      flex-shrink: 0;
+      color: var(--navy-600);
+      font-weight: 600;
+    }
+    .info-val {
+      color: var(--navy-900);
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .purpose-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .purpose-item {
+      background: #f8fafc;
+      border-left: 3.5px solid var(--blue-primary);
+      border-radius: 0 10px 10px 0;
+      padding: 10px 14px;
+      font-size: 12.5px;
+      color: var(--navy-800);
+      line-height: 1.5;
+    }
+    .purpose-item strong {
+      color: var(--navy-900);
+      display: block;
+      margin-bottom: 2px;
+      font-size: 13px;
+    }
+
+    /* 模块 2：校友画像与商业价值 (⭐高光重点⭐) */
+    .highlight-box-container {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 2px solid var(--blue-border);
+      border-radius: 20px;
+      padding: 24px 14px 18px;
+      box-shadow: var(--shadow-md);
+      position: relative;
+    }
+    .highlight-badge-ribbon {
+      position: absolute;
+      top: -12px;
+      left: 14px;
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 12px;
+      border-radius: 16px;
+      box-shadow: 0 3px 10px rgba(217, 119, 6, 0.3);
+    }
+
+    .kpi-row-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+      margin-top: 6px;
+    }
+    .kpi-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 12px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-sm);
+    }
+    .kpi-card.gold-tint {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border: 1.5px solid var(--gold-border);
+    }
+    .kpi-card.blue-tint {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1.5px solid var(--blue-border);
+    }
+    .kpi-num {
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--navy-900);
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+    }
+    .kpi-card.gold-tint .kpi-num { color: #92400e; }
+    .kpi-card.blue-tint .kpi-num { color: #1e40af; }
+    .kpi-num span { font-size: 12px; font-weight: 700; }
+    .kpi-title { font-size: 10.5px; color: var(--navy-600); font-weight: 600; margin-top: 3px; line-height: 1.3; }
+
+    .demographics-split {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .demo-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      padding: 16px 14px;
+      box-shadow: var(--shadow-sm);
+    }
+    .demo-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .demo-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy-900);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 环形图与图例 (手机上垂直居中布局) */
+    .donut-flex {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 4px 0 8px;
+    }
+    .donut-box {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      flex-shrink: 0;
+    }
+    .donut-center-txt {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .donut-center-txt .val {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--gold-accent);
+      line-height: 1;
+    }
+    .donut-center-txt .lbl {
+      font-size: 10px;
+      color: var(--navy-600);
+      font-weight: 600;
+      margin-top: 3px;
+      white-space: nowrap;
+    }
+    .exec-legend-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .exec-legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: #f8fafc;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      font-size: 11.5px;
+    }
+    .dot-marker {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .value-takeaway-box {
+      background: var(--gold-soft);
+      border: 1px solid var(--gold-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-top: 12px;
+      font-size: 11.5px;
+      color: #78350f;
+      line-height: 1.5;
+    }
+    .value-takeaway-box p {
+      margin-bottom: 4px;
+    }
+    .value-takeaway-box p:last-child { margin-bottom: 0; }
+
+    /* 行业分布手机横条卡片 (上下两行排版，解决PC栅格挤压问题) */
+    .industry-list-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .ind-item-row {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .ind-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 12px;
+    }
+    .ind-name {
+      font-weight: 600;
+      color: var(--navy-900);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ind-name span.sub {
+      font-size: 10.5px;
+      font-weight: 400;
+      color: var(--navy-600);
+    }
+    .ind-val-num {
+      font-weight: 800;
+      font-size: 12.5px;
+      color: var(--blue-primary);
+    }
+    .ind-val-num.gold { color: var(--gold-accent); }
+    .progress-bar-bg {
+      height: 8px;
+      background: #f1f5f9;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-light);
+    }
+    .progress-bar-val {
+      height: 100%;
+      border-radius: 10px;
+    }
+
+    /* 图片展示卡片 */
+    .img-placeholder-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+    }
+    .real-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .zoom-hint-badge {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(15, 23, 42, 0.7);
+      color: #ffffff;
+      font-size: 10.5px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 场地展示单列 */
+    .venue-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    /* 往期年会展示单列 (全景大合影单列全幅显示，清晰可辨) */
+    .past-gallery-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* 模块 5：赞助合作方案 (单列手机卡片) */
+    .tier-cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .tier-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 18px 16px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+    }
+    .tier-card.featured {
+      border: 2px solid var(--gold-accent);
+      background: linear-gradient(180deg, #fffbeb 0%, #ffffff 40%);
+    }
+    .tier-badge {
+      position: absolute;
+      top: -10px;
+      right: 14px;
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      color: #fff;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 2px 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);
+    }
+    .tier-name {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--navy-900);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tier-price {
+      margin: 8px 0;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+    .tier-price-val {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--blue-primary);
+    }
+    .tier-card.featured .tier-price-val { color: var(--gold-accent); }
+    .tier-seats {
+      font-size: 11.5px;
+      color: var(--navy-600);
+      font-weight: 600;
+      background: #f1f5f9;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .tier-highlights {
+      list-style: none;
+      margin: 12px 0 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--navy-700);
+      border-top: 1px dashed var(--border-light);
+      padding-top: 10px;
+    }
+    .tier-highlights li {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      line-height: 1.45;
+    }
+    .tier-highlights li span.check {
+      color: var(--emerald);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    /* 赞助权益对比表格 (横向滚动包装盒) */
+    .table-scroll-wrapper {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .table-scroll-hint {
+      background: #f8fafc;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: var(--blue-primary);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .sponsor-table {
+      min-width: 520px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+      text-align: left;
+    }
+    .sponsor-table th {
+      background: #f1f5f9;
+      padding: 10px 12px;
+      font-weight: 700;
+      color: var(--navy-900);
+      border-bottom: 1.5px solid var(--border-light);
+      white-space: nowrap;
+    }
+    .sponsor-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-light);
+      vertical-align: top;
+      color: var(--navy-800);
+      line-height: 1.5;
+    }
+    .table-sub-header {
+      font-weight: 700;
+      color: var(--blue-primary);
+      margin: 2px 0 2px;
+    }
+
+    /* 特别说明卡片 */
+    .notes-card {
+      background: #f8fafc;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-top: 18px;
+      font-size: 11.5px;
+      color: var(--navy-600);
+    }
+    .notes-card h4 {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--navy-900);
+      margin-bottom: 6px;
+    }
+    .notes-card ol {
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    /* 模块 6：宣传方式示例 */
+    .showcase-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .showcase-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .showcase-img-wrap {
+      height: 160px;
+      position: relative;
+      background: #f1f5f9;
+    }
+    .showcase-body {
+      padding: 12px 14px;
+    }
+    .showcase-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy-900);
+      margin-bottom: 4px;
+    }
+    .showcase-desc {
+      font-size: 11.5px;
+      color: var(--navy-600);
+      line-height: 1.5;
+    }
+
+    /* 模块 7：咨询联系二维码 */
+    .contact-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .contact-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 20px 16px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .qr-box {
+      width: 170px;
+      height: 170px;
+      margin: 0 auto 12px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-light);
+      background: #ffffff;
+      padding: 6px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    }
+    .contact-name {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--navy-900);
+    }
+    .contact-role {
+      font-size: 12.5px;
+      color: var(--blue-primary);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .contact-tip {
+      font-size: 11.5px;
+      color: var(--navy-600);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    /* 页脚 */
+    footer {
+      background: #ffffff;
+      border-top: 1px solid var(--border-light);
+      padding: 24px 16px 30px;
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--navy-600);
+    }
+
+    /* 底部悬浮咨询条 (移动端黄金体验) */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border-light);
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    }
+    .bottom-bar-inner {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .bottom-bar-info {
+      flex: 1;
+    }
+    .bottom-bar-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--navy-900);
+    }
+    .bottom-bar-sub {
+      font-size: 10.5px;
+      color: var(--gold-accent);
+      font-weight: 600;
+    }
+    .bottom-bar-btn {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 9px 18px;
+      border-radius: 24px;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* 全屏图片放大灯箱 (超轻量、零卡顿、点击任意处退出) */
+    #lightboxOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      background: rgba(0, 0, 0, 0.93);
+      cursor: zoom-out;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 16px;
+      touch-action: manipulation;
+    }
+    #lightboxImg {
+      max-width: 95vw;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 6px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    }
+    #lightboxCaption {
+      margin-top: 12px;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 4px 16px;
+      border-radius: 16px;
+      pointer-events: none;
+    }
+    .lightbox-close-btn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 1000000;
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <!-- 顶部吸顶导航 -->
+    <header class="top-nav">
+      <div class="nav-header-row">
+        <a href="#" class="nav-brand">
+          <div class="nav-logo-badge">🏛️</div>
+          <div class="nav-brand-text">
+            <h1>大工苏州校友会</h1>
+            <p>2026 年会赞助合作方案</p>
+          </div>
+        </a>
+        <a href="#contact" class="nav-cta-btn">📞 合作咨询</a>
+      </div>
+
+      <!-- 手机水平滚动导航胶囊 -->
+      <nav class="mobile-tab-nav">
+        <a href="#overview" class="tab-pill">概况</a>
+        <a href="#demographics" class="tab-pill highlight">⭐ 校友画像</a>
+        <a href="#venue" class="tab-pill">场地</a>
+        <a href="#past" class="tab-pill">往期精彩</a>
+        <a href="#packages" class="tab-pill">赞助方案</a>
+        <a href="#showcase" class="tab-pill">宣传示例</a>
+        <a href="#contact" class="tab-pill">联系咨询</a>
+      </nav>
+    </header>
+
+    <!-- Banner 头部区 -->
+    <section class="hero-section">
+      <div class="hero-badge-wrap">
+        <span class="org-tag primary">🏛️ 大连理工大学国内合作与联络处 · 经管学院 指导</span>
+        <span class="org-tag">大连理工大学苏州校友会 主办</span>
+        <span class="org-tag">经管苏州校友会 · MBA苏州联合会 联办</span>
+      </div>
+
+      <h2 class="hero-title">
+        2026 年大连理工大学<br>
+        苏州校友年会<span>赞助合作方案</span>
+      </h2>
+      <div class="hero-slogan">
+        <span>🏮</span> 迎春纳福 聚力同心 · 智汇苏城 创享未来
+      </div>
+
+      <!-- 核心概况 2x2 宫格 -->
+      <div class="hero-quick-facts">
+        <div class="fact-card">
+          <div class="fact-icon">👥</div>
+          <div>
+            <div class="fact-label">参会规模</div>
+            <div class="fact-value">预计 300 人</div>
+          </div>
+        </div>
+        <div class="fact-card">
+          <div class="fact-icon">🏨</div>
+          <div>
+            <div class="fact-label">活动场地</div>
+            <div class="fact-value">苏州国际会议酒店</div>
+          </div>
+        </div>
+        <div class="fact-card">
+          <div class="fact-icon">💼</div>
+          <div>
+            <div class="fact-label">核心圈层</div>
+            <div class="fact-value">42.8% 创业与高管</div>
+          </div>
+        </div>
+        <div class="fact-card">
+          <div class="fact-icon">🎯</div>
+          <div>
+            <div class="fact-label">采购决策</div>
+            <div class="fact-value">85%+ 直接话语权</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 模块 1：活动概述 -->
+    <section class="section-wrap" id="overview">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-num-tag">01 / OVERVIEW</span>
+          <h2 class="section-title">一、 活动概述</h2>
+          <p class="section-desc">凝心聚力，筑梦姑苏。大连理工大学在苏校友年度旗舰盛典</p>
+        </div>
+
+        <div class="overview-col">
+          <!-- 基本信息卡片 -->
+          <div class="info-card">
+            <div class="info-card-title">
+              <span>📋</span> 年会核心要素
+            </div>
+            <div class="info-row">
+              <div class="info-label">举办时间</div>
+              <div class="info-val"><strong>2026 年 3 月</strong>（周六全天）</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">活动地点</div>
+              <div class="info-val"><strong>苏州国际会议酒店</strong>（相城区相融路699号）</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">参会规模</div>
+              <div class="info-val"><strong>预计 300 人</strong>（校友、嘉宾及企业家高管）</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">指导单位</div>
+              <div class="info-val">大连理工大学国内合作与联络处、经济管理学院</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">主办单位</div>
+              <div class="info-val">大连理工大学苏州校友会</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">联办单位</div>
+              <div class="info-val">大工经管苏州校友会、大工MBA苏州联合会</div>
+            </div>
+          </div>
+
+          <!-- 办会宗旨卡片 -->
+          <div class="info-card">
+            <div class="info-card-title">
+              <span>🎯</span> 办会三大宗旨
+            </div>
+            <div class="purpose-list">
+              <div class="purpose-item">
+                <strong>1. 凝聚校友力量</strong>
+                汇聚在苏老中青校友，加深校友与母校感情纽带，打造有温度、有情怀、有归属感的校友家园。
+              </div>
+              <div class="purpose-item">
+                <strong>2. 搭建商务合作平台</strong>
+                促进校友及校友企业间的资源共享、产业协同、业务对接与技术创新，互利共赢。
+              </div>
+              <div class="purpose-item">
+                <strong>3. 服务母校与地方</strong>
+                立足苏州“2035”现代产业集群，展示母校科技与智库力量，服务地方经济高质量跨越发展。
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 模块 2：校友画像与商业价值 (⭐高光重点⭐) -->
+    <section class="section-wrap alt-bg" id="demographics">
+      <div class="container">
+        <div class="highlight-box-container">
+          <div class="highlight-badge-ribbon">⭐ 核心招商亮点 · 商业价值画像</div>
+
+          <div class="section-header" style="margin-top: 8px;">
+            <span class="section-num-tag">02 / DEMOGRAPHICS</span>
+            <h2 class="section-title">二、 校友画像与商业价值</h2>
+            <p class="section-desc">聚力长三角硬核产业经济带 · 直达高净值校友企业家与采购决策圈层</p>
+          </div>
+
+          <!-- 4 大核心指标资产 KPI 2x2 布局 -->
+          <div class="kpi-row-grid">
+            <div class="kpi-card gold-tint">
+              <div class="fact-icon" style="background:#f59e0b; color:#fff;">👑</div>
+              <div>
+                <div class="kpi-num">42.8<span>%</span></div>
+                <div class="kpi-title">创业者与核心高管占比</div>
+              </div>
+            </div>
+            <div class="kpi-card blue-tint">
+              <div class="fact-icon" style="background:#2563eb; color:#fff;">🎯</div>
+              <div>
+                <div class="kpi-num">85.0<span>%+</span></div>
+                <div class="kpi-title">预算采购直接话语权</div>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="fact-icon" style="background:#ecfdf5; color:#059669;">🏭</div>
+              <div>
+                <div class="kpi-num">76.9<span>%</span></div>
+                <div class="kpi-title">长三角高新及智能制造</div>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="fact-icon" style="background:#faf5ff; color:#7c3aed;">👥</div>
+              <div>
+                <div class="kpi-num">300<span>+人</span></div>
+                <div class="kpi-title">线下出席规模（高管齐聚）</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 职级甜甜圈与行业分布 -->
+          <div class="demographics-split">
+            <!-- 职级结构 -->
+            <div class="demo-card">
+              <div class="demo-card-head">
+                <div class="demo-card-title">
+                  <span>👔</span> 创业者与管理层职级结构
+                </div>
+                <span style="font-size: 10.5px; padding: 2px 7px; border-radius: 6px; background: #eff6ff; color: #1d4ed8; font-weight: 700;">
+                  决策拍板圈层
+                </span>
+              </div>
+
+              <div class="donut-flex">
+                <div class="donut-box">
+                  <svg width="130" height="130" viewBox="0 0 148 148">
+                    <circle cx="74" cy="74" r="54" fill="none" stroke="#f1f5f9" stroke-width="18"/>
+                    <!-- 创业者/董事长 18.5% -->
+                    <circle cx="74" cy="74" r="54" fill="none" stroke="#d97706" stroke-width="18"
+                      stroke-dasharray="62.8 339.29" stroke-dashoffset="0"
+                      stroke-linecap="round" transform="rotate(-90 74 74)"/>
+                    <!-- 高管/总经理/副总 24.3% -->
+                    <circle cx="74" cy="74" r="54" fill="none" stroke="#2563eb" stroke-width="18"
+                      stroke-dasharray="82.4 339.29" stroke-dashoffset="-66"
+                      stroke-linecap="round" transform="rotate(-90 74 74)"/>
+                    <!-- 部门中层/总监 38.6% -->
+                    <circle cx="74" cy="74" r="54" fill="none" stroke="#059669" stroke-width="18"
+                      stroke-dasharray="130.9 339.29" stroke-dashoffset="-152"
+                      stroke-linecap="round" transform="rotate(-90 74 74)"/>
+                    <!-- 核心专家/骨干 18.6% -->
+                    <circle cx="74" cy="74" r="54" fill="none" stroke="#7c3aed" stroke-width="18"
+                      stroke-dasharray="54.0 339.29" stroke-dashoffset="-285"
+                      stroke-linecap="round" transform="rotate(-90 74 74)"/>
+                  </svg>
+                  <div class="donut-center-txt">
+                    <div class="val">42.8%</div>
+                    <div class="lbl">高管与创业</div>
+                  </div>
+                </div>
+
+                <div class="exec-legend-list">
+                  <div class="exec-legend-item">
+                    <div><span class="dot-marker" style="background:#d97706;"></span><strong>企业创始人 / 董事长 / 法人</strong></div>
+                    <span style="font-weight:700; color:#b45309;">18.5%</span>
+                  </div>
+                  <div class="exec-legend-item">
+                    <div><span class="dot-marker" style="background:#2563eb;"></span><strong>跨国/名企总经理 / VP / 合伙人</strong></div>
+                    <span style="font-weight:700; color:#1d4ed8;">24.3%</span>
+                  </div>
+                  <div class="exec-legend-item">
+                    <div><span class="dot-marker" style="background:#059669;"></span><strong>业务总监 / 资深高级经理</strong></div>
+                    <span style="font-weight:700; color:#047857;">38.6%</span>
+                  </div>
+                  <div class="exec-legend-item">
+                    <div><span class="dot-marker" style="background:#7c3aed;"></span><strong>核心技术专家 / 高潜新锐骨干</strong></div>
+                    <span style="font-weight:700; color:#6d28d9;">18.6%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="value-takeaway-box">
+                <p>🎯 <strong>直达决策层：</strong>跳过冗长汇报，赞助品牌直达企业最高决策人与大宗采购审批人。</p>
+                <p>💎 <strong>双轮商业变现：</strong>既有千万元级 B2B 集采需求，亦兼备高净值家庭强劲消费力。</p>
+              </div>
+            </div>
+
+            <!-- 产业分布条形图 (上下排版，手机体验极致) -->
+            <div class="demo-card">
+              <div class="demo-card-head">
+                <div class="demo-card-title">
+                  <span>🏭</span> 核心行业与产业生态分布
+                </div>
+                <span style="font-size: 10.5px; padding: 2px 7px; border-radius: 6px; background: #fffbeb; color: #b45309; font-weight: 700;">
+                  硬核产业链
+                </span>
+              </div>
+
+              <div class="industry-list-col">
+                <div class="ind-item-row">
+                  <div class="ind-row-header">
+                    <div class="ind-name">💻 新一代信息技术与AI <span class="sub">(芯片/工业软件)</span></div>
+                    <div class="ind-val-num">26.4%</div>
+                  </div>
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-val" style="width: 26.4%; background: linear-gradient(90deg, #3b82f6, #1d4ed8);"></div>
+                  </div>
+                </div>
+
+                <div class="ind-item-row">
+                  <div class="ind-row-header">
+                    <div class="ind-name">⚙️ 高端装备与智能制造 <span class="sub">(工业母机/机器人)</span></div>
+                    <div class="ind-val-num gold">21.8%</div>
+                  </div>
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-val" style="width: 21.8%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
+                  </div>
+                </div>
+
+                <div class="ind-item-row">
+                  <div class="ind-row-header">
+                    <div class="ind-name">⚡ 新能源与先进材料 <span class="sub">(储能/光伏/纳米)</span></div>
+                    <div class="ind-val-num" style="color:#047857;">15.2%</div>
+                  </div>
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-val" style="width: 15.2%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                  </div>
+                </div>
+
+                <div class="ind-item-row">
+                  <div class="ind-row-header">
+                    <div class="ind-name">🧬 生物医药与大健康 <span class="sub">(BioBay创新药/器械)</span></div>
+                    <div class="ind-val-num" style="color:#be185d;">13.5%</div>
+                  </div>
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-val" style="width: 13.5%; background: linear-gradient(90deg, #ec4899, #be185d);"></div>
+                  </div>
+                </div>
+
+                <div class="ind-item-row">
+                  <div class="ind-row-header">
+                    <div class="ind-name">📈 金融投资与创投资本 <span class="sub">(引导基金/私银/券商)</span></div>
+                    <div class="ind-val-num gold">11.6%</div>
+                  </div>
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-val" style="width: 11.6%; background: linear-gradient(90deg, #eab308, #ca8a04);"></div>
+                  </div>
+                </div>
+
+                <div class="ind-item-row">
+                  <div class="ind-row-header">
+                    <div class="ind-name">🏛️ 科研院所与公共事业 <span class="sub">(开发区招商/智库)</span></div>
+                    <div class="ind-val-num" style="color:#4338ca;">6.5%</div>
+                  </div>
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-val" style="width: 6.5%; background: linear-gradient(90deg, #6366f1, #4338ca);"></div>
+                  </div>
+                </div>
+
+                <div class="ind-item-row">
+                  <div class="ind-row-header">
+                    <div class="ind-name">💼 现代商务与专业咨询 <span class="sub">(高端法务/财税/会展)</span></div>
+                    <div class="ind-val-num" style="color:#475569;">5.0%</div>
+                  </div>
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-val" style="width: 5.0%; background: linear-gradient(90deg, #94a3b8, #475569);"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 模块 3：活动场地 -->
+    <section class="section-wrap" id="venue">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-num-tag">03 / VENUE</span>
+          <h2 class="section-title">三、 活动场地</h2>
+          <p class="section-desc">苏州国际会议酒店 · 高铁新城地标，国际无柱宴会厅与五星级专业服务</p>
+        </div>
+
+        <div class="info-card">
+          <h3 style="font-size: 16px; font-weight: 800; color: var(--navy-900);">🏨 苏州国际会议酒店</h3>
+          <p style="font-size: 12px; color: var(--navy-600); margin-top: 4px; line-height: 1.5;">地址：苏州市相城区相融路 699 号（高铁新城核心区，便捷辐射长三角大都市圈）</p>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+            <span class="org-tag primary">五星级国际规格</span>
+            <span class="org-tag">豪华无柱宴会厅</span>
+            <span class="org-tag">超清LED多媒体大屏</span>
+          </div>
+        </div>
+
+        <!-- 场地图片列表 -->
+        <div class="venue-list">
+          <!-- 酒店外观 -->
+          <div class="img-placeholder-card">
+            <div style="height: 190px; overflow: hidden; background: #f1f5f9; position: relative;">
+              <img src="images/sponsorship/venue-exterior.jpg" alt="苏州国际会议酒店外观实景" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">🏢</span>
+                <span style="margin-top:4px;">苏州国际会议酒店外观</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div style="padding: 10px 14px; background: #ffffff;">
+              <div style="font-weight: 700; font-size: 13.5px; color: var(--navy-900);">苏州国际会议酒店 · 建筑外观实景</div>
+              <div style="font-size: 11.5px; color: var(--navy-600); margin-top: 2px;">高铁新城核心地标 · 尊崇商务与会议体验</div>
+            </div>
+          </div>
+
+          <!-- 主宴会大厅 -->
+          <div class="img-placeholder-card">
+            <div style="height: 190px; overflow: hidden; background: #f1f5f9; position: relative;">
+              <img src="images/sponsorship/venue-hall.jpg" alt="豪华无柱大宴会厅实景" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">✨</span>
+                <span style="margin-top:4px;">大宴会厅现场实景</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div style="padding: 10px 14px; background: #ffffff;">
+              <div style="font-weight: 700; font-size: 13.5px; color: var(--navy-900);">豪华无柱大宴会厅 · 盛典会场实景</div>
+              <div style="font-size: 11.5px; color: var(--navy-600); margin-top: 2px;">顶配视听舞美硬件，容纳 300+ 校友企业家同欢</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 模块 4：往期年会精彩 (6张大合影全幅单列排版，手机看大图极佳) -->
+    <section class="section-wrap alt-bg" id="past">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-num-tag">04 / PAST HIGHLIGHTS</span>
+          <h2 class="section-title">四、 往期年会精彩</h2>
+          <p class="section-desc">凝心聚力，薪火相传。历届大工在苏校友年度盛会全景大合影（点击图片全屏查看）</p>
+        </div>
+
+        <div class="past-gallery-list">
+          <!-- 2025年 -->
+          <div class="img-placeholder-card">
+            <div style="height: 185px; overflow: hidden; background: #f1f5f9; position: relative;">
+              <img src="images/sponsorship/past-2025.jpg" alt="2025年大连理工大学苏州校友年度盛典大合影" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">📸</span>
+                <span style="margin-top:4px;">2025 年盛典照片</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div style="padding: 9px 12px; background: #ffffff;">
+              <div style="font-weight: 700; font-size: 13px; color: var(--navy-900);">2025 年盛典 · 大连理工大学苏州校友年度盛典</div>
+              <div style="font-size: 11px; color: var(--navy-600); margin-top: 2px;">聚力同行，共谱新篇 · 盛典大合影纪实</div>
+            </div>
+          </div>
+
+          <!-- 2024年 -->
+          <div class="img-placeholder-card">
+            <div style="height: 185px; overflow: hidden; background: #f1f5f9; position: relative;">
+              <img src="images/sponsorship/past-2024.jpg" alt="2024年大连理工大学在苏校友年度盛典" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">📸</span>
+                <span style="margin-top:4px;">2024 年盛典照片</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div style="padding: 9px 12px; background: #ffffff;">
+              <div style="font-weight: 700; font-size: 13px; color: var(--navy-900);">2024 年盛典 · 在苏校友年度盛典</div>
+              <div style="font-size: 11px; color: var(--navy-600); margin-top: 2px;">群英荟萃，智创未来 · 全体校友大合影</div>
+            </div>
+          </div>
+
+          <!-- 2023年 -->
+          <div class="img-placeholder-card">
+            <div style="height: 185px; overflow: hidden; background: #f1f5f9; position: relative;">
+              <img src="images/sponsorship/past-2023.jpg" alt="2023年大连理工大学苏州校友会年度盛会" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">📸</span>
+                <span style="margin-top:4px;">2023 年盛典照片</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div style="padding: 9px 12px; background: #ffffff;">
+              <div style="font-weight: 700; font-size: 13px; color: var(--navy-900);">2023 年盛典 · 苏州校友会年度盛会</div>
+              <div style="font-size: 11px; color: var(--navy-600); margin-top: 2px;">重聚姑苏，情系大工 · 全体合影留念</div>
+            </div>
+          </div>
+
+          <!-- 2022年 -->
+          <div class="img-placeholder-card">
+            <div style="height: 185px; overflow: hidden; background: #f1f5f9; position: relative;">
+              <img src="images/sponsorship/past-2022.jpg" alt="2022年大工在苏校友年度聚会" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">📸</span>
+                <span style="margin-top:4px;">2022 年盛典照片</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div style="padding: 9px 12px; background: #ffffff;">
+              <div style="font-weight: 700; font-size: 13px; color: var(--navy-900);">2022 年盛典 · 在苏校友年度聚会</div>
+              <div style="font-size: 11px; color: var(--navy-600); margin-top: 2px;">同心同行，共度温情时光</div>
+            </div>
+          </div>
+
+          <!-- 2019年 -->
+          <div class="img-placeholder-card">
+            <div style="height: 185px; overflow: hidden; background: #f1f5f9; position: relative;">
+              <img src="images/sponsorship/past-2019.jpg" alt="2019年大工在苏校友年会盛典" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">📸</span>
+                <span style="margin-top:4px;">2019 年盛典照片</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div style="padding: 9px 12px; background: #ffffff;">
+              <div style="font-weight: 700; font-size: 13px; color: var(--navy-900);">2019 年盛典 · 在苏校友年会盛典</div>
+              <div style="font-size: 11px; color: var(--navy-600); margin-top: 2px;">情深意长，共话发展大计</div>
+            </div>
+          </div>
+
+          <!-- 2018年 -->
+          <div class="img-placeholder-card">
+            <div style="height: 185px; overflow: hidden; background: #f1f5f9; position: relative;">
+              <img src="images/sponsorship/past-2018.jpg" alt="2018年校友联谊会暨第二届理事会换届大会" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">📸</span>
+                <span style="margin-top:4px;">2018 年盛典照片</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div style="padding: 9px 12px; background: #ffffff;">
+              <div style="font-weight: 700; font-size: 13px; color: var(--navy-900);">2018 年盛典 · 联谊会暨换届大会</div>
+              <div style="font-size: 11px; color: var(--navy-600); margin-top: 2px;">薪火相传，大工在苏历史见证</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 模块 5：赞助合作方案 (核心赞助表) -->
+    <section class="section-wrap" id="packages">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-num-tag">05 / SPONSORSHIP</span>
+          <h2 class="section-title">五、 赞助合作方案</h2>
+          <p class="section-desc">多层级权益组合，赋能品牌曝光、政商圈层对接与业务集采转化</p>
+        </div>
+
+        <!-- 4 大赞助档位速览卡片 (手机垂直单列) -->
+        <div class="tier-cards-list">
+          
+          <!-- 活动总冠名 -->
+          <div class="tier-card featured">
+            <div class="tier-badge">全场独家</div>
+            <div class="tier-name">👑 活动总冠名</div>
+            <div class="tier-price">
+              <div class="tier-price-val">2 万元 <span style="font-size:12.5px; color:#64748b; font-weight:normal;">及以上现金</span></div>
+              <div class="tier-seats">全场限定仅 1 席</div>
+            </div>
+            <ul class="tier-highlights">
+              <li><span class="check">✓</span> <strong>晚宴前企业专属 PPT 宣介</strong></li>
+              <li><span class="check">✓</span> 300+ 全体大合影冠名专属展示</li>
+              <li><span class="check">✓</span> 官方云相册独家展示冠名赞助商</li>
+              <li><span class="check">✓</span> 全员参会胸牌展示冠名赞助商</li>
+              <li><span class="check">✓</span> 包含“钻石型”赞助全部权益</li>
+              <li><span class="check">✓</span> 现场颁发专属定制荣誉奖杯</li>
+            </ul>
+          </div>
+
+          <!-- 钻石型 -->
+          <div class="tier-card">
+            <div class="tier-name">💎 钻石型赞助</div>
+            <div class="tier-price">
+              <div class="tier-price-val">1 万元 <span style="font-size:12.5px; color:#64748b; font-weight:normal;">及以上现金</span></div>
+              <div class="tier-seats">限定仅 5 席</div>
+            </div>
+            <ul class="tier-highlights">
+              <li><span class="check">✓</span> <strong>年会通讯录对接</strong> (姓名/专业/公司/职务)</li>
+              <li><span class="check">✓</span> 会前预热阶段宣传片全屏轮播</li>
+              <li><span class="check">✓</span> 参会胸牌挂绳展示赞助商 LOGO</li>
+              <li><span class="check">✓</span> 包含“铂金型”赞助全部权益</li>
+              <li><span class="check">✓</span> 现场颁发专属定制荣誉奖杯</li>
+            </ul>
+          </div>
+
+          <!-- 铂金型 -->
+          <div class="tier-card">
+            <div class="tier-name">🥇 铂金型赞助</div>
+            <div class="tier-price">
+              <div class="tier-price-val">5 千元 <span style="font-size:12.5px; color:#64748b; font-weight:normal;">及以上现金</span></div>
+              <div class="tier-seats">物资 7.5 千元 (限 8 席)</div>
+            </div>
+            <ul class="tier-highlights">
+              <li><span class="check">✓</span> <strong>伴手礼袋加入企业宣传单页</strong> (300份)</li>
+              <li><span class="check">✓</span> 晚宴前排核心贵宾桌序安排</li>
+              <li><span class="check">✓</span> 晚宴桌卡 / 桌旗展示赞助商</li>
+              <li><span class="check">✓</span> 包含“黄金型”赞助全部权益</li>
+              <li><span class="check">✓</span> 现场颁发专属定制荣誉奖杯</li>
+            </ul>
+          </div>
+
+          <!-- 黄金型 -->
+          <div class="tier-card">
+            <div class="tier-name">🏆 黄金型赞助</div>
+            <div class="tier-price">
+              <div class="tier-price-val">3 千元 <span style="font-size:12.5px; color:#64748b; font-weight:normal;">及以上现金</span></div>
+              <div class="tier-seats">物资 4.5 千元 (限 16 席)</div>
+            </div>
+            <ul class="tier-highlights">
+              <li><span class="check">✓</span> <strong>现场交流展位</strong> (数量有限，先到先得)</li>
+              <li><span class="check">✓</span> 现场主 KV 喷绘背景墙 LOGO 权威曝光</li>
+              <li><span class="check">✓</span> 主持人口播鸣谢赞助名单与大屏投屏</li>
+              <li><span class="check">✓</span> 倒计时海报鸣谢赞助商连续 7 天刷屏</li>
+              <li><span class="check">✓</span> 官方推文专题鸣谢与朋友圈推广</li>
+              <li><span class="check">✓</span> 现场颁发专属定制荣誉奖杯</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- 权益全景对比大表 (横向滑动浏览) -->
+        <div class="table-scroll-wrapper">
+          <div class="table-scroll-hint">
+            <span>📊 赞助权益明细对比大表</span>
+            <span>👉 左右滑动查看完整表格</span>
+          </div>
+          <div class="table-container">
+            <table class="sponsor-table">
+              <thead>
+                <tr>
+                  <th style="width: 85px;">赞助类型</th>
+                  <th style="width: 110px;">赞助内容 (2选1)</th>
+                  <th style="width: 60px;">席位</th>
+                  <th style="width: 240px;">核心赞助权益</th>
+                  <th style="width: 70px; text-align: center;">荣誉</th>
+                  <th style="width: 100px;">备注说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong style="color: #b45309;">👑 活动总冠名</strong></td>
+                  <td><strong>2 万元及以上</strong> 现金</td>
+                  <td><strong>1 席</strong></td>
+                  <td>
+                    <div class="table-sub-header">【包含“钻石型”所有权益，并增加】：</div>
+                    1. 晚宴前企业专属 PPT 宣介<br>
+                    2. 大合影展示冠名赞助商<br>
+                    3. 云相册展示冠名赞助商<br>
+                    4. 参会胸牌展示冠名赞助商
+                  </td>
+                  <td style="text-align: center; vertical-align: middle;"><strong>荣誉奖杯</strong></td>
+                  <td>全场唯一定制冠名</td>
+                </tr>
+
+                <tr>
+                  <td><strong style="color: #1d4ed8;">💎 钻石型</strong></td>
+                  <td><strong>1 万元及以上</strong> 现金</td>
+                  <td><strong>5 席</strong></td>
+                  <td>
+                    <div class="table-sub-header">【包含“铂金型”所有权益，并增加】：</div>
+                    1. 年会通讯录对接（姓名/专业/公司/职务）<br>
+                    2. 会前预热阶段宣传片轮播<br>
+                    3. 参会胸牌挂绳展示赞助商
+                  </td>
+                  <td style="text-align: center; vertical-align: middle;"><strong>荣誉奖杯</strong></td>
+                  <td>商机与资源深度对接</td>
+                </tr>
+
+                <tr>
+                  <td><strong>🥇 铂金型</strong></td>
+                  <td>
+                    现金 <strong>5 千元</strong> 及以上<br>
+                    或物资 <strong>7.5 千元</strong>
+                  </td>
+                  <td><strong>8 席</strong></td>
+                  <td>
+                    <div class="table-sub-header">【包含“黄金型”所有权益，并增加】：</div>
+                    1. 伴手礼袋加入企业宣传单页<br>
+                    2. 安排晚宴前排桌序<br>
+                    3. 晚宴桌卡 / 桌旗展示赞助商
+                  </td>
+                  <td style="text-align: center; vertical-align: middle;"><strong>荣誉奖杯</strong></td>
+                  <td>伴手礼精准入袋直达</td>
+                </tr>
+
+                <tr>
+                  <td><strong>🏆 黄金型</strong></td>
+                  <td>
+                    现金 <strong>3 千元</strong> 及以上<br>
+                    或物资 <strong>4.5 千元</strong>
+                  </td>
+                  <td><strong>16 席</strong></td>
+                  <td>
+                    <strong>【线下权益】：</strong><br>
+                    1. 现场主 KV 喷绘墙展示赞助商<br>
+                    2. 主持人宣读赞助商名单投屏<br>
+                    3. 活动议程单展示赞助商<br>
+                    4. 现场交流展位（先到先得）<br>
+                    <strong>【线上权益】：</strong><br>
+                    1. 活动前后宣推文鸣谢赞助商<br>
+                    2. 倒计时海报鸣谢 * 连续 7 天
+                  </td>
+                  <td style="text-align: center; vertical-align: middle;"><strong>荣誉奖杯</strong></td>
+                  <td>
+                    <span style="color:#d97706; font-weight:700;">现场展位先到先得</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 特别说明 -->
+        <div class="notes-card">
+          <h4>📌 特别说明：</h4>
+          <ol>
+            <li>赞助以现金优先；赞助物资需经组委会评估实际价值后享受对应档位回报；</li>
+            <li>宣传单页、展架、PPT、宣传片等物料由赞助商自行提供，内容需经审核；</li>
+            <li>赞助权益因赞助商原因未能实现的，对应赞助不减不退；</li>
+            <li>本次活动组委会拥有最终解释权。</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- 模块 6：宣传方式示例 -->
+    <section class="section-wrap alt-bg" id="showcase">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-num-tag">06 / SHOWCASE</span>
+          <h2 class="section-title">六、 宣传方式示例</h2>
+          <p class="section-desc">全维度、立体化沉浸式品牌露出，实现校友圈层深度记忆与裂变传播</p>
+        </div>
+
+        <div class="showcase-list">
+          <!-- 主KV喷绘 -->
+          <div class="showcase-card">
+            <div class="showcase-img-wrap">
+              <img src="images/sponsorship/showcase-kv.jpg" alt="主KV喷绘墙展示" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">🎨</span>
+                <span style="margin-top:4px;">主 KV 喷绘展示</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div class="showcase-body">
+              <div class="showcase-title">1. 主 KV 喷绘墙</div>
+              <div class="showcase-desc">盛典入口签到区及主屏背景巨幅展示，赞助商品牌 LOGO 权威曝光，全员合影打卡必经之地。</div>
+            </div>
+          </div>
+
+          <!-- 现场交流摊位 -->
+          <div class="showcase-card">
+            <div class="showcase-img-wrap">
+              <img src="images/sponsorship/showcase-booth.jpg" alt="现场交流展位展示" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">🎪</span>
+                <span style="margin-top:4px;">现场交流展位</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div class="showcase-body">
+              <div class="showcase-title">2. 现场交流展位</div>
+              <div class="showcase-desc">品牌展架陈列、宣传册分发，与现场 300+ 校友企业家及采购负责人一对一深度沟通。</div>
+            </div>
+          </div>
+
+          <!-- 伴手礼单页 -->
+          <div class="showcase-card">
+            <div class="showcase-img-wrap">
+              <img src="images/sponsorship/showcase-gift.jpg" alt="伴手礼单页展示" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">🛍️</span>
+                <span style="margin-top:4px;">伴手礼袋单页</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div class="showcase-body">
+              <div class="showcase-title">3. 伴手礼袋企业宣传单页</div>
+              <div class="showcase-desc">企业品牌折页装入 300 份伴手礼袋中，100% 随礼袋精准直达每位参会校友手中。</div>
+            </div>
+          </div>
+
+          <!-- 主持人宣读 -->
+          <div class="showcase-card">
+            <div class="showcase-img-wrap">
+              <img src="images/sponsorship/showcase-host.jpg" alt="主持人宣读投屏展示" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">🎤</span>
+                <span style="margin-top:4px;">主持人宣读投屏</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div class="showcase-body">
+              <div class="showcase-title">4. 主持人宣读与大屏投屏</div>
+              <div class="showcase-desc">盛典核心仪式环节，专业主持人现场郑重口播鸣谢企业，全场主屏同步图文投屏展示。</div>
+            </div>
+          </div>
+
+          <!-- 倒计时海报 -->
+          <div class="showcase-card">
+            <div class="showcase-img-wrap">
+              <img src="images/sponsorship/showcase-countdown.jpg" alt="倒计时海报展示" class="real-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height: 100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:28px;">⏰</span>
+                <span style="margin-top:4px;">倒计时海报展示</span>
+              </div>
+              <div class="zoom-hint-badge">🔍 点击放大</div>
+            </div>
+            <div class="showcase-body">
+              <div class="showcase-title">5. 活动倒计时海报</div>
+              <div class="showcase-desc">盛典开幕前连续 7 天海报发布，赞助商品牌随倒计时海报在校友社群与朋友圈持续高频刷屏。</div>
+            </div>
+          </div>
+
+          <!-- 荣誉表彰 -->
+          <div class="showcase-card">
+            <div class="showcase-img-wrap" style="display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);">
+              <div style="text-align:center; color:#b45309;">
+                <div style="font-size:36px;">🏆</div>
+                <div style="font-size:13px; font-weight:700; margin-top:4px;">专属定制荣誉奖杯</div>
+              </div>
+            </div>
+            <div class="showcase-body">
+              <div class="showcase-title">6. 盛典现场荣誉表彰</div>
+              <div class="showcase-desc">晚宴现场专设荣誉授牌环节，校领导与校友会负责人亲自为赞助企业现场颁发定制荣誉奖杯。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 模块 7：活动及赞助合作咨询 -->
+    <section class="section-wrap" id="contact">
+      <div class="container">
+        <div class="section-header" style="text-align: center;">
+          <span class="section-num-tag">07 / CONTACT</span>
+          <h2 class="section-title" style="justify-content: center;">七、 赞助合作咨询</h2>
+          <p class="section-desc">欢迎海内外校友企业家及优质品牌携手共赢，长按或点击识别二维码添加微信对接</p>
+        </div>
+
+        <div class="contact-list">
+          <!-- 邹春朗 秘书长 -->
+          <div class="contact-card">
+            <div class="qr-box">
+              <img src="images/sponsorship/qr-zouchunlang.jpg" alt="邹春朗秘书长微信二维码" class="real-img" style="object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height:100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:32px;">📱</span>
+                <span style="margin-top:4px;">二维码加载中</span>
+              </div>
+            </div>
+            <div class="contact-name">邹春朗</div>
+            <div class="contact-role">大工苏州校友会 秘书长</div>
+            <div class="contact-tip">负责年会全面赞助统筹、企业战略定制及高阶合作对接</div>
+            <div style="margin-top: 10px;">
+              <span style="display:inline-block; font-size:11px; background:#eff6ff; color:#1d4ed8; font-weight:700; padding:4px 12px; border-radius:12px;">
+                💡 微信长按识别或点击二维码
+              </span>
+            </div>
+          </div>
+
+          <!-- 冯吉 副秘书长 -->
+          <div class="contact-card">
+            <div class="qr-box">
+              <img src="images/sponsorship/qr-fengji.jpg" alt="冯吉副秘书长微信二维码" class="real-img" style="object-fit:contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              <div style="display:none; height:100%; align-items:center; justify-content:center; flex-direction:column; background:#f8fafc; color:#64748b; font-size:12px;">
+                <span style="font-size:32px;">📱</span>
+                <span style="margin-top:4px;">二维码加载中</span>
+              </div>
+            </div>
+            <div class="contact-name">冯吉</div>
+            <div class="contact-role">大工苏州校友会 副秘书长</div>
+            <div class="contact-tip">负责年会物料对接、赞助权益落实及现场展位统筹</div>
+            <div style="margin-top: 10px;">
+              <span style="display:inline-block; font-size:11px; background:#eff6ff; color:#1d4ed8; font-weight:700; padding:4px 12px; border-radius:12px;">
+                💡 微信长按识别或点击二维码
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer>
+      <p style="font-weight: 700; color: var(--navy-800); margin-bottom: 4px;">大连理工大学苏州校友会 · 经管学院苏州校友会 · MBA苏州联合会</p>
+      <p>© 2026 大工在苏校友年会组委会 版权所有 · 诚邀各界校友企业家共襄盛举</p>
+    </footer>
+
+    <!-- 移动端底部吸底悬浮咨询栏 -->
+    <div class="bottom-bar">
+      <div class="bottom-bar-inner">
+        <div class="bottom-bar-info">
+          <div class="bottom-bar-title">🏆 2026年会赞助招商</div>
+          <div class="bottom-bar-sub">300人规模 · 黄金席位有限</div>
+        </div>
+        <a href="#contact" class="bottom-bar-btn">
+          <span>💬</span> 立即咨询赞助
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全屏图片放大灯箱 (点击屏幕任意位置即刻关闭，移动端极佳体验) -->
+  <div id="lightboxOverlay" onclick="closeLightbox()">
+    <div class="lightbox-close-btn">✕ 点击关闭</div>
+    <img id="lightboxImg" src="" alt="大图预览" onclick="closeLightbox()">
+    <div id="lightboxCaption"></div>
+  </div>
+
+  <script>
+    function openLightbox(src, alt) {
+      if (!src) return;
+      var overlay = document.getElementById('lightboxOverlay');
+      var img = document.getElementById('lightboxImg');
+      var cap = document.getElementById('lightboxCaption');
+      if (!overlay || !img) return;
+      img.src = src;
+      if (cap) cap.textContent = alt || '查看高清原图';
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      var overlay = document.getElementById('lightboxOverlay');
+      var img = document.getElementById('lightboxImg');
+      if (overlay) overlay.style.display = 'none';
+      if (img) img.src = '';
+      document.body.style.overflow = '';
+    }
+
+    // 按 Esc 键关闭
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeLightbox();
+    });
+
+    // 事件委托：点击页面上的任何展示图片自动放大
+    document.addEventListener('click', function(e) {
+      var target = e.target;
+      if (target && target.tagName === 'IMG' && target.id !== 'lightboxImg') {
+        e.preventDefault();
+        openLightbox(target.src, target.alt);
+      }
+    });
+  </script>
+</body>
+</html>

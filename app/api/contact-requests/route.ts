@@ -37,7 +37,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(requests);
     } else {
       const outgoing = db.prepare(`
-        SELECT cr.*, a.name as target_name, a.phone as target_phone, a.wechat_groups as target_wechat_group
+        SELECT cr.*, 
+               a.name as target_name, 
+               (CASE WHEN cr.status = 'APPROVED' THEN a.phone ELSE '******' END) as target_phone, 
+               (CASE WHEN cr.status = 'APPROVED' THEN a.wechat_groups ELSE '******' END) as target_wechat_group
         FROM contact_requests cr
         JOIN alumni a ON cr.target_alumni_id = a.id
         WHERE cr.requester_id = ?

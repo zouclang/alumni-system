@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session || session.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized: 仅超级管理员可导出校友数据' }, { status: 403 });
+    }
+
     const db = getDb();
     const { searchParams } = new URL(request.url);
 
