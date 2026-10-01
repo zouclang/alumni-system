@@ -33,8 +33,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Public intro & static pages (allow unauthenticated access)
+  // Public pages, maps & data cockpit (allow unauthenticated access without account/password)
   if (
+    pathname === '/cockpit' ||
+    pathname.startsWith('/cockpit/') ||
+    pathname === '/api/cockpit' ||
+    pathname.startsWith('/api/cockpit/') ||
+    pathname.startsWith('/maps/') ||
+    pathname.endsWith('.json') ||
     pathname === '/matchmaking-intro' ||
     pathname === '/matchmaking-intro.html' ||
     pathname === '/jobs-intro' ||

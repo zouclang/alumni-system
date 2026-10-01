@@ -13,9 +13,11 @@ interface MapChartProps {
   data: MapData[];
   type: 'china' | 'suzhou';
   title: string;
+  dark?: boolean;
+  height?: string | number;
 }
 
-export default function MapChart({ data, type, title }: MapChartProps) {
+export default function MapChart({ data, type, title, dark = false, height = '450px' }: MapChartProps) {
   const [mapLoaded, setMapLoaded] = useState(false);
 
   useEffect(() => {
@@ -36,7 +38,7 @@ export default function MapChart({ data, type, title }: MapChartProps) {
   }, [type]);
 
   if (!mapLoaded) {
-    return <div className="loading-container" style={{ height: '400px' }}><div className="spinner" /></div>;
+    return <div className="loading-container" style={{ height: typeof height === 'number' ? `${height}px` : height, minHeight: '280px' }}><div className="spinner" /></div>;
   }
 
   // Canonical names mapping for China Provinces
@@ -103,17 +105,23 @@ export default function MapChart({ data, type, title }: MapChartProps) {
   const maxVal = processedData.length > 0 ? Math.max(...processedData.map(d => d.value)) : 10;
 
   const option = {
+    backgroundColor: 'transparent',
     title: {
       text: title,
       left: 'center',
       textStyle: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#1e293b'
+        color: dark ? '#e2e8f0' : '#1e293b'
       }
     },
     tooltip: {
       trigger: 'item',
+      backgroundColor: dark ? 'rgba(15, 23, 42, 0.95)' : '#ffffff',
+      borderColor: dark ? '#0284c7' : '#cbd5e1',
+      textStyle: {
+        color: dark ? '#f8fafc' : '#1e293b'
+      },
       formatter: (params: any) => {
         return `${params.name}: ${params.value || 0} 人`;
       }
@@ -124,9 +132,14 @@ export default function MapChart({ data, type, title }: MapChartProps) {
       left: 'left',
       top: 'bottom',
       text: ['高', '低'],
+      textStyle: {
+        color: dark ? '#94a3b8' : '#64748b'
+      },
       calculable: true,
       inRange: {
-        color: type === 'china' ? ['#e0f2fe', '#0284c7'] : ['#f0fdf4', '#16a34a']
+        color: dark 
+          ? (type === 'china' ? ['#0c2a4d', '#0284c7', '#38bdf8'] : ['#064e3b', '#10b981', '#34d399'])
+          : (type === 'china' ? ['#e0f2fe', '#0284c7'] : ['#f0fdf4', '#16a34a'])
       }
     },
     series: [
@@ -134,12 +147,18 @@ export default function MapChart({ data, type, title }: MapChartProps) {
         name: title,
         type: 'map',
         map: type,
+        itemStyle: {
+          areaColor: dark ? '#1e293b' : '#f1f5f9',
+          borderColor: dark ? '#334155' : '#cbd5e1',
+          borderWidth: 1
+        },
         emphasis: {
           label: {
-            show: true
+            show: true,
+            color: '#ffffff'
           },
           itemStyle: {
-            areaColor: '#fbbf24'
+            areaColor: '#f59e0b'
           }
         },
         data: processedData,
@@ -151,7 +170,7 @@ export default function MapChart({ data, type, title }: MapChartProps) {
           show: true, // Always show labels on the map as requested
           fontSize: type === 'suzhou' ? 10 : 11,
           fontWeight: type === 'china' ? 'bold' : 'normal',
-          color: '#334155',
+          color: dark ? '#cbd5e1' : '#334155',
           formatter: (params: any) => {
             // Only show labels for regions with data to avoid clutter
             if (!params.value) return '';
@@ -166,7 +185,7 @@ export default function MapChart({ data, type, title }: MapChartProps) {
   return (
     <ReactECharts
       option={option}
-      style={{ height: '450px', width: '100%' }}
+      style={{ height: height, width: '100%' }}
       notMerge={true}
       lazyUpdate={true}
     />

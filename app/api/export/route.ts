@@ -80,8 +80,17 @@ export async function GET(request: NextRequest) {
       });
       let formattedExp = expStrs.join('|');
 
+      let displayName = (row.name as string) || '';
+      if (row.status === 'PENDING') {
+        displayName = `${displayName}-未审核`;
+      } else if (row.status === 'REJECTED') {
+        displayName = `${displayName}-已驳回`;
+      } else if (row.status && row.status !== 'APPROVED') {
+        displayName = `${displayName}-未审核`;
+      }
+
       const values = [
-        row.name, row.hometown, formattedExp, row.degree,
+        displayName, row.hometown, formattedExp, row.degree,
         row.phone, row.interests, row.wechat_groups, row.dut_verified,
         row.birth_month, row.gender, row.region, row.career_type,
         row.company, row.position, row.industry, row.social_roles

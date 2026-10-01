@@ -7,6 +7,12 @@ import { useEffect, useState } from 'react';
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+
+  // If on independent data cockpit, do not render sidebar at all
+  if (pathname === '/cockpit' || pathname.startsWith('/cockpit/')) {
+    return null;
+  }
+
   const [user, setUser] = useState<{ role: string; username?: string; real_name?: string; realName?: string; hasIncompleteProfile?: boolean } | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [userUnreadCount, setUserUnreadCount] = useState(0);

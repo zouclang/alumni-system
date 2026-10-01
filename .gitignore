@@ -45,6 +45,9 @@ next-env.d.ts
 /data/
 /alumni.db
 *.db
+*.xlsx
+*.csv
+~$*.xlsx
 
 # PM2 logs
 /logs/
