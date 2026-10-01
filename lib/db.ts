@@ -302,6 +302,14 @@ function initializeSchema(database: Database.Database) {
   try { database.exec('CREATE INDEX IF NOT EXISTS idx_job_applications_job ON job_applications(job_id)'); } catch(e) {}
   try { database.exec('CREATE INDEX IF NOT EXISTS idx_job_applications_applicant ON job_applications(applicant_alumni_id)'); } catch(e) {}
 
+  // Resume attachments migration
+  try { database.exec("ALTER TABLE resume_skills ADD COLUMN resume_file_url TEXT;"); } catch(e) {}
+  try { database.exec("ALTER TABLE resume_skills ADD COLUMN resume_file_name TEXT;"); } catch(e) {}
+  try { database.exec("ALTER TABLE resume_skills ADD COLUMN resume_file_size INTEGER DEFAULT 0;"); } catch(e) {}
+  try { database.exec("ALTER TABLE resume_skills ADD COLUMN resume_file_uploaded_at DATETIME;"); } catch(e) {}
+  try { database.exec("ALTER TABLE job_applications ADD COLUMN resume_file_url TEXT;"); } catch(e) {}
+  try { database.exec("ALTER TABLE job_applications ADD COLUMN resume_file_name TEXT;"); } catch(e) {}
+
   // ── 喜结连理 tables ──────────────────────────────────────────────────────
   // 入驻申请表
   try {

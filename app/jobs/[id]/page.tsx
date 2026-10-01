@@ -54,7 +54,11 @@ export default function JobDetailPage() {
       const res = await fetch(`/api/jobs/${jobId}/apply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bio_snapshot: bioSnapshot }),
+        body: JSON.stringify({ 
+          bio_snapshot: bioSnapshot,
+          resume_file_url: resumeSkills?.resume_file_url,
+          resume_file_name: resumeSkills?.resume_file_name,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -281,7 +285,26 @@ export default function JobDetailPage() {
                   ) : null;
                 } catch { return null; }
               })()}
-              <div style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>完整简历（教育经历、工作经历等）将随投递一同提交</div>
+              {/* Resume Attachment Info */}
+              {resumeSkills?.resume_file_url ? (
+                <div style={{ marginTop: '10px', padding: '10px 14px', background: '#eff6ff', borderRadius: '10px', border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#1e40af', overflow: 'hidden' }}>
+                    <span style={{ fontSize: '15px' }}>📎</span>
+                    <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{resumeSkills.resume_file_name || '已上传附件简历'}</span>
+                    <span style={{ fontSize: '11px', color: '#2563eb', background: '#dbeafe', padding: '1px 6px', borderRadius: '4px', whiteSpace: 'nowrap' }}>将随投递一同发送</span>
+                  </div>
+                  <a href={`${resumeSkills.resume_file_url}?download=1`} target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}>
+                    查看/下载 ↗
+                  </a>
+                </div>
+              ) : (
+                <div style={{ marginTop: '10px', padding: '8px 12px', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', fontSize: '12px', color: '#64748b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>📎 未上传 PDF / Word 附件简历</span>
+                  <Link href="/profile?tab=resume" target="_blank" style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>去上传 ↗</Link>
+                </div>
+              )}
+
+              <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic', marginTop: '10px' }}>完整档案（教育经历、工作经历等）将随投递一同提交</div>
             </div>
 
             <div style={{ marginBottom: '24px' }}>

@@ -23,12 +23,22 @@ export default function ProfilePage() {
   
   // Resume state
   const [workExperiences, setWorkExperiences] = useState<any[]>([]);
-  const [skills, setSkills] = useState<{ skill_tags: string; languages: string; bio: string }>({ skill_tags: '[]', languages: '[]', bio: '' });
+  const [skills, setSkills] = useState<{ 
+    skill_tags: string; 
+    languages: string; 
+    bio: string;
+    resume_file_url?: string;
+    resume_file_name?: string;
+    resume_file_size?: number;
+    resume_file_uploaded_at?: string;
+  }>({ skill_tags: '[]', languages: '[]', bio: '' });
   const [editingWork, setEditingWork] = useState<any>(null);
   const [showWorkForm, setShowWorkForm] = useState(false);
   const [workForm, setWorkForm] = useState({ company: '', position: '', location: '', start_year: '', end_year: '', is_current: false, description: '' });
   const [savingSkills, setSavingSkills] = useState(false);
   const [skillInput, setSkillInput] = useState('');
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const [attachmentError, setAttachmentError] = useState('');
 
   // Jobs state
   const [myJobs, setMyJobs] = useState<any[]>([]);
@@ -68,6 +78,13 @@ export default function ProfilePage() {
     } catch (e) {
       return dateStr;
     }
+  };
+
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   // Matchmaking state
@@ -286,6 +303,75 @@ export default function ProfilePage() {
       const tags = JSON.parse(skills.skill_tags || '[]');
       setSkills(prev => ({ ...prev, skill_tags: JSON.stringify(tags.filter((t: string) => t !== tag)) }));
     } catch {}
+  };
+
+  const handleUploadResumeFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAttachmentError('');
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    if (!['.pdf', '.doc', '.docx'].includes(ext)) {
+      setAttachmentError('仅支持上传 PDF 或 Word（.doc / .docx）文件');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setAttachmentError('文件大小不能超过 15MB');
+      e.target.value = '';
+      return;
+    }
+
+    setUploadingAttachment(true);
+    try {
+      const formData = new FormData();
+      formData.append('resume', file);
+      const res = await fetch('/api/resume/attachment', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSkills(prev => ({
+          ...prev,
+          resume_file_url: data.url,
+          resume_file_name: data.fileName,
+          resume_file_size: data.fileSize,
+          resume_file_uploaded_at: data.uploadedAt,
+        }));
+        alert('简历附件上传成功');
+      } else {
+        setAttachmentError(data.error || '上传失败，请重试');
+      }
+    } catch {
+      setAttachmentError('网络错误，上传失败');
+    } finally {
+      setUploadingAttachment(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeleteResumeFile = async () => {
+    if (!confirm('确定要删除已上传的简历附件吗？')) return;
+    setUploadingAttachment(true);
+    try {
+      const res = await fetch('/api/resume/attachment', { method: 'DELETE' });
+      if (res.ok) {
+        setSkills(prev => ({
+          ...prev,
+          resume_file_url: undefined,
+          resume_file_name: undefined,
+          resume_file_size: undefined,
+          resume_file_uploaded_at: undefined,
+        }));
+        alert('已删除简历附件');
+      } else {
+        alert('删除失败');
+      }
+    } catch {
+      alert('网络错误');
+    } finally {
+      setUploadingAttachment(false);
+    }
   };
 
   const handleRequestAction = async (requestId: number, status: 'APPROVED' | 'REJECTED') => {
@@ -881,6 +967,165 @@ export default function ProfilePage() {
                   </button>
                 </div>
               </section>
+
+              {/* Resume Attachment Section */}
+              <section style={{ marginTop: '28px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#374151', margin: 0 }}>📎 简历附件</h3>
+                  <span style={{ fontSize: '12px', color: '#94a3b8' }}>支持 PDF、Word (.doc / .docx)，最大 15MB</span>
+                </div>
+
+                <div style={{ background: '#f8fafc', borderRadius: '14px', padding: '20px', border: '1px solid #e2e8f0' }}>
+                  {skills.resume_file_url ? (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      background: '#fff',
+                      padding: '16px 20px',
+                      borderRadius: '12px',
+                      border: '1px solid #bfdbfe',
+                      boxShadow: '0 2px 8px rgba(59,130,246,0.06)',
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: '240px', flex: 1 }}>
+                        <div style={{
+                          width: '44px',
+                          height: '44px',
+                          borderRadius: '10px',
+                          background: skills.resume_file_name?.toLowerCase().endsWith('.pdf') ? '#fee2e2' : '#dbeafe',
+                          color: skills.resume_file_name?.toLowerCase().endsWith('.pdf') ? '#dc2626' : '#2563eb',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '22px',
+                          flexShrink: 0,
+                        }}>
+                          {skills.resume_file_name?.toLowerCase().endsWith('.pdf') ? '📄' : '📝'}
+                        </div>
+                        <div style={{ overflow: 'hidden' }}>
+                          <div style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a', wordBreak: 'break-all' }}>
+                            {skills.resume_file_name || '简历附件'}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                            {skills.resume_file_size ? <span>大小：{formatFileSize(skills.resume_file_size)}</span> : null}
+                            {skills.resume_file_uploaded_at ? <span>上传时间：{formatDateTime(skills.resume_file_uploaded_at)}</span> : null}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' }}>
+                        <a
+                          href={`${skills.resume_file_url}?download=1`}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{
+                            padding: '8px 16px',
+                            background: '#eff6ff',
+                            border: '1px solid #bfdbfe',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            color: '#2563eb',
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          📥 下载/查看
+                        </a>
+                        <label style={{
+                          padding: '8px 16px',
+                          background: '#fff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          color: '#475569',
+                          cursor: uploadingAttachment ? 'not-allowed' : 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}>
+                          🔄 重新上传
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx"
+                            style={{ display: 'none' }}
+                            onChange={handleUploadResumeFile}
+                            disabled={uploadingAttachment}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleDeleteResumeFile}
+                          disabled={uploadingAttachment}
+                          style={{
+                            padding: '8px 16px',
+                            background: '#fff',
+                            border: '1px solid #fee2e2',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            color: '#ef4444',
+                            cursor: uploadingAttachment ? 'not-allowed' : 'pointer',
+                          }}
+                        >
+                          🗑️ 删除
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <label style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '36px 20px',
+                      background: '#fff',
+                      borderRadius: '12px',
+                      border: '2px dashed #cbd5e1',
+                      cursor: uploadingAttachment ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLLabelElement).style.borderColor = '#3b82f6'; (e.currentTarget as HTMLLabelElement).style.background = '#f8fafc'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLLabelElement).style.borderColor = '#cbd5e1'; (e.currentTarget as HTMLLabelElement).style.background = '#fff'; }}
+                    >
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        style={{ display: 'none' }}
+                        onChange={handleUploadResumeFile}
+                        disabled={uploadingAttachment}
+                      />
+                      <div style={{ fontSize: '36px', marginBottom: '8px' }}>📤</div>
+                      <div style={{ fontSize: '15px', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>
+                        {uploadingAttachment ? '文件上传中，请稍候...' : '点击或拖拽上传简历附件'}
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#64748b' }}>
+                        支持 PDF、Word (.doc / .docx) 格式，单个文件不超过 15MB
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>
+                        💡 投递岗位时，将自动携带此附件供招聘方查阅与下载
+                      </div>
+                    </label>
+                  )}
+
+                  {attachmentError && (
+                    <div style={{ marginTop: '10px', padding: '8px 12px', background: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca', fontSize: '13px', color: '#dc2626' }}>
+                      ⚠️ {attachmentError}
+                    </div>
+                  )}
+
+                  {uploadingAttachment && (
+                    <div style={{ marginTop: '10px', fontSize: '13px', color: '#3b82f6', textAlign: 'center' }}>
+                      ⏳ 处理中，请稍候...
+                    </div>
+                  )}
+                </div>
+              </section>
             </div>
           )}
 
@@ -961,6 +1206,29 @@ export default function ProfilePage() {
                                 >
                                   📄 查看简历
                                 </button>
+                                {app.resume_file_url && (
+                                  <a
+                                    href={`${app.resume_file_url}?download=1`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{
+                                      padding: '2px 10px',
+                                      background: '#ecfdf5',
+                                      border: '1px solid #a7f3d0',
+                                      borderRadius: '6px',
+                                      fontSize: '12px',
+                                      color: '#059669',
+                                      fontWeight: 600,
+                                      textDecoration: 'none',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                    }}
+                                    title={app.resume_file_name || '下载附件简历'}
+                                  >
+                                    📎 下载附件 {app.resume_file_name ? `(${app.resume_file_name.toLowerCase().endsWith('.pdf') ? 'PDF' : 'Word'})` : ''}
+                                  </a>
+                                )}
                               </div>
                               <div style={{ fontSize: '12px', color: '#94a3b8' }}>{app.created_at?.substring(0, 10)}</div>
                             </div>
@@ -1127,6 +1395,28 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div style={{ fontSize: '13px', color: '#94a3b8' }}>暂未填写自我介绍</div>
+                )}
+
+                {viewingResume.resume_skills?.resume_file_url && (
+                  <div style={{ marginTop: '14px', padding: '12px 16px', background: '#eff6ff', borderRadius: '10px', border: '1px solid #bfdbfe', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#1e40af' }}>
+                      <span style={{ fontSize: '18px' }}>📎</span>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>{viewingResume.resume_skills.resume_file_name || '附件简历'}</div>
+                        {viewingResume.resume_skills.resume_file_size ? (
+                          <div style={{ fontSize: '11px', color: '#60a5fa' }}>{formatFileSize(viewingResume.resume_skills.resume_file_size)}</div>
+                        ) : null}
+                      </div>
+                    </div>
+                    <a
+                      href={`${viewingResume.resume_skills.resume_file_url}?download=1`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ padding: '6px 14px', background: '#2563eb', color: 'white', borderRadius: '8px', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}
+                    >
+                      📥 下载附件简历
+                    </a>
+                  </div>
                 )}
               </div>
             </div>
