@@ -20,9 +20,10 @@ export async function GET(req: NextRequest) {
     let where = `jp.status = 'ACTIVE' AND jp.deadline >= date('now')`;
     const bindParams: any[] = [];
 
-    if (search) {
+    const rawSearch = (searchParams.get('search') || '').trim();
+    if (rawSearch) {
       where += ` AND (jp.job_title LIKE ? OR jp.company_name LIKE ?)`;
-      bindParams.push(`%${search}%`, `%${search}%`);
+      bindParams.push(`%${rawSearch}%`, `%${rawSearch}%`);
     }
     if (jobType) {
       where += ` AND jp.job_type = ?`;

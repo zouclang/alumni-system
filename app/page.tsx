@@ -54,6 +54,7 @@ export default function HomePage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [region, setRegion] = useState('');
   const [college, setCollege] = useState('');
   const [degree, setDegree] = useState('');
@@ -103,13 +104,22 @@ export default function HomePage() {
       });
   }, []);
 
-  const fetchData = useCallback(async () => {
+  // Debounce search input by 300ms to eliminate race conditions
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const fetchData = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         page: String(page),
         pageSize: String(pageSize),
-        ...(search && { search }),
+        ...(debouncedSearch && { search: debouncedSearch }),
         ...(region && { region }),
         ...(college && { college }),
         ...(degree && { degree }),
@@ -118,14 +128,18 @@ export default function HomePage() {
         ...(wechatGroup && { wechatGroup }),
         ...(isRegistered && { registered: isRegistered }),
       });
-      const res = await fetch(`/api/alumni?${params}`);
+      const res = await fetch(`/api/alumni?${params}`, { signal });
       const json = await res.json();
       setData(json.data || []);
       setTotal(json.total || 0);
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error('Fetch error:', err);
+      }
     } finally {
       setLoading(false);
     }
-  }, [page, search, region, college, degree, gender, careerType, wechatGroup, isRegistered]);
+  }, [page, debouncedSearch, region, college, degree, gender, careerType, wechatGroup, isRegistered]);
 
   const fetchMetadata = useCallback(() => {
     fetch('/api/stats')
@@ -145,7 +159,9 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => { 
-    fetchData(); 
+    const controller = new AbortController();
+    fetchData(controller.signal); 
+    return () => controller.abort();
   }, [fetchData]);
 
   useEffect(() => {
@@ -156,7 +172,7 @@ export default function HomePage() {
 
   const handleExport = () => {
     const params = new URLSearchParams({
-      ...(search && { search }),
+      ...(debouncedSearch && { search: debouncedSearch }),
       ...(region && { region }),
       ...(college && { college }),
       ...(degree && { degree }),
@@ -237,9 +253,15 @@ export default function HomePage() {
           <input
             className="search-input"
             type="text"
-            placeholder="姓名、公司..."
+            placeholder="姓名、拼音、公司..."
             value={search}
-            onChange={(e) => { setSearch(e.target.value); handleFilterChange(); }}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                setDebouncedSearch(search.trim());
+                setPage(1);
+              }
+            }}
           />
         </div>
         <div className="filter-group">
@@ -294,7 +316,7 @@ export default function HomePage() {
         {(search || region || college || degree || careerType || wechatGroup || isRegistered) && (
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px' }}>
             <button className="btn btn-outline btn-sm" onClick={() => {
-              setSearch(''); setRegion(''); setCollege('');
+              setSearch(''); setDebouncedSearch(''); setRegion(''); setCollege('');
               setDegree(''); setCareerType(''); setWechatGroup('');
               setIsRegistered('');
               setPage(1);

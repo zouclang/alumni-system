@@ -27,11 +27,13 @@ export async function GET(request: NextRequest) {
     // Alumni directory only displays verified/approved alumni records
     conditions.push("a.status = 'APPROVED'");
 
-    if (search) {
-      // Support searching by name, pinyin, or company only for regular users
-      conditions.push('(name LIKE ? OR pinyin_name LIKE ? OR company LIKE ?)');
-      const like = `%${search}%`;
-      params.push(like, like, like);
+    const rawSearch = (searchParams.get('search') || '').trim();
+
+    if (rawSearch) {
+      // Support searching by name, continuous pinyin, pinyin with spaces, or company
+      const cleanPinyin = rawSearch.toLowerCase().replace(/\s+/g, '');
+      conditions.push('(a.name LIKE ? OR a.pinyin_name LIKE ? OR a.pinyin_name LIKE ? OR a.company LIKE ?)');
+      params.push(`%${rawSearch}%`, `%${rawSearch}%`, `%${cleanPinyin}%`, `%${rawSearch}%`);
     }
 
     const region = searchParams.get('region') || '';

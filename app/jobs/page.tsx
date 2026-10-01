@@ -25,6 +25,7 @@ export default function JobsPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [jobType, setJobType] = useState('');
   const [user, setUser] = useState<any>(null);
 
@@ -37,25 +38,42 @@ export default function JobsPage() {
     });
   }, []);
 
-  const fetchJobs = useCallback(async () => {
+  // Debounce search input by 300ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const fetchJobs = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         page: String(page),
         pageSize: String(pageSize),
-        ...(search && { search }),
+        ...(debouncedSearch && { search: debouncedSearch }),
         ...(jobType && { jobType }),
       });
-      const res = await fetch(`/api/jobs?${params}`);
+      const res = await fetch(`/api/jobs?${params}`, { signal });
       const data = await res.json();
       setJobs(data.data || []);
       setTotal(data.total || 0);
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error('Fetch error:', err);
+      }
     } finally {
       setLoading(false);
     }
-  }, [page, search, jobType]);
+  }, [page, debouncedSearch, jobType]);
 
-  useEffect(() => { fetchJobs(); }, [fetchJobs]);
+  useEffect(() => { 
+    const controller = new AbortController();
+    fetchJobs(controller.signal);
+    return () => controller.abort();
+  }, [fetchJobs]);
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -103,7 +121,13 @@ export default function JobsPage() {
             type="text"
             placeholder="搜索岗位名称、公司..."
             value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }}
+            onChange={e => setSearch(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                setDebouncedSearch(search.trim());
+                setPage(1);
+              }
+            }}
             style={{
               flex: 1, minWidth: '200px', padding: '10px 16px',
               border: '1px solid #e2e8f0', borderRadius: '10px',
@@ -128,7 +152,7 @@ export default function JobsPage() {
           </select>
           {(search || jobType) && (
             <button
-              onClick={() => { setSearch(''); setJobType(''); setPage(1); }}
+              onClick={() => { setSearch(''); setDebouncedSearch(''); setJobType(''); setPage(1); }}
               style={{
                 padding: '10px 16px', border: '1px solid #e2e8f0',
                 borderRadius: '10px', fontSize: '13px', color: '#64748b',

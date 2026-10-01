@@ -24,10 +24,11 @@ export async function GET(request: NextRequest) {
     const conditions: string[] = [];
     const params: (string | number)[] = [];
 
-    if (search) {
-      conditions.push('(name LIKE ? OR company LIKE ? OR position LIKE ? OR phone LIKE ? OR qq LIKE ? OR wechat_id LIKE ?)');
-      const like = `%${search}%`;
-      params.push(like, like, like, like, like, like);
+    const rawSearch = search.trim();
+    if (rawSearch) {
+      const cleanPinyin = rawSearch.toLowerCase().replace(/\s+/g, '');
+      conditions.push('(a.name LIKE ? OR a.pinyin_name LIKE ? OR a.pinyin_name LIKE ? OR a.company LIKE ? OR a.position LIKE ? OR a.phone LIKE ? OR a.qq LIKE ? OR a.wechat_id LIKE ?)');
+      params.push(`%${rawSearch}%`, `%${rawSearch}%`, `%${cleanPinyin}%`, `%${rawSearch}%`, `%${rawSearch}%`, `%${rawSearch}%`, `%${rawSearch}%`, `%${rawSearch}%`);
     }
     if (region) { conditions.push('region = ?'); params.push(region); }
     if (college) { conditions.push('college_normalized = ?'); params.push(college); }
