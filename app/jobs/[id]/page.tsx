@@ -34,7 +34,13 @@ export default function JobDetailPage() {
     setLoading(true);
     fetch(`/api/jobs/${jobId}`)
       .then(r => r.json())
-      .then(d => { setJob(d); setLoading(false); })
+      .then(d => { 
+        setJob(d); 
+        if (d?.job_title) {
+          document.title = `【招聘】${d.job_title} · ${d.company_name} | 连理招聘`;
+        }
+        setLoading(false); 
+      })
       .catch(() => setLoading(false));
   }, [jobId]);
 

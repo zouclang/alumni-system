@@ -230,6 +230,7 @@ export default function MatchmakingPage() {
 
   // ── Init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
+    document.title = '喜结连理 - 大工校友相亲联谊';
     fetch('/api/auth/me')
       .then(r => r.json())
       .then(data => {

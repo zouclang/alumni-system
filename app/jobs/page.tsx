@@ -32,6 +32,7 @@ export default function JobsPage() {
   const pageSize = 12;
 
   useEffect(() => {
+    document.title = '连理招聘 - 大工校友企业招聘市场';
     fetch('/api/auth/me').then(r => r.json()).then(d => {
       if (!d.authenticated) router.push('/login');
       else setUser(d.user);
