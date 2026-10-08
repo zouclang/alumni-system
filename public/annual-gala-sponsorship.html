@@ -15,6 +15,25 @@
   <meta property="og:image" content="images/share-sponsorship.png">
   <meta itemprop="image" content="images/share-sponsorship.png">
   <link rel="image_src" href="images/share-sponsorship.png">
+  <script>
+    (function() {
+      try {
+        var base = window.location.href.split('?')[0].split('#')[0];
+        var dir = base.substring(0, base.lastIndexOf('/') + 1);
+        var fullImgUrl = dir + 'images/share-sponsorship.png';
+        var og = document.querySelector('meta[property="og:image"]');
+        if (og) og.setAttribute('content', fullImgUrl);
+        var item = document.querySelector('meta[itemprop="image"]');
+        if (item) item.setAttribute('content', fullImgUrl);
+        var link = document.querySelector('link[rel="image_src"]');
+        if (link) link.setAttribute('href', fullImgUrl);
+        window.addEventListener('DOMContentLoaded', function() {
+          var img = document.getElementById('wx-share-thumb');
+          if (img) img.src = fullImgUrl;
+        });
+      } catch (e) {}
+    })();
+  </script>
   <style>
     :root {
       --navy-900: #0f172a;
@@ -958,9 +977,9 @@
   </style>
 </head>
 <body>
-  <!-- WeChat share card thumbnail helper -->
-  <div style="position: absolute; top: -9999px; left: -9999px; width: 0; height: 0; overflow: hidden;">
-    <img src="images/share-sponsorship.png" width="300" height="300" alt="2026年大工苏州校友年会赞助合作方案" />
+  <!-- WeChat share card thumbnail helper (off-screen with real 300x300 dimensions, no width:0/height:0) -->
+  <div style="position: absolute; top: -9999px; left: -9999px; z-index: -9999; pointer-events: none;">
+    <img id="wx-share-thumb" src="images/share-sponsorship.png" width="300" height="300" style="width: 300px; height: 300px; display: block;" alt="2026年大工苏州校友年会赞助合作方案" />
   </div>
 
   <div class="app-wrapper">
