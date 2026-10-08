@@ -74,8 +74,18 @@ export default function AlumniDetailLayout({ children }: { children: React.React
   const shareImageUrl = `${BASE_URL}/share-alumni.png`;
   return (
     <>
-      <div style={{ position: 'absolute', top: -9999, left: -9999, width: 0, height: 0, overflow: 'hidden' }}>
-        <img src={shareImageUrl} width="300" height="300" alt="校友名片" />
+      <head>
+        <link rel="image_src" href={shareImageUrl} />
+        <meta itemProp="image" content={shareImageUrl} />
+      </head>
+      <div style={{ position: 'absolute', top: -9999, left: -9999, zIndex: -9999, pointerEvents: 'none' }}>
+        <img
+          src={shareImageUrl}
+          width="300"
+          height="300"
+          style={{ width: '300px', height: '300px', display: 'block' }}
+          alt="校友名片"
+        />
       </div>
       {children}
     </>

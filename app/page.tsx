@@ -224,6 +224,16 @@ export default function HomePage() {
 
   return (
     <div className="fade-in">
+      {/* WeChat share card thumbnail helper */}
+      <div style={{ position: 'absolute', top: -9999, left: -9999, zIndex: -9999, pointerEvents: 'none' }}>
+        <img
+          src="http://godii.top:8085/share-alumni.png"
+          width="300"
+          height="300"
+          style={{ width: '300px', height: '300px', display: 'block' }}
+          alt="大工苏州校友通讯录"
+        />
+      </div>
       <div className="page-header">
         <div>
           <h1 className="page-title">校友通讯录</h1>

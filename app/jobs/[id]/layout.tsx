@@ -79,9 +79,19 @@ export default function JobDetailLayout({ children }: { children: React.ReactNod
   const shareImageUrl = `${BASE_URL}/share-jobs.png`;
   return (
     <>
+      <head>
+        <link rel="image_src" href={shareImageUrl} />
+        <meta itemProp="image" content={shareImageUrl} />
+      </head>
       {/* WeChat share card thumbnail helper */}
-      <div style={{ position: 'absolute', top: -9999, left: -9999, width: 0, height: 0, overflow: 'hidden' }}>
-        <img src={shareImageUrl} width="300" height="300" alt="连理招聘" />
+      <div style={{ position: 'absolute', top: -9999, left: -9999, zIndex: -9999, pointerEvents: 'none' }}>
+        <img
+          src={shareImageUrl}
+          width="300"
+          height="300"
+          style={{ width: '300px', height: '300px', display: 'block' }}
+          alt="连理招聘"
+        />
       </div>
       {children}
     </>

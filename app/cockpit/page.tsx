@@ -141,6 +141,32 @@ export default function CockpitPage() {
 
   useEffect(() => {
     document.title = '数据驾驶舱 - 大工苏州校友会';
+
+    // Inject / update WeChat share meta tags directly into DOM
+    try {
+      const setMeta = (attr: string, key: string, content: string) => {
+        let el = document.querySelector(`meta[${attr}="${key}"]`);
+        if (!el) {
+          el = document.createElement('meta');
+          el.setAttribute(attr, key);
+          document.head.appendChild(el);
+        }
+        el.setAttribute('content', content);
+      };
+      setMeta('property', 'og:title', '数据驾驶舱 - 大工苏州校友会');
+      setMeta('property', 'og:description', '大连理工大学苏州校友数据驾驶舱，全景呈现校友分布、行业生态、相亲联谊与企业招聘实时洞察。');
+      setMeta('property', 'og:image', 'http://godii.top:8085/share-cockpit.png');
+      setMeta('itemprop', 'image', 'http://godii.top:8085/share-cockpit.png');
+
+      let link = document.querySelector('link[rel="image_src"]');
+      if (!link) {
+        link = document.createElement('link');
+        link.setAttribute('rel', 'image_src');
+        document.head.appendChild(link);
+      }
+      link.setAttribute('href', 'http://godii.top:8085/share-cockpit.png');
+    } catch (e) {}
+
     fetchData();
 
     // Auto-refresh every 60 seconds
@@ -190,6 +216,16 @@ export default function CockpitPage() {
         justifyContent: 'center',
         fontFamily: 'system-ui'
       }}>
+        {/* WeChat share card thumbnail helper */}
+        <div style={{ position: 'absolute', top: -9999, left: -9999, zIndex: -9999, pointerEvents: 'none' }}>
+          <img
+            src="http://godii.top:8085/share-cockpit.png"
+            width="300"
+            height="300"
+            style={{ width: '300px', height: '300px', display: 'block' }}
+            alt="数据驾驶舱"
+          />
+        </div>
         <div className="spinner" style={{ width: '40px', height: '40px', borderWidth: '3px' }} />
         <div style={{ marginTop: '16px', fontSize: '16px', letterSpacing: '2px' }}>
           正在加载校友大数据驾驶舱...
@@ -216,6 +252,17 @@ export default function CockpitPage() {
       ref={cockpitRef}
       className={`cockpit-container ${isFullscreen ? 'is-fullscreen' : ''}`}
     >
+      {/* WeChat share card thumbnail helper */}
+      <div style={{ position: 'absolute', top: -9999, left: -9999, zIndex: -9999, pointerEvents: 'none' }}>
+        <img
+          src="http://godii.top:8085/share-cockpit.png"
+          width="300"
+          height="300"
+          style={{ width: '300px', height: '300px', display: 'block' }}
+          alt="数据驾驶舱"
+        />
+      </div>
+
       {/* Dynamic Background Grid Pattern */}
       <div style={{
         position: 'absolute',

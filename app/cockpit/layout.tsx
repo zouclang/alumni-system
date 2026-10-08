@@ -34,9 +34,19 @@ export const metadata: Metadata = {
 export default function CockpitLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {/* WeChat share card thumbnail helper */}
-      <div style={{ position: 'absolute', top: -9999, left: -9999, width: 0, height: 0, overflow: 'hidden' }}>
-        <img src={shareImageUrl} width="300" height="300" alt="数据驾驶舱" />
+      <head>
+        <link rel="image_src" href={shareImageUrl} />
+        <meta itemProp="image" content={shareImageUrl} />
+      </head>
+      {/* WeChat share card thumbnail helper with explicit 300x300 dimensions for WeChat spider */}
+      <div style={{ position: 'absolute', top: -9999, left: -9999, zIndex: -9999, pointerEvents: 'none' }}>
+        <img
+          src={shareImageUrl}
+          width="300"
+          height="300"
+          style={{ width: '300px', height: '300px', display: 'block' }}
+          alt="数据驾驶舱"
+        />
       </div>
       {children}
     </>
