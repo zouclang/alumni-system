@@ -140,6 +140,7 @@ export default function CockpitPage() {
   };
 
   useEffect(() => {
+    document.title = '数据驾驶舱 - 大工苏州校友会';
     fetchData();
 
     // Auto-refresh every 60 seconds
