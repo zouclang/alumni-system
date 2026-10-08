@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://godii.top';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://godii.top:8085';
 const shareImageUrl = `${BASE_URL}/share-matchmaking.png`;
 
 export const metadata: Metadata = {

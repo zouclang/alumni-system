@@ -11,4 +11,5 @@ services:
       - PORT=8085
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=admin
+      - NEXT_PUBLIC_APP_URL=http://godii.top:8085
     restart: always

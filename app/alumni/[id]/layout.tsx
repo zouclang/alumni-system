@@ -6,7 +6,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://godii.top';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://godii.top:8085';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;

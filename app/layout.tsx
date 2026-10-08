@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Sidebar from '@/components/Sidebar';
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://godii.top';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://godii.top:8085';
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
