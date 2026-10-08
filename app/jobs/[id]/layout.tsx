@@ -6,6 +6,8 @@ type Props = {
   children: React.ReactNode;
 };
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://godii.top';
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   try {
@@ -35,6 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const title = `【招聘】${job.job_title} · ${job.company_name} | 连理招聘`;
     const publisherText = job.publisher_name ? `由校友 ${job.publisher_name} 发布` : '校友企业直聘';
     const desc = `${job.company_name} 诚聘 ${job.job_title}（${job.salary_range}，${job.location}）。${publisherText}，点击查看岗位职责与要求，支持在线投递简历。`;
+    const shareImageUrl = `${BASE_URL}/share-jobs.png`;
 
     return {
       title,
@@ -43,13 +46,25 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         title,
         description: desc,
         type: 'article',
-        images: ['/logo.png'],
+        url: `${BASE_URL}/jobs/${jobId}`,
+        siteName: '大工人在苏州 · 连理招聘',
+        images: [
+          {
+            url: shareImageUrl,
+            width: 600,
+            height: 600,
+            alt: '连理招聘',
+          },
+        ],
       },
       twitter: {
         card: 'summary',
         title,
         description: desc,
-        images: ['/logo.png'],
+        images: [shareImageUrl],
+      },
+      other: {
+        'itemprop:image': shareImageUrl,
       },
     };
   } catch (e) {
@@ -61,11 +76,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default function JobDetailLayout({ children }: { children: React.ReactNode }) {
+  const shareImageUrl = `${BASE_URL}/share-jobs.png`;
   return (
     <>
       {/* WeChat share card thumbnail helper */}
-      <div style={{ display: 'none', fontSize: 0, lineHeight: 0, opacity: 0 }}>
-        <img src="/logo.png" width="300" height="300" alt="连理招聘" />
+      <div style={{ position: 'absolute', top: -9999, left: -9999, width: 0, height: 0, overflow: 'hidden' }}>
+        <img src={shareImageUrl} width="300" height="300" alt="连理招聘" />
       </div>
       {children}
     </>

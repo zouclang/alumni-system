@@ -6,6 +6,8 @@ type Props = {
   children: React.ReactNode;
 };
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://godii.top';
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   try {
@@ -31,6 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const collegeInfo = row.college ? ` · ${row.college}` : '';
     const workInfo = (row.is_company_public && row.company) ? ` · ${row.company}${row.position ? ` ${row.position}` : ''}` : '';
     const desc = `${row.name}（${eduInfo}${collegeInfo}）${workInfo}。点击查看校友名片与联络方式。`;
+    const shareImageUrl = `${BASE_URL}/share-alumni.png`;
 
     return {
       title,
@@ -38,13 +41,25 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       openGraph: {
         title,
         description: desc,
-        images: ['/logo.png'],
+        url: `${BASE_URL}/alumni/${alumniId}`,
+        siteName: '大工人在苏州 · 校友通讯录',
+        images: [
+          {
+            url: shareImageUrl,
+            width: 600,
+            height: 600,
+            alt: '大工苏州校友通讯录',
+          },
+        ],
       },
       twitter: {
         card: 'summary',
         title,
         description: desc,
-        images: ['/logo.png'],
+        images: [shareImageUrl],
+      },
+      other: {
+        'itemprop:image': shareImageUrl,
       },
     };
   } catch (e) {
@@ -56,5 +71,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default function AlumniDetailLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  const shareImageUrl = `${BASE_URL}/share-alumni.png`;
+  return (
+    <>
+      <div style={{ position: 'absolute', top: -9999, left: -9999, width: 0, height: 0, overflow: 'hidden' }}>
+        <img src={shareImageUrl} width="300" height="300" alt="校友名片" />
+      </div>
+      {children}
+    </>
+  );
 }
