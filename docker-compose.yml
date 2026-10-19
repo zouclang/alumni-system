@@ -6,6 +6,7 @@ services:
       - "8085:8085"
     volumes:
       - ./data:/app/data
+      - ./public:/app/public
     environment:
       - NODE_ENV=production
       - PORT=8085

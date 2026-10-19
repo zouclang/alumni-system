@@ -33,19 +33,33 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Public pages, maps & data cockpit (allow unauthenticated access without account/password)
+  // Public pages, static images, maps & data cockpit (allow unauthenticated access without account/password)
   if (
     pathname === '/cockpit' ||
     pathname.startsWith('/cockpit/') ||
     pathname === '/api/cockpit' ||
     pathname.startsWith('/api/cockpit/') ||
     pathname.startsWith('/maps/') ||
+    pathname.startsWith('/images/') ||
     pathname.endsWith('.json') ||
     pathname === '/matchmaking-intro' ||
     pathname === '/matchmaking-intro.html' ||
     pathname === '/jobs-intro' ||
     pathname === '/jobs-intro.html' ||
-    pathname.endsWith('.html')
+    pathname === '/alumni-intro' ||
+    pathname === '/alumni-intro.html' ||
+    pathname === '/annual-gala-intro' ||
+    pathname === '/annual-gala-intro.html' ||
+    pathname === '/annual-gala-sponsorship' ||
+    pathname === '/annual-gala-sponsorship.html' ||
+    pathname.endsWith('.html') ||
+    pathname.endsWith('.png') ||
+    pathname.endsWith('.jpg') ||
+    pathname.endsWith('.jpeg') ||
+    pathname.endsWith('.webp') ||
+    pathname.endsWith('.gif') ||
+    pathname.endsWith('.svg') ||
+    pathname.endsWith('.ico')
   ) {
     return NextResponse.next();
   }
@@ -95,6 +109,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|logo.png|.*\\.png|.*\\.svg|.*\\.html).*)',
+    '/((?!_next/static|_next/image|favicon.ico|logo.png|images/|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.webp|.*\\.gif|.*\\.svg|.*\\.ico|.*\\.html).*)',
   ],
 };
