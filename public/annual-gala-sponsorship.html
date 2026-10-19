@@ -12,15 +12,16 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="2026年大工苏州校友年会 · 赞助合作方案">
   <meta property="og:description" content="品牌赋能、精准触达、携手共赢！大连理工大学苏州校友年会诚邀赞助合作伙伴，共享校友经济新机遇。">
-  <meta property="og:image" content="images/share-sponsorship.png">
-  <meta itemprop="image" content="images/share-sponsorship.png">
-  <link rel="image_src" href="images/share-sponsorship.png">
+  <meta property="og:image" content="http://godii.top:8085/share-sponsorship.png">
+  <meta itemprop="image" content="http://godii.top:8085/share-sponsorship.png">
+  <link rel="image_src" href="http://godii.top:8085/share-sponsorship.png">
   <script>
     (function() {
       try {
         var base = window.location.href.split('?')[0].split('#')[0];
         var dir = base.substring(0, base.lastIndexOf('/') + 1);
-        var fullImgUrl = dir + 'images/share-sponsorship.png';
+        var origin = window.location.origin;
+        var fullImgUrl = origin ? (origin + '/share-sponsorship.png') : (dir + 'share-sponsorship.png');
         var og = document.querySelector('meta[property="og:image"]');
         if (og) og.setAttribute('content', fullImgUrl);
         var item = document.querySelector('meta[itemprop="image"]');
@@ -977,9 +978,9 @@
   </style>
 </head>
 <body>
-  <!-- WeChat share card thumbnail helper (off-screen with real 300x300 dimensions, no width:0/height:0) -->
-  <div style="position: absolute; top: -9999px; left: -9999px; z-index: -9999; pointer-events: none;">
-    <img id="wx-share-thumb" src="images/share-sponsorship.png" width="300" height="300" style="width: 300px; height: 300px; display: block;" alt="2026年大工苏州校友年会赞助合作方案" />
+  <!-- WeChat share card thumbnail helper (first img in body for WeChat webview parser) -->
+  <div style="position: absolute; top: -9999px; left: -9999px; width: 0; height: 0; overflow: hidden;">
+    <img id="wx-share-thumb" src="http://godii.top:8085/share-sponsorship.png" width="300" height="300" alt="2026年大工苏州校友年会赞助合作方案" />
   </div>
 
   <div class="app-wrapper">
