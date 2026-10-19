@@ -573,12 +573,12 @@
       gap: 4px;
     }
 
-    /* 参会票种卡片 */
+    /* 参会票种卡片与价格体系 */
     .ticket-grid {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin: 14px 0;
+      margin: 16px 0;
     }
     .ticket-item {
       background: #ffffff;
@@ -586,31 +586,159 @@
       border-radius: 12px;
       padding: 12px 14px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      gap: 5px;
       box-shadow: var(--shadow-sm);
+      text-align: left;
     }
     .ticket-item.primary {
       border-color: var(--gold-primary);
       background: linear-gradient(180deg, #fffef7 0%, #ffffff 100%);
+      box-shadow: 0 3px 12px rgba(194, 145, 67, 0.12);
+    }
+    .ticket-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .ticket-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
     }
     .ticket-name {
-      font-size: 13.5px;
+      font-size: 14px;
       font-weight: 800;
       color: var(--navy-900);
     }
-    .ticket-desc {
-      font-size: 11px;
-      color: var(--navy-600);
-      margin-top: 2px;
-    }
     .ticket-badge {
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 700;
       color: var(--gold-accent);
       background: var(--gold-soft);
-      padding: 3px 8px;
+      padding: 2px 7px;
       border-radius: 6px;
+      white-space: nowrap;
+    }
+    .ticket-price-tag {
+      font-size: 16px;
+      font-weight: 900;
+      color: #b45309;
+      white-space: nowrap;
+      display: flex;
+      align-items: baseline;
+      gap: 1px;
+    }
+    .ticket-price-tag.free {
+      color: #059669;
+      font-size: 14px;
+    }
+    .ticket-price-tag .unit {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--navy-600);
+    }
+    .ticket-desc {
+      font-size: 11.5px;
+      color: var(--navy-600);
+      line-height: 1.45;
+    }
+
+    /* 早鸟礼专属特权卡片 */
+    .earlybird-card {
+      background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+      border: 1.5px dashed #f59e0b;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin: 14px 0 10px;
+      text-align: left;
+    }
+    .earlybird-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #b45309;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 9px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+    }
+
+    /* 伴手礼与爱心加赠卡片 */
+    .gift-support-card {
+      background: #ffffff;
+      border: 1.5px solid #fed7aa;
+      border-radius: 14px;
+      padding: 14px;
+      margin: 12px 0;
+      text-align: left;
+      box-shadow: var(--shadow-sm);
+    }
+    .support-tier-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .support-tier-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      background: #fffaf5;
+      border: 1px solid #ffedd5;
+      border-radius: 10px;
+      font-size: 11.5px;
+    }
+    .support-tier-pill {
+      font-weight: 800;
+      color: #c2410c;
+      background: #ffedd5;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    /* 赞助芳名榜卡片 */
+    .sponsor-honor-box {
+      background: linear-gradient(135deg, #f0f7ff 0%, #f8fafc 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+      padding: 14px;
+      margin-top: 14px;
+      text-align: left;
+    }
+    .sponsor-honor-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-top: 8px;
+    }
+    .sponsor-honor-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 11.5px;
+      color: var(--navy-800);
+      background: #ffffff;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      line-height: 1.4;
+    }
+    .sponsor-tag {
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
       white-space: nowrap;
     }
 
@@ -949,7 +1077,7 @@
           <div class="fact-icon">📅</div>
           <div>
             <div class="fact-label">盛典时间</div>
-            <div class="fact-value">2026年3月</div>
+            <div class="fact-value">2026年11月21日</div>
           </div>
         </div>
 
@@ -1026,10 +1154,10 @@
           <div class="feature-card">
             <div class="feature-card-header">
               <div class="feature-icon-box" style="background:#ecfdf5; color:#059669;">🍷</div>
-              <div class="feature-card-title">4. 享五星礼遇 · 答谢晚宴与数码科技大奖</div>
+              <div class="feature-card-title">4. 享五星礼遇 · 名酿佳茗相伴与惊喜豪礼</div>
             </div>
             <p class="feature-card-p">
-              五星级苏州国际会议酒店豪华无柱宴会厅，顶配视听舞美。参会即享专属定制伴手礼袋，晚宴穿插精彩文艺汇演与多轮高端数码大奖抽取！
+              五星级苏州国际会议酒店豪华无柱宴会厅。参会全员尊享<strong>「认养一亩茶」高山生态茶礼</strong>；晚宴特供<strong>王晨阳校友赞助白酒及红酒</strong>、<strong>翟青云校友赞助雪花精酿原浆鲜啤</strong>畅饮；早鸟报名专享<strong>陈振宇校友赞助早鸟礼</strong>；穿插文艺汇演与毕红燕校友赞助等多轮数码健康豪礼大抽奖！
             </p>
           </div>
         </div>
@@ -1229,8 +1357,8 @@
           <div class="timeline-item highlight">
             <div class="timeline-time">17:30 - 20:30</div>
             <div class="timeline-content" style="border-left: 3px solid #059669;">
-              <h4 style="color:#065f46;">迎春答谢晚宴 · 精彩文艺汇演 · 幸运数码抽奖</h4>
-              <p>五星级主厨佳肴晚宴、校友原创歌舞文艺表演、校友破冰互动游戏，穿插多轮丰厚数码科技大奖现场惊喜抽取！</p>
+              <h4 style="color:#065f46;">迎春答谢晚宴 · 名酿畅饮 · 文艺汇演 · 幸运抽奖</h4>
+              <p>五星主厨盛宴！尊享<strong>王晨阳校友赞助白酒及红酒</strong>、<strong>翟青云校友赞助雪花精酿原浆鲜啤</strong>畅饮；校友原创文艺汇演与破冰互动；穿插多轮丰厚数码健康大奖现场抽取！</p>
             </div>
           </div>
         </div>
@@ -1439,41 +1567,194 @@
             💡 提示：长按识别或使用微信扫描上方二维码
           </div>
 
-          <!-- 参会席位说明与权益 (结合 2025 经验) -->
+          <!-- 参会席位与票价体系说明 (6大通道) -->
           <div class="ticket-grid">
+            <!-- 1. 标准席 -->
             <div class="ticket-item primary">
-              <div style="text-align:left;">
-                <div class="ticket-name">🎟️ 校友尊享标准席</div>
-                <div class="ticket-desc">含前沿智库论坛 + 五星答谢晚宴 + 定制伴手礼袋 + 抽奖资格</div>
+              <div class="ticket-top-row">
+                <div class="ticket-title-wrap">
+                  <span class="ticket-name">🎟️ 校友尊享标准席</span>
+                  <span class="ticket-badge">标准席位</span>
+                </div>
+                <div class="ticket-price-tag">¥200<span class="unit">/人</span></div>
               </div>
-              <div class="ticket-badge">限定席位</div>
+              <div class="ticket-desc">含大工前沿智库论坛 + 五星盛典晚宴 +「认养一亩茶」高山茶礼 + 名酿畅饮 + 幸运抽奖</div>
             </div>
 
+            <!-- 2. 家属席 -->
             <div class="ticket-item">
-              <div style="text-align:left;">
-                <div class="ticket-name">👨‍👩‍👧 携眷随行席（家属/儿童）</div>
-                <div class="ticket-desc">专设校友家庭亲情交流席，共享五星晚宴与温馨时光</div>
+              <div class="ticket-top-row">
+                <div class="ticket-title-wrap">
+                  <span class="ticket-name">👨‍👩‍👧 亲友携眷随行席</span>
+                  <span class="ticket-badge" style="background:#f1f5f9; color:var(--navy-700);">家庭同行</span>
+                </div>
+                <div class="ticket-price-tag">¥200<span class="unit">/人</span></div>
               </div>
-              <div class="ticket-badge" style="background:#f1f5f9; color:var(--navy-700);">家庭同行</div>
+              <div class="ticket-desc">可带家属亲朋同行（正常缴费），专设校友家庭亲情席，同享五星盛宴、晚宴名酿与温馨时光</div>
             </div>
 
+            <!-- 3. 应届毕业生 -->
             <div class="ticket-item">
-              <div style="text-align:left;">
-                <div class="ticket-name">👴 功勋老学长（60岁以上）/ 应届新校友关怀通道</div>
-                <div class="ticket-desc">致敬老学长贡献；助力赴苏应届新校友结对职场引路人</div>
+              <div class="ticket-top-row">
+                <div class="ticket-title-wrap">
+                  <span class="ticket-name">🎓 2026届全日制毕业生</span>
+                  <span class="ticket-badge" style="background:#eff6ff; color:#1d4ed8;">青年关怀 · 半价</span>
+                </div>
+                <div class="ticket-price-tag">¥100<span class="unit">/人</span></div>
               </div>
-              <div class="ticket-badge" style="background:#ecfdf5; color:#059669;">关怀通道</div>
+              <div class="ticket-desc">面向2026届全日制应届毕业生；现场结对在苏学长职场导师，同享五星盛宴、伴手礼与全部权益</div>
+            </div>
+
+            <!-- 4. 退休校友 -->
+            <div class="ticket-item">
+              <div class="ticket-top-row">
+                <div class="ticket-title-wrap">
+                  <span class="ticket-name">👵 银龄退休校友通道</span>
+                  <span class="ticket-badge" style="background:#fef3c7; color:#b45309;">银龄敬老 · 半价</span>
+                </div>
+                <div class="ticket-price-tag">¥100<span class="unit">/人</span></div>
+              </div>
+              <div class="ticket-desc">致敬为母校与社会奉献毕生的退休老学长，享半价关爱通道，同享五星晚宴、全套伴手茶礼</div>
+            </div>
+
+            <!-- 5. 工作人员与演员 -->
+            <div class="ticket-item">
+              <div class="ticket-top-row">
+                <div class="ticket-title-wrap">
+                  <span class="ticket-name">🎭 会务工作人员及演职校友</span>
+                  <span class="ticket-badge" style="background:#f3e8ff; color:#7e22ce;">会务奉献 · 特惠</span>
+                </div>
+                <div class="ticket-price-tag">¥100<span class="unit">/人</span></div>
+              </div>
+              <div class="ticket-desc">致敬幕后默默奉献的盛典筹备会务团队与台前奉献精彩节目的校友演职团队，享特惠补贴</div>
+            </div>
+
+            <!-- 6. 70岁以上老学长 -->
+            <div class="ticket-item" style="border-color:#a7f3d0; background:#f0fdf4;">
+              <div class="ticket-top-row">
+                <div class="ticket-title-wrap">
+                  <span class="ticket-name">🎖️ 功勋老学长（70岁以上）</span>
+                  <span class="ticket-badge" style="background:#dcfce7; color:#15803d;">至高崇敬 · 免费</span>
+                </div>
+                <div class="ticket-price-tag free">免费特邀</div>
+              </div>
+              <div class="ticket-desc">70岁及以上老学长免收报名费，特邀出席并专设前排主宾荣誉席，同享五星晚宴与全套伴手礼</div>
+            </div>
+          </div>
+
+          <!-- 早鸟专属特权加赠礼 (陈振宇校友赞助) -->
+          <div class="earlybird-card">
+            <div class="earlybird-tag">⚡ 早鸟专享 · 额外加赠礼</div>
+            <div style="font-size:13px; font-weight:800; color:#92400e; margin-bottom:4px;">
+              🎁 早鸟抢先报名加赠「专属惊喜早鸟礼」
+            </div>
+            <div style="font-size:11.5px; color:#78350f; line-height:1.5;">
+              凡在早鸟期内报名的校友，在享受“全员伴手茶礼”及爱心支持赠品基础上，<strong>额外加赠早鸟尊享惊喜礼</strong>一份！
+            </div>
+            <div style="margin-top:6px; font-size:11px; color:#b45309; font-weight:700;">
+              🙏 鸣谢：早鸟礼品由 <strong>MBA 陈振宇校友</strong> 倾情赞助！
+            </div>
+          </div>
+
+          <!-- 全员伴手礼 (黄尹唯校友赞助) -->
+          <div style="background:#ffffff; border:1px solid #bfdbfe; border-radius:14px; padding:12px 14px; margin:10px 0; text-align:left;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+              <span style="font-size:13px; font-weight:800; color:var(--navy-900);">🍵 全员尊享伴手礼 · 人手一份</span>
+              <span style="font-size:10.5px; background:#eff6ff; color:#1d4ed8; font-weight:700; padding:2px 8px; border-radius:6px;">到场即赠</span>
+            </div>
+            <div style="font-size:12px; color:var(--navy-700); line-height:1.5;">
+              每位到场参会校友均可免费获赠<strong>「认养一亩茶」高山生态原叶好茶礼盒</strong>，品鉴源自生态名茶的甘醇之韵。
+            </div>
+            <div style="margin-top:6px; font-size:11px; color:var(--blue-primary); font-weight:700;">
+              🙏 鸣谢：全员茶礼由 <strong>黄尹唯校友</strong> 慷慨赞助！
+            </div>
+          </div>
+
+          <!-- 爱心支持·阶梯加赠尊享豪礼 (毕红燕校友赞助) -->
+          <div class="gift-support-card">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+              <span style="font-size:13.5px; font-weight:800; color:#9a3412;">🎁 爱心支持盛典 · 阶梯加赠尊享豪礼</span>
+              <span class="support-tier-pill">爱心加赠</span>
+            </div>
+            <div style="font-size:11.5px; color:var(--navy-600); line-height:1.5;">
+              感谢校友对盛典筹办的慷慨爱心支持！在全员伴手茶礼与早鸟礼基础上，支持以下额度加赠对应尊贵豪礼，并列入盛典荣誉芳名录：
+            </div>
+
+            <div class="support-tier-list">
+              <div class="support-tier-row">
+                <span class="support-tier-pill">支持 500 元档</span>
+                <span style="color:var(--navy-900); font-weight:700; flex:1; margin-left:8px;">加赠精美无线鼠标 1 个</span>
+                <span style="font-size:10px; color:#15803d; font-weight:700;">+伴手礼+早鸟礼</span>
+              </div>
+              <div class="support-tier-row">
+                <span class="support-tier-pill">支持 1000 元档</span>
+                <span style="color:var(--navy-900); font-weight:700; flex:1; margin-left:8px;">加赠价值 380 元高端防晒套装 1 套</span>
+                <span style="font-size:10px; color:#15803d; font-weight:700;">+伴手礼+早鸟礼</span>
+              </div>
+              <div class="support-tier-row">
+                <span class="support-tier-pill">支持 2000 元档</span>
+                <span style="color:var(--navy-900); font-weight:700; flex:1; margin-left:8px;">加赠价值 580 元高端记忆枕 1 个</span>
+                <span style="font-size:10px; color:#15803d; font-weight:700;">+伴手礼+早鸟礼</span>
+              </div>
+            </div>
+
+            <div style="margin-top:8px; font-size:11px; color:#c2410c; font-weight:700;">
+              🙏 鸣谢：以上 500/1000/2000 元三档加赠好礼均由 <strong>毕红燕校友</strong> 倾情赞助！
+            </div>
+          </div>
+
+          <!-- 盛典美酒特供说明 (王晨阳、翟青云赞助) -->
+          <div style="background:#ffffff; border:1px solid #fed7aa; border-radius:14px; padding:12px 14px; margin:10px 0; text-align:left;">
+            <div style="font-size:13px; font-weight:800; color:var(--navy-900); margin-bottom:4px;">
+              🍷 盛典晚宴名酿特供 · 欢聚畅饮
+            </div>
+            <div style="font-size:11.5px; color:var(--navy-700); line-height:1.5;">
+              • <strong>晚宴白酒及红酒</strong>：由 <strong>王晨阳校友</strong> 倾情赞助，美酒醇厚，共祝母校与校友情谊长存；<br>
+              • <strong>晚宴啤酒</strong>：由 <strong>翟青云校友</strong> 赞助雪花精酿原浆鲜啤，麦香浓郁，开怀畅饮！
+            </div>
+          </div>
+
+          <!-- 盛典赞助荣誉芳名榜 -->
+          <div class="sponsor-honor-box">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+              <span style="font-size:14px;">🎖️</span>
+              <span style="font-size:13px; font-weight:800; color:var(--navy-900);">盛典赞助校友荣誉芳名录（致谢鸣谢）</span>
+            </div>
+            <div style="font-size:11px; color:var(--navy-600); margin-bottom:8px;">
+              向慷慨赋能盛典的各位爱心校友致以最崇高的敬意与感谢：
+            </div>
+            <div class="sponsor-honor-list">
+              <div class="sponsor-honor-item">
+                <span class="sponsor-tag">伴手茶礼</span>
+                <div><strong>黄尹唯 校友</strong>：赞助全员「认养一亩茶」高山生态原叶茶礼盒</div>
+              </div>
+              <div class="sponsor-honor-item">
+                <span class="sponsor-tag">爱心加赠</span>
+                <div><strong>毕红燕 校友</strong>：赞助支持加赠豪礼（无线鼠标 / 380元防晒套装 / 580元记忆枕）</div>
+              </div>
+              <div class="sponsor-honor-item">
+                <span class="sponsor-tag">晚宴名酿</span>
+                <div><strong>王晨阳 校友</strong>：赞助晚宴白酒及红酒全场特供</div>
+              </div>
+              <div class="sponsor-honor-item">
+                <span class="sponsor-tag">精酿鲜啤</span>
+                <div><strong>翟青云 校友</strong>：赞助晚宴雪花精酿原浆鲜啤畅饮</div>
+              </div>
+              <div class="sponsor-honor-item">
+                <span class="sponsor-tag">早鸟特权</span>
+                <div><strong>陈振宇 校友（MBA）</strong>：赞助早鸟抢先报名专属加赠礼</div>
+              </div>
             </div>
           </div>
 
           <!-- 报名四步指南 -->
           <div class="register-steps">
-            <h4><span>📝</span> 参会报名须知：</h4>
+            <h4><span>📝</span> 参会报名须知与流程：</h4>
             <ol>
               <li><strong>扫码登记</strong>：扫描上方二维码，如实填写校友姓名、入学年份、学院专业及工作单位；</li>
-              <li><strong>席位限额</strong>：会场严格限定 300 席，建议提前锁定名额，额满将自动关闭报名通道；</li>
-              <li><strong>审核确认</strong>：提交后秘书处将核实信息，通过后将发送电子参会凭证与桌席短信；</li>
-              <li><strong>入场须知</strong>：盛典当天凭电子入场凭证签到入场，领取实体胸牌及定制伴手礼袋。</li>
+              <li><strong>票种选择</strong>：根据自身情况选择对应席位通道（支持随行家属共同报名，家属正常缴费）；</li>
+              <li><strong>爱心支持</strong>：支持 500/1000/2000 元档的校友，可现场领取对应加赠尊贵豪礼并荣登大屏鸣谢榜；</li>
+              <li><strong>入场须知</strong>：盛典当天凭电子参会凭证签到入场，领取实体胸牌及全员定制伴手茶礼袋。</li>
             </ol>
           </div>
         </div>
