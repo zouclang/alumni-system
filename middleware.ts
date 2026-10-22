@@ -49,6 +49,8 @@ export async function middleware(request: NextRequest) {
     pathname === '/jobs-intro.html' ||
     pathname === '/alumni-intro' ||
     pathname === '/alumni-intro.html' ||
+    pathname === '/directory-intro' ||
+    pathname === '/directory-intro.html' ||
     pathname === '/annual-gala-intro' ||
     pathname === '/annual-gala-intro.html' ||
     pathname === '/annual-gala-sponsorship' ||

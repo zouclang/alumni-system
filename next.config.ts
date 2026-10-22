@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
         destination: "/alumni-intro.html",
       },
       {
+        source: "/directory-intro",
+        destination: "/directory-intro.html",
+      },
+      {
         source: "/jobs-intro",
         destination: "/jobs-intro.html",
       },
