@@ -19,27 +19,58 @@ export async function POST(request: NextRequest) {
     // 1. Check if identifier matches admin username first
     user = db.prepare('SELECT * FROM users WHERE username = ?').get(identifier);
 
-    // 2. If not found by username, search by alumni real name or phone number
-    if (!user) {
-      user = db.prepare(`
-        SELECT u.*, a.name as real_name 
+    if (user) {
+      if (user.status !== 'APPROVED') {
+        return NextResponse.json({ error: '账号待审核或已停用' }, { status: 403 });
+      }
+      const isValid = await bcrypt.compare(password, user.password_hash);
+      if (!isValid) {
+        return NextResponse.json({ error: '密码错误' }, { status: 401 });
+      }
+    } else {
+      // 2. Search alumni by real name or phone number
+      // Query ALL matching users (handles duplicate alumni names like "王婧怡")
+      const candidateUsers = db.prepare(`
+        SELECT u.*, a.name as real_name, a.phone as alumni_phone, a.college, a.major 
         FROM users u 
         JOIN alumni a ON u.alumni_id = a.id 
-        WHERE a.name = ? OR a.phone = ?
-      `).get(identifier, identifier);
-    }
+        WHERE a.phone = ? OR a.name = ?
+      `).all(identifier, identifier) as any[];
 
-    if (!user) {
-      return NextResponse.json({ error: '用户不存在' }, { status: 401 });
-    }
+      if (candidateUsers.length === 0) {
+        return NextResponse.json({ error: '用户不存在' }, { status: 401 });
+      }
 
-    if (user.status !== 'APPROVED') {
-      return NextResponse.json({ error: '账号待审核或已停用' }, { status: 403 });
-    }
+      // Filter approved candidates
+      const approvedCandidates = candidateUsers.filter(c => c.status === 'APPROVED');
+      if (approvedCandidates.length === 0) {
+        return NextResponse.json({ error: '账号待审核或已停用' }, { status: 403 });
+      }
 
-    const isValid = await bcrypt.compare(password, user.password_hash);
-    if (!isValid) {
-      return NextResponse.json({ error: '密码错误' }, { status: 401 });
+      // Match password across approved candidates
+      const passwordMatchedUsers: any[] = [];
+      for (const cand of approvedCandidates) {
+        const isMatch = await bcrypt.compare(password, cand.password_hash);
+        if (isMatch) {
+          passwordMatchedUsers.push(cand);
+        }
+      }
+
+      if (passwordMatchedUsers.length === 1) {
+        user = passwordMatchedUsers[0];
+      } else if (passwordMatchedUsers.length > 1) {
+        // In the rare edge case where multiple alumni share the exact same name and password
+        return NextResponse.json({ 
+          error: '检测到存在同名同密码账号，请使用手机号登录' 
+        }, { status: 400 });
+      } else {
+        if (candidateUsers.length > 1) {
+          return NextResponse.json({ 
+            error: '密码错误（系统存在同名校友，您也可以直接使用注册手机号登录）' 
+          }, { status: 401 });
+        }
+        return NextResponse.json({ error: '密码错误' }, { status: 401 });
+      }
     }
 
     // Fetch association_role if this is an alumni user
