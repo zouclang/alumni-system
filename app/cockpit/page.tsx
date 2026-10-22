@@ -153,10 +153,13 @@ export default function CockpitPage() {
         }
         el.setAttribute('content', content);
       };
+      setMeta('name', 'description', '大连理工大学苏州校友数据驾驶舱，全景呈现校友分布、行业生态、相亲联谊与企业招聘实时洞察。');
       setMeta('property', 'og:title', '数据驾驶舱 - 大工苏州校友会');
       setMeta('property', 'og:description', '大连理工大学苏州校友数据驾驶舱，全景呈现校友分布、行业生态、相亲联谊与企业招聘实时洞察。');
-      setMeta('property', 'og:image', 'http://godii.top:8085/share-cockpit.png');
-      setMeta('itemprop', 'image', 'http://godii.top:8085/share-cockpit.png');
+      setMeta('property', 'og:image', 'http://godii.top:8085/share-cockpit.png?v=2026');
+      setMeta('itemprop', 'name', '数据驾驶舱 - 大工苏州校友会');
+      setMeta('itemprop', 'description', '大连理工大学苏州校友数据驾驶舱，全景呈现校友分布、行业生态、相亲联谊与企业招聘实时洞察。');
+      setMeta('itemprop', 'image', 'http://godii.top:8085/share-cockpit.png?v=2026');
 
       let link = document.querySelector('link[rel="image_src"]');
       if (!link) {
@@ -164,7 +167,7 @@ export default function CockpitPage() {
         link.setAttribute('rel', 'image_src');
         document.head.appendChild(link);
       }
-      link.setAttribute('href', 'http://godii.top:8085/share-cockpit.png');
+      link.setAttribute('href', 'http://godii.top:8085/share-cockpit.png?v=2026');
     } catch (e) {}
 
     fetchData();
@@ -216,15 +219,15 @@ export default function CockpitPage() {
         justifyContent: 'center',
         fontFamily: 'system-ui'
       }}>
-        {/* WeChat share card thumbnail helper */}
-        <div style={{ position: 'absolute', top: -9999, left: -9999, zIndex: -9999, pointerEvents: 'none' }}>
+        {/* 微信卡片分享规范首图 (标准 display:none 容器，供微信爬虫蜘蛛精准提取) */}
+        <div style={{ display: 'none' }}>
           <img
-            src="http://godii.top:8085/share-cockpit.png"
+            src="http://godii.top:8085/share-cockpit.png?v=2026"
             width="300"
             height="300"
-            style={{ width: '300px', height: '300px', display: 'block' }}
-            alt="数据驾驶舱"
+            alt="数据驾驶舱 - 大工苏州校友会"
           />
+          <p>大连理工大学苏州校友数据驾驶舱，全景呈现校友分布、行业生态、相亲联谊与企业招聘实时洞察。</p>
         </div>
         <div className="spinner" style={{ width: '40px', height: '40px', borderWidth: '3px' }} />
         <div style={{ marginTop: '16px', fontSize: '16px', letterSpacing: '2px' }}>
@@ -252,15 +255,15 @@ export default function CockpitPage() {
       ref={cockpitRef}
       className={`cockpit-container ${isFullscreen ? 'is-fullscreen' : ''}`}
     >
-      {/* WeChat share card thumbnail helper */}
-      <div style={{ position: 'absolute', top: -9999, left: -9999, zIndex: -9999, pointerEvents: 'none' }}>
+      {/* 微信卡片分享规范首图 (标准 display:none 容器，供微信爬虫蜘蛛精准提取) */}
+      <div style={{ display: 'none' }}>
         <img
-          src="http://godii.top:8085/share-cockpit.png"
+          src="http://godii.top:8085/share-cockpit.png?v=2026"
           width="300"
           height="300"
-          style={{ width: '300px', height: '300px', display: 'block' }}
-          alt="数据驾驶舱"
+          alt="数据驾驶舱 - 大工苏州校友会"
         />
+        <p>大连理工大学苏州校友数据驾驶舱，全景呈现校友分布、行业生态、相亲联谊与企业招聘实时洞察。</p>
       </div>
 
       {/* Dynamic Background Grid Pattern */}

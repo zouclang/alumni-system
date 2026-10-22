@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const title = `【招聘】${job.job_title} · ${job.company_name} | 连理招聘`;
     const publisherText = job.publisher_name ? `由校友 ${job.publisher_name} 发布` : '校友企业直聘';
     const desc = `${job.company_name} 诚聘 ${job.job_title}（${job.salary_range}，${job.location}）。${publisherText}，点击查看岗位职责与要求，支持在线投递简历。`;
-    const shareImageUrl = `${BASE_URL}/share-jobs.png`;
+    const shareImageUrl = `${BASE_URL}/share-jobs.png?v=2026`;
 
     return {
       title,
@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
             url: shareImageUrl,
             width: 600,
             height: 600,
-            alt: '连理招聘',
+            alt: title,
           },
         ],
       },
@@ -64,6 +64,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         images: [shareImageUrl],
       },
       other: {
+        'itemprop:name': title,
+        'itemprop:description': desc,
         'itemprop:image': shareImageUrl,
       },
     };
@@ -76,23 +78,22 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default function JobDetailLayout({ children }: { children: React.ReactNode }) {
-  const shareImageUrl = `${BASE_URL}/share-jobs.png`;
+  const shareImageUrl = `${BASE_URL}/share-jobs.png?v=2026`;
   return (
     <>
-      <head>
-        <link rel="image_src" href={shareImageUrl} />
-        <meta itemProp="image" content={shareImageUrl} />
-      </head>
-      {/* WeChat share card thumbnail helper */}
-      <div style={{ position: 'absolute', top: -9999, left: -9999, zIndex: -9999, pointerEvents: 'none' }}>
+      <link rel="image_src" href={shareImageUrl} />
+      <meta itemProp="image" content={shareImageUrl} />
+
+      {/* 微信卡片分享规范首图 (标准 display:none 容器) */}
+      <div style={{ display: 'none' }}>
         <img
           src={shareImageUrl}
           width="300"
           height="300"
-          style={{ width: '300px', height: '300px', display: 'block' }}
           alt="连理招聘"
         />
       </div>
+
       {children}
     </>
   );

@@ -9,9 +9,25 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="喜结连理 · 大工苏州校友相亲平台">
   <meta property="og:description" content="大连理工大学苏州校友会「喜结连理」平台，为单身校友打造真实、靠谱、温暖的专属相亲脱单空间。">
-  <meta property="og:image" content="http://godii.top:8085/share-matchmaking.png">
-  <meta itemprop="image" content="http://godii.top:8085/share-matchmaking.png">
-  <link rel="image_src" href="http://godii.top:8085/share-matchmaking.png">
+  <meta property="og:image" content="http://godii.top:8085/share-matchmaking.png?v=2026">
+  <meta itemprop="name" content="喜结连理 · 大工苏州校友相亲平台">
+  <meta itemprop="description" content="大连理工大学苏州校友会「喜结连理」平台，为单身校友打造真实、靠谱、温暖的专属相亲脱单空间。">
+  <meta itemprop="image" content="http://godii.top:8085/share-matchmaking.png?v=2026">
+  <link rel="image_src" href="http://godii.top:8085/share-matchmaking.png?v=2026">
+  <script>
+    (function() {
+      try {
+        var origin = window.location.origin;
+        var fullImgUrl = origin ? (origin + '/share-matchmaking.png?v=2026') : 'http://godii.top:8085/share-matchmaking.png?v=2026';
+        var og = document.querySelector('meta[property="og:image"]');
+        if (og) og.setAttribute('content', fullImgUrl);
+        var item = document.querySelector('meta[itemprop="image"]');
+        if (item) item.setAttribute('content', fullImgUrl);
+        var link = document.querySelector('link[rel="image_src"]');
+        if (link) link.setAttribute('href', fullImgUrl);
+      } catch (e) {}
+    })();
+  </script>
   <style>
     :root {
       --primary: #f43f5e;
@@ -609,9 +625,10 @@
   </style>
 </head>
 <body>
-  <!-- WeChat share card thumbnail helper -->
-  <div style="position: absolute; top: -9999px; left: -9999px; width: 0; height: 0; overflow: hidden;">
-    <img src="http://godii.top:8085/share-matchmaking.png" width="300" height="300" alt="喜结连理" />
+  <!-- WeChat share card thumbnail helper (standard display:none container for WeChat spider) -->
+  <div style="display: none;">
+    <img id="wx-share-thumb" src="http://godii.top:8085/share-matchmaking.png?v=2026" width="300" height="300" alt="喜结连理 · 大工苏州校友相亲平台" />
+    <p>大连理工大学苏州校友会「喜结连理」平台，为单身校友打造真实、靠谱、温暖的专属相亲脱单空间。</p>
   </div>
 
   <!-- Header -->

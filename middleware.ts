@@ -41,7 +41,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api/cockpit/') ||
     pathname.startsWith('/maps/') ||
     pathname.startsWith('/images/') ||
-    pathname.endsWith('.json') ||
+    pathname === '/cockpit-intro' ||
+    pathname === '/cockpit-intro.html' ||
     pathname === '/matchmaking-intro' ||
     pathname === '/matchmaking-intro.html' ||
     pathname === '/jobs-intro' ||

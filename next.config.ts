@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
         source: "/matchmaking-intro",
         destination: "/matchmaking-intro.html",
       },
+      {
+        source: "/cockpit-intro",
+        destination: "/cockpit-intro.html",
+      },
     ];
   },
 };
