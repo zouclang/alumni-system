@@ -24,15 +24,14 @@
 
       --text-title: #0f172a;
       --text-body: #1e293b;
-      --text-muted: #475569;
-      --text-sub: #64748b;
+      --text-muted: #334155;
+      --text-sub: #475569;
 
       --card-bg: #ffffff;
-      --border-card: #e2e8f0;
-      --border-subtle: #f1f5f9;
-      --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04);
-      --shadow-md: 0 6px 18px rgba(0, 78, 162, 0.08);
-      --shadow-gold: 0 6px 20px rgba(194, 145, 67, 0.15);
+      --border-card: #cbd5e1;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 8px 24px rgba(0, 78, 162, 0.1);
+      --shadow-gold: 0 8px 28px rgba(194, 145, 67, 0.18);
     }
 
     * {
@@ -44,22 +43,22 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      background: #f1f5f9;
+      background: #e2e8f0;
       color: var(--text-body);
       line-height: 1.55;
-      padding: 20px 10px;
+      padding: 24px 10px;
       display: flex;
       justify-content: center;
     }
 
-    /* 手机长图专用容器 */
+    /* 手机长图宽屏紧凑容器：加宽至 840px，字号大幅增大，双列排版极大缩短长图高度 */
     .poster-wrap {
       width: 100%;
-      max-width: 680px;
+      max-width: 840px;
       background: #ffffff;
-      border-radius: 24px;
+      border-radius: 28px;
       overflow: hidden;
-      box-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
+      box-shadow: 0 16px 50px rgba(15, 23, 42, 0.18);
       border: 1px solid #cbd5e1;
     }
 
@@ -67,7 +66,7 @@
     .hero-header {
       background: radial-gradient(120% 100% at 50% 0%, #1e3a8a 0%, #004ea2 60%, #002d66 100%);
       color: #ffffff;
-      padding: 34px 24px 28px;
+      padding: 30px 24px 26px;
       text-align: center;
       position: relative;
     }
@@ -77,46 +76,46 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 12px;
+      height: 10px;
       background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
     }
     .hero-badge-top {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      background: rgba(255, 255, 255, 0.16);
-      border: 1px solid rgba(255, 255, 255, 0.35);
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
       backdrop-filter: blur(8px);
-      padding: 4px 14px;
+      padding: 5px 16px;
       border-radius: 20px;
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 14.5px;
+      font-weight: 800;
       letter-spacing: 0.5px;
       color: #fef08a;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .hero-main-title {
-      font-size: 26px;
+      font-size: 29px;
       font-weight: 900;
-      line-height: 1.3;
+      line-height: 1.35;
       letter-spacing: 0.5px;
       color: #ffffff;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      text-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
       margin-bottom: 8px;
     }
     .hero-subtitle {
-      font-size: 15px;
+      font-size: 16px;
       color: #bfdbfe;
-      font-weight: 600;
+      font-weight: 700;
       margin-bottom: 18px;
     }
 
     /* 盛典时间地点胶囊卡片 */
     .hero-info-grid {
-      background: rgba(0, 0, 0, 0.22);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.28);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
       border-radius: 16px;
-      padding: 14px 16px;
+      padding: 14px 18px;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -126,30 +125,59 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 13.5px;
+      font-size: 15px;
       color: #f8fafc;
     }
     .hero-info-icon {
-      font-size: 16px;
+      font-size: 18px;
       flex-shrink: 0;
       width: 24px;
       text-align: center;
     }
     .hero-info-label {
       color: #93c5fd;
-      font-weight: 600;
-      font-size: 13px;
+      font-weight: 700;
+      font-size: 14.5px;
       flex-shrink: 0;
     }
     .hero-info-val {
-      font-weight: 700;
+      font-weight: 800;
       color: #ffffff;
     }
 
     /* 核心主体内容区 */
     .content-body {
-      padding: 24px 20px 30px;
+      padding: 22px 20px 28px;
       background: #f8fafc;
+    }
+
+    /* 赞助数据 3 宫格微型看板 */
+    .stats-card {
+      background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+      border: 1.5px solid #bfdbfe;
+      border-radius: 16px;
+      padding: 14px 12px;
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .stats-item .num {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--blue-main);
+      line-height: 1.2;
+    }
+    .stats-item.gold .num {
+      color: #b45309;
+    }
+    .stats-item .lbl {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-top: 3px;
     }
 
     /* 通用章节标题 */
@@ -157,11 +185,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 14px;
-      margin-top: 8px;
+      margin-bottom: 12px;
+      margin-top: 4px;
     }
     .section-title {
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 900;
       color: var(--text-title);
       display: flex;
@@ -169,7 +197,7 @@
       gap: 8px;
     }
     .section-tag {
-      font-size: 11.5px;
+      font-size: 12px;
       font-weight: 800;
       color: var(--blue-main);
       background: var(--blue-bg);
@@ -178,164 +206,148 @@
       border-radius: 12px;
     }
 
-    /* 赞助商分类统计微型看板 */
-    .stats-card {
-      background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
-      border: 1px solid #bfdbfe;
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 18px;
+    /* ⭐⭐⭐ 赞助清单 2 列网格卡片布局 ⭐⭐⭐ */
+    .sponsor-card-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      text-align: center;
-    }
-    .stats-item .num {
-      font-size: 19px;
-      font-weight: 900;
-      color: var(--blue-main);
-      line-height: 1.2;
-    }
-    .stats-item .lbl {
-      font-size: 11.5px;
-      color: var(--text-sub);
-      font-weight: 600;
-      margin-top: 2px;
-    }
-
-    /* 赞助清单卡片 */
-    .sponsor-card-list {
-      display: flex;
-      flex-direction: column;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
 
     .sponsor-item {
       background: #ffffff;
-      border: 1px solid var(--border-card);
-      border-radius: 14px;
-      padding: 12px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 10px 12px;
       box-shadow: var(--shadow-sm);
       display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+      position: relative;
+    }
+    .sponsor-top-row {
+      display: flex;
       align-items: flex-start;
-      gap: 12px;
-      transition: all 0.2s;
+      gap: 8px;
     }
     .sponsor-index {
       width: 24px;
       height: 24px;
-      border-radius: 8px;
+      border-radius: 7px;
       background: #f1f5f9;
       color: var(--text-sub);
-      font-size: 12px;
-      font-weight: 800;
+      font-size: 12.5px;
+      font-weight: 900;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      margin-top: 2px;
+      margin-top: 1px;
     }
     .sponsor-item.highlight .sponsor-index {
       background: var(--gold-bg);
       color: var(--gold-dark);
       border: 1px solid var(--gold-border);
     }
-    .sponsor-content {
+    .sponsor-org-wrap {
       flex: 1;
     }
     .sponsor-org {
-      font-size: 14.5px;
+      font-size: 15px;
       font-weight: 800;
       color: var(--text-title);
-      line-height: 1.4;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
+      line-height: 1.35;
     }
     .sponsor-alumni {
+      font-size: 13.5px;
       color: var(--blue-main);
       font-weight: 800;
+      margin-top: 1px;
     }
-    .sponsor-detail {
-      font-size: 13px;
-      color: #92400e;
-      background: #fffbeb;
-      border: 1px solid #fef3c7;
-      padding: 4px 10px;
-      border-radius: 8px;
-      margin-top: 6px;
-      font-weight: 700;
-      line-height: 1.4;
-      display: inline-block;
+
+    .sponsor-detail-pill {
+      font-size: 13.5px;
+      padding: 4px 8px;
+      border-radius: 7px;
+      font-weight: 800;
+      line-height: 1.35;
+      display: block;
+      text-align: left;
     }
-    .sponsor-detail.cash {
+    .sponsor-detail-pill.cash {
       color: #1e3a8a;
       background: #eff6ff;
-      border-color: #dbeafe;
+      border: 1px solid #bfdbfe;
     }
-    .sponsor-detail.gift {
+    .sponsor-detail-pill.gift {
       color: #065f46;
       background: #ecfdf5;
-      border-color: #a7f3d0;
+      border: 1px solid #a7f3d0;
     }
-    .sponsor-detail.wine {
+    .sponsor-detail-pill.wine {
       color: #831843;
       background: #fdf2f8;
-      border-color: #fbcfe8;
+      border: 1px solid #fbcfe8;
     }
-    .sponsor-detail.hotel {
+    .sponsor-detail-pill.hotel {
       color: #5b21b6;
       background: #f5f3ff;
-      border-color: #ddd6fe;
+      border: 1px solid #ddd6fe;
+    }
+
+    /* 跨整行高光大卡片（用于重点单位） */
+    .sponsor-item.span-full {
+      grid-column: 1 / -1;
     }
 
     /* 虚位以待卡片 */
     .sponsor-waiting {
+      grid-column: 1 / -1;
       background: linear-gradient(135deg, #fffbeb 0%, #fefce8 100%);
-      border: 1.5px dashed #f59e0b;
-      border-radius: 14px;
-      padding: 14px 16px;
+      border: 2px dashed #f59e0b;
+      border-radius: 16px;
+      padding: 16px;
       text-align: center;
       color: #b45309;
-      font-weight: 800;
-      font-size: 14px;
+      font-weight: 900;
+      font-size: 16px;
+      margin-top: 4px;
     }
     .sponsor-waiting-sub {
-      font-size: 12px;
+      font-size: 13.5px;
       color: #92400e;
-      font-weight: 600;
+      font-weight: 700;
       margin-top: 4px;
     }
 
     /* 参会报名方案与礼品阶梯 (核心重点高光区) */
     .tickets-container {
       background: #ffffff;
-      border: 2px solid var(--gold-main);
-      border-radius: 20px;
-      padding: 20px 16px;
+      border: 2.5px solid var(--gold-main);
+      border-radius: 22px;
+      padding: 24px 20px 20px;
       box-shadow: var(--shadow-gold);
-      margin-bottom: 22px;
+      margin-bottom: 24px;
       position: relative;
     }
     .tickets-badge {
       position: absolute;
-      top: -13px;
+      top: -15px;
       left: 50%;
       transform: translateX(-50%);
       background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
       color: #ffffff;
-      font-size: 12px;
-      font-weight: 800;
-      padding: 4px 18px;
-      border-radius: 20px;
-      box-shadow: 0 3px 10px rgba(217, 119, 6, 0.4);
+      font-size: 13.5px;
+      font-weight: 900;
+      padding: 5px 22px;
+      border-radius: 24px;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
       white-space: nowrap;
     }
     .tickets-title {
       text-align: center;
-      font-size: 18px;
+      font-size: 21px;
       font-weight: 900;
       color: var(--text-title);
       margin-top: 4px;
@@ -343,22 +355,27 @@
     }
     .tickets-desc {
       text-align: center;
-      font-size: 12px;
+      font-size: 13.5px;
       color: var(--text-sub);
-      margin-bottom: 16px;
+      margin-bottom: 18px;
+      font-weight: 600;
     }
 
-    /* 票种卡片列表 */
+    /* 票种卡片 2 列网格列表 */
     .ticket-list {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
     .ticket-row {
-      border: 1px solid var(--border-card);
+      border: 1.5px solid var(--border-card);
       border-radius: 12px;
       padding: 12px 14px;
       background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
     }
     .ticket-row.tier-200 {
       border-color: #cbd5e1;
@@ -375,24 +392,24 @@
     .ticket-row.tier-2000 {
       border-color: #f59e0b;
       background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
-      border-width: 1.5px;
+      border-width: 2px;
     }
     .ticket-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .ticket-name-wrap {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     .ticket-badge-pill {
-      font-size: 11px;
-      font-weight: 800;
-      padding: 2px 8px;
-      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 3px 10px;
+      border-radius: 8px;
     }
     .ticket-row.tier-200 .ticket-badge-pill { background: #eff6ff; color: #1d4ed8; }
     .ticket-row.tier-500 .ticket-badge-pill { background: #ffedd5; color: #c2410c; }
@@ -400,22 +417,22 @@
     .ticket-row.tier-2000 .ticket-badge-pill { background: #fef08a; color: #854d0e; }
     
     .ticket-price {
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 900;
       color: #b45309;
     }
     .ticket-price .unit {
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 700;
       color: var(--text-sub);
     }
     .ticket-gift-box {
-      font-size: 12.5px;
+      font-size: 14px;
       color: var(--text-body);
-      line-height: 1.5;
+      line-height: 1.55;
     }
     .gift-tag {
-      font-weight: 700;
+      font-weight: 800;
       color: #9a3412;
     }
 
@@ -423,14 +440,14 @@
     .ticket-special-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 10px;
+      gap: 12px;
+      margin-top: 14px;
     }
     .special-box {
       background: #ffffff;
-      border: 1px solid var(--border-card);
-      border-radius: 10px;
-      padding: 10px;
+      border: 1.5px solid var(--border-card);
+      border-radius: 12px;
+      padding: 12px;
       text-align: center;
     }
     .special-box.free {
@@ -438,14 +455,14 @@
       background: #f0fdf4;
     }
     .special-box-title {
-      font-size: 12.5px;
+      font-size: 14px;
       font-weight: 800;
       color: var(--text-title);
     }
     .special-box-val {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 900;
-      margin-top: 2px;
+      margin-top: 4px;
     }
     .special-box.free .special-box-val { color: #059669; }
     .special-box.half .special-box-val { color: #2563eb; }
@@ -453,22 +470,22 @@
     /* 早鸟礼特别提醒框 */
     .earlybird-alert {
       background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-      border: 1.5px dashed #ea580c;
-      border-radius: 12px;
-      padding: 10px 14px;
-      margin-top: 12px;
+      border: 2px dashed #ea580c;
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-top: 14px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
     .earlybird-icon {
-      font-size: 24px;
+      font-size: 28px;
       flex-shrink: 0;
     }
     .earlybird-text {
-      font-size: 12px;
+      font-size: 13.5px;
       color: #9a3412;
-      line-height: 1.45;
+      line-height: 1.5;
     }
     .earlybird-text strong {
       color: #c2410c;
@@ -477,30 +494,30 @@
     /* 招商咨询与页脚 */
     .footer-box {
       background: #ffffff;
-      border: 1px solid var(--border-card);
-      border-radius: 16px;
-      padding: 18px 16px;
+      border: 1.5px solid var(--border-card);
+      border-radius: 18px;
+      padding: 22px 20px;
       text-align: center;
     }
     .footer-quote {
-      font-size: 13.5px;
-      font-weight: 700;
+      font-size: 15px;
+      font-weight: 800;
       color: var(--blue-main);
       line-height: 1.6;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
     .footer-tips {
-      font-size: 12px;
+      font-size: 13.5px;
       color: var(--text-sub);
-      line-height: 1.6;
-      border-top: 1px solid var(--border-subtle);
-      padding-top: 12px;
+      line-height: 1.65;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 14px;
     }
     .footer-sub-org {
-      margin-top: 10px;
-      font-size: 11px;
+      margin-top: 12px;
+      font-size: 12.5px;
       color: #94a3b8;
-      font-weight: 600;
+      font-weight: 700;
     }
   </style>
 </head>
@@ -534,7 +551,7 @@
         <div class="hero-info-row">
           <span class="hero-info-icon">🤝</span>
           <span class="hero-info-label">参与对象：</span>
-          <span class="hero-info-val">在苏及长三角大工校友、校友家属与嘉宾朋友</span>
+          <span class="hero-info-val">在苏及长三角大工校友、校友家属与各界嘉宾朋友</span>
         </div>
       </div>
     </header>
@@ -542,260 +559,308 @@
     <!-- 核心主体内容 -->
     <main class="content-body">
 
-      <!-- 赞助数据微型看板 -->
+      <!-- 赞助数据 3 宫格看板 -->
       <div class="stats-card">
         <div class="stats-item">
           <div class="num">23+</div>
           <div class="lbl">落实赞助企业/校友</div>
         </div>
-        <div class="stats-item">
+        <div class="stats-item gold">
           <div class="num">91,500</div>
-          <div class="lbl">累计现金赞助(元)</div>
+          <div class="lbl">累计现金赞助 (元)</div>
         </div>
         <div class="stats-item">
           <div class="num">300+ 份</div>
-          <div class="lbl">全员尊享好礼</div>
+          <div class="lbl">全员尊享伴手好礼</div>
         </div>
       </div>
 
-      <!-- 模块一：已落实赞助公布芳名榜 -->
+      <!-- 模块一：已落实赞助公布芳名榜（2列网格卡片） -->
       <div class="section-head">
         <h2 class="section-title">
           <span>🎖️</span> 目前已落实赞助公布
         </h2>
-        <span class="section-tag">持续更新中</span>
+        <span class="section-tag">双列清晰排版 · 持续更新</span>
       </div>
 
-      <div class="sponsor-card-list">
+      <div class="sponsor-card-grid">
         <!-- 1 -->
         <div class="sponsor-item">
-          <div class="sponsor-index">1</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">👔 苏州好好先生服装科技有限公司</div>
-            <div class="sponsor-detail">赞助 5000 元服装券</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">1</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">👔 好好先生服装科技</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill gift">赞助 5000 元服装券</div>
         </div>
 
         <!-- 2 -->
         <div class="sponsor-item">
-          <div class="sponsor-index">2</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 苏州谦通仪器设备有限公司</div>
-            <div class="sponsor-detail cash">赞助 3000 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">2</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 谦通仪器设备</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill cash">赞助 3000 元现金</div>
         </div>
 
         <!-- 3 -->
         <div class="sponsor-item">
-          <div class="sponsor-index">3</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 稳中密封系统（江苏）有限公司</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">管雪峰 校友</div>
-            <div class="sponsor-detail cash">赞助 3000 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">3</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 稳中密封系统</div>
+              <div class="sponsor-alumni">管雪峰 校友</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill cash">赞助 3000 元现金</div>
         </div>
 
         <!-- 4 -->
         <div class="sponsor-item">
-          <div class="sponsor-index">4</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 苏州慧迪科创服务有限公司</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">刘洪剑 校友</div>
-            <div class="sponsor-detail cash">赞助 5000 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">4</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 慧迪科创服务</div>
+              <div class="sponsor-alumni">刘洪剑 校友</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill cash">赞助 5000 元现金</div>
         </div>
 
         <!-- 5 -->
         <div class="sponsor-item">
-          <div class="sponsor-index">5</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 锦祥硕精密通讯设备（苏州）有限公司</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">孙磊 校友</div>
-            <div class="sponsor-detail cash">赞助 5000 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">5</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 锦祥硕精密通讯</div>
+              <div class="sponsor-alumni">孙磊 校友</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill cash">赞助 5000 元现金</div>
         </div>
 
-        <!-- 6 (重点) -->
+        <!-- 6 (晚宴酒水) -->
         <div class="sponsor-item highlight" style="border-left: 4px solid #b45309;">
-          <div class="sponsor-index">6</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰🍶🍷 苏州金瑞阳信息科技有限责任公司</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">王晨阳 校友</div>
-            <div class="sponsor-detail wine">赞助 2000 元现金 及 晚宴特供白酒、红酒</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">6</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰🍶 金瑞阳信息科技</div>
+              <div class="sponsor-alumni">王晨阳 校友</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill wine">赞助 2000元现金 + 晚宴白酒红酒</div>
         </div>
 
-        <!-- 7 (重点) -->
+        <!-- 7 (全员茶礼) -->
         <div class="sponsor-item highlight" style="border-left: 4px solid #059669;">
-          <div class="sponsor-index">7</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">🎁 南平市建阳区认养一亩茶文化有限公司</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">黄尹唯 校友</div>
-            <div class="sponsor-detail gift">赞助价值 100 元茶叶礼盒 300 份（全员伴手礼）</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">7</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">🎁 认养一亩茶文化</div>
+              <div class="sponsor-alumni">黄尹唯 校友</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill gift">赞助 100元茶叶礼盒 300 份</div>
         </div>
 
         <!-- 8 -->
         <div class="sponsor-item">
-          <div class="sponsor-index">8</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 长三角校友经济创新中心</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">方圆 校友</div>
-            <div class="sponsor-detail cash">赞助 8500 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">8</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 长三角校友经济创新中心</div>
+              <div class="sponsor-alumni">方圆 校友</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill cash">赞助 8500 元现金</div>
         </div>
 
         <!-- 9 -->
         <div class="sponsor-item">
-          <div class="sponsor-index">9</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 北京德和衡（苏州）律师事务所</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">徐大兵 校友（权益合伙人）</div>
-            <div class="sponsor-detail cash">赞助 3000 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">9</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 德和衡律师事务所</div>
+              <div class="sponsor-alumni">徐大兵 校友（权益合伙人）</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill cash">赞助 3000 元现金</div>
         </div>
 
-        <!-- 10 -->
+        <!-- 10 (酒店套房) -->
         <div class="sponsor-item">
-          <div class="sponsor-index">10</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">🏠 苏州云启一方酒店凯悦尚选</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">宫智明 校友</div>
-            <div class="sponsor-detail hotel">赞助 2 份单价 2250 元成方公寓套房一晚（含双早）</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">10</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">🏠 云启一方凯悦尚选</div>
+              <div class="sponsor-alumni">宫智明 校友</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill hotel">赞助 2份套房一晚含双早(单价2250)</div>
         </div>
 
         <!-- 11 -->
         <div class="sponsor-item">
-          <div class="sponsor-index">11</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 苏州美格保洁有限公司</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">张成林 校友</div>
-            <div class="sponsor-detail cash">赞助 5000 元现金</div>
-          </div>
-        </div>
-
-        <!-- 12 (重点早鸟) -->
-        <div class="sponsor-item highlight" style="border-left: 4px solid #ea580c;">
-          <div class="sponsor-index">12</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">🎁 苏州磐固工具有限公司</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">陈振宇 校友（MBA）</div>
-            <div class="sponsor-detail gift">赞助价值 4500 元专属早鸟礼 44 份</div>
-          </div>
-        </div>
-
-        <!-- 13 (重点礼品) -->
-        <div class="sponsor-item highlight" style="border-left: 4px solid #d97706;">
-          <div class="sponsor-index">13</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">🎁 苏州利安隆新材料有限公司</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">毕红燕 校友</div>
-            <div class="sponsor-detail gift">
-              赞助价值 59元无线鼠标 20套、380元防晒套装 20套、580元亚朵同款记忆枕 5套<br>
-              <span style="font-size:11px; opacity:0.85;">（用于 500、1000 及 2000 档报名爱心伴手加赠礼）</span>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">11</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 美格保洁有限公司</div>
+              <div class="sponsor-alumni">张成林 校友</div>
             </div>
+          </div>
+          <div class="sponsor-detail-pill cash">赞助 5000 元现金</div>
+        </div>
+
+        <!-- 12 (早鸟礼) -->
+        <div class="sponsor-item highlight" style="border-left: 4px solid #ea580c;">
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">12</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">🎁 磐固工具有限公司</div>
+              <div class="sponsor-alumni">陈振宇 校友 (MBA)</div>
+            </div>
+          </div>
+          <div class="sponsor-detail-pill gift">赞助 44份专属早鸟礼(价值4500)</div>
+        </div>
+
+        <!-- 13 (利安隆爱心礼 - 跨整行显示以展示丰富礼遇) -->
+        <div class="sponsor-item highlight span-full" style="border-left: 4px solid #d97706; background: #fffdfa;">
+          <div class="sponsor-top-row">
+            <div class="sponsor-index" style="background:#fef3c7; color:#b45309;">13</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org" style="font-size:16px;">🎁 苏州利安隆新材料有限公司</div>
+              <div class="sponsor-alumni" style="font-size:14.5px;">毕红燕 校友</div>
+            </div>
+          </div>
+          <div class="sponsor-detail-pill gift" style="font-size:14px; padding:8px 12px;">
+            赞助 59元无线鼠标 20套 + 380元防晒套装 20套 + 580元亚朵同款记忆枕 5套<br>
+            <span style="font-size:12px; opacity:0.85;">（用于 500、1000 及 2000 档报名爱心加赠礼）</span>
           </div>
         </div>
 
         <!-- 14 -->
         <div class="sponsor-item">
-          <div class="sponsor-index">14</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 江苏一通信息科技有限公司</div>
-            <div class="sponsor-detail cash">赞助 3000 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">14</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 一通信息科技</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill cash">赞助 3000 元现金</div>
         </div>
 
         <!-- 15 (精酿鲜啤) -->
         <div class="sponsor-item highlight" style="border-left: 4px solid #f59e0b;">
-          <div class="sponsor-index">15</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">🍺 麦胜（苏州）食品科技有限公司</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">翟青云 校友</div>
-            <div class="sponsor-detail wine">赞助 20 升大桶雪花装精酿鲜啤共 5 桶（畅饮特供）</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">15</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">🍺 麦胜食品科技</div>
+              <div class="sponsor-alumni">翟青云 校友</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill wine">赞助 20升桶雪花精酿鲜啤 5 桶</div>
         </div>
 
         <!-- 16 -->
         <div class="sponsor-item">
-          <div class="sponsor-index">16</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 苏州浩德自动化设备有限公司</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">樊新平 校友</div>
-            <div class="sponsor-detail cash">赞助 5000 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">16</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 浩德自动化设备</div>
+              <div class="sponsor-alumni">樊新平 校友</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill cash">赞助 5000 元现金</div>
         </div>
 
         <!-- 17 -->
         <div class="sponsor-item highlight" style="border-left: 4px solid #dc2626;">
-          <div class="sponsor-index">17</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 崇高敬意 · 神秘校友</div>
-            <div class="sponsor-detail cash" style="color:#b91c1c; background:#fef2f2; border-color:#fecaca;">赞助 10000 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">17</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 崇高敬意 · 神秘校友</div>
+            </div>
+          </div>
+          <div class="sponsor-detail-pill cash" style="color:#b91c1c; background:#fef2f2; border-color:#fecaca;">
+            赞助 10000 元现金
           </div>
         </div>
 
         <!-- 18 -->
         <div class="sponsor-item">
-          <div class="sponsor-index">18</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 行知合一机械荟</div>
-            <div class="sponsor-detail cash">赞助 3000 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">18</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 行知合一机械荟</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill cash">赞助 3000 元现金</div>
         </div>
 
         <!-- 19 (全员零食) -->
         <div class="sponsor-item highlight" style="border-left: 4px solid #059669;">
-          <div class="sponsor-index">19</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">🎁 苏州苏太太食品有限公司</div>
-            <div class="sponsor-detail gift">赞助价值 40 元烘炒花生 300 份（全员伴手礼）</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">19</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">🎁 苏太太食品</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill gift">赞助 40元烘炒花生 300 份</div>
         </div>
 
         <!-- 20 -->
         <div class="sponsor-item highlight" style="border-left: 4px solid #2563eb;">
-          <div class="sponsor-index">20</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 苏州胤煌精密仪器科技有限公司</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">柳钟丽 校友</div>
-            <div class="sponsor-detail cash">赞助 10000 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">20</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 胤煌精密仪器科技</div>
+              <div class="sponsor-alumni">柳钟丽 校友</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill cash">赞助 10000 元现金</div>
         </div>
 
         <!-- 21 -->
         <div class="sponsor-item highlight" style="border-left: 4px solid #0284c7;">
-          <div class="sponsor-index">21</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 苏州新傲信息技术有限公司</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">潘文辉 校友</div>
-            <div class="sponsor-detail cash">赞助 3000 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">21</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 新傲信息技术</div>
+              <div class="sponsor-alumni">潘文辉 校友</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill cash">赞助 3000 元现金</div>
         </div>
 
-        <!-- 22 (重磅大额赞助商) -->
-        <div class="sponsor-item highlight" style="border-left: 4px solid #dc2626; background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);">
-          <div class="sponsor-index" style="background:#fee2e2; color:#b91c1c;">22</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org" style="color:#991b1b;">
-              💰🎁 招商银行苏州分行
-              <span style="font-size:11px; background:#fecaca; color:#991b1b; padding:1px 6px; border-radius:4px;">重磅支持</span>
+        <!-- 22 (招商银行 - 跨整行大额重磅支持) -->
+        <div class="sponsor-item highlight span-full" style="border-left: 5px solid #dc2626; background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%); border-color:#fca5a5;">
+          <div class="sponsor-top-row">
+            <div class="sponsor-index" style="background:#fee2e2; color:#991b1b; font-size:14px; width:28px; height:28px;">22</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org" style="font-size:17px; color:#991b1b; display:flex; align-items:center; gap:8px;">
+                💰🎁 招商银行苏州分行
+                <span style="font-size:11.5px; background:#fecaca; color:#991b1b; padding:2px 8px; border-radius:6px; font-weight:900;">重磅支持</span>
+              </div>
             </div>
-            <div class="sponsor-detail cash" style="color:#991b1b; background:#fef2f2; border-color:#fecaca;">
-              赞助 20000 元现金 及 价值 5000 元年会抽奖重磅奖品
-            </div>
+          </div>
+          <div class="sponsor-detail-pill cash" style="color:#991b1b; background:#fef2f2; border-color:#fecaca; font-size:14.5px; padding:8px 12px;">
+            赞助 20000 元现金 及 价值 5000 元年会抽奖重磅大奖！
           </div>
         </div>
 
         <!-- 23 -->
         <div class="sponsor-item highlight" style="border-left: 4px solid #059669;">
-          <div class="sponsor-index">23</div>
-          <div class="sponsor-content">
-            <div class="sponsor-org">💰 和利时离散工业事业群</div>
-            <div style="font-size:12px; color:var(--blue-main); font-weight:700; margin-top:1px;">柳刚 校友</div>
-            <div class="sponsor-detail cash">赞助 3000 元现金</div>
+          <div class="sponsor-top-row">
+            <div class="sponsor-index">23</div>
+            <div class="sponsor-org-wrap">
+              <div class="sponsor-org">💰 和利时离散工业</div>
+              <div class="sponsor-alumni">柳刚 校友</div>
+            </div>
           </div>
+          <div class="sponsor-detail-pill cash">赞助 3000 元现金</div>
         </div>
 
         <!-- 虚位以待 -->
@@ -819,7 +884,7 @@
             <div class="ticket-top">
               <div class="ticket-name-wrap">
                 <span class="ticket-badge-pill">标准席</span>
-                <strong style="font-size:14.5px;">校友标准参会席</strong>
+                <strong style="font-size:16px;">校友标准参会席</strong>
               </div>
               <div class="ticket-price">¥200 <span class="unit">/人</span></div>
             </div>
@@ -834,7 +899,7 @@
             <div class="ticket-top">
               <div class="ticket-name-wrap">
                 <span class="ticket-badge-pill">爱心档</span>
-                <strong style="font-size:14.5px;">爱心支持 500 元席</strong>
+                <strong style="font-size:16px;">爱心支持 500 元席</strong>
               </div>
               <div class="ticket-price">¥500 <span class="unit">/人</span></div>
             </div>
@@ -849,7 +914,7 @@
             <div class="ticket-top">
               <div class="ticket-name-wrap">
                 <span class="ticket-badge-pill">尊享档</span>
-                <strong style="font-size:14.5px;">爱心支持 1000 元席</strong>
+                <strong style="font-size:16px;">爱心支持 1000 元席</strong>
               </div>
               <div class="ticket-price">¥1000 <span class="unit">/人</span></div>
             </div>
@@ -864,7 +929,7 @@
             <div class="ticket-top">
               <div class="ticket-name-wrap">
                 <span class="ticket-badge-pill">至尊档</span>
-                <strong style="font-size:14.5px;">爱心支持 2000 元席</strong>
+                <strong style="font-size:16px;">爱心支持 2000 元席</strong>
               </div>
               <div class="ticket-price">¥2000 <span class="unit">/人</span></div>
             </div>
@@ -880,12 +945,12 @@
           <div class="special-box free">
             <div class="special-box-title">🎖️ 70 岁以上老学长</div>
             <div class="special-box-val">免费特邀参会</div>
-            <div style="font-size:11px; color:#059669; margin-top:2px;">专设前排荣誉席 + 全员礼</div>
+            <div style="font-size:12px; color:#059669; margin-top:3px; font-weight:700;">专设前排荣誉席 + 全员礼</div>
           </div>
           <div class="special-box half">
             <div class="special-box-title">🎓 26届应届生 & 退休校友</div>
             <div class="special-box-val">半价关怀 ¥100</div>
-            <div style="font-size:11px; color:#2563eb; margin-top:2px;">全日制应届生及退休老学长</div>
+            <div style="font-size:12px; color:#2563eb; margin-top:3px; font-weight:700;">全日制应届生及退休老学长</div>
           </div>
         </div>
 
