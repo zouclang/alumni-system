@@ -7,6 +7,18 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        source: "/alumni",
+        destination: "/alumni/index.html",
+      },
+      {
+        source: "/alumni-ppt",
+        destination: "/alumni/index.html",
+      },
+      {
+        source: "/presentation",
+        destination: "/alumni/index.html",
+      },
+      {
         source: "/annual-gala-intro",
         destination: "/annual-gala-intro.html",
       },

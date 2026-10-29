@@ -47,6 +47,9 @@ export async function middleware(request: NextRequest) {
     pathname === '/matchmaking-intro.html' ||
     pathname === '/jobs-intro' ||
     pathname === '/jobs-intro.html' ||
+    pathname === '/alumni' ||
+    pathname === '/alumni/' ||
+    pathname.startsWith('/alumni/') ||
     pathname === '/alumni-intro' ||
     pathname === '/alumni-intro.html' ||
     pathname === '/directory-intro' ||
@@ -56,6 +59,13 @@ export async function middleware(request: NextRequest) {
     pathname === '/annual-gala-sponsorship' ||
     pathname === '/annual-gala-sponsorship.html' ||
     pathname.endsWith('.html') ||
+    pathname.endsWith('.css') ||
+    pathname.endsWith('.js') ||
+    pathname.endsWith('.woff') ||
+    pathname.endsWith('.woff2') ||
+    pathname.endsWith('.ttf') ||
+    pathname.endsWith('.otf') ||
+    pathname.endsWith('.eot') ||
     pathname.endsWith('.png') ||
     pathname.endsWith('.jpg') ||
     pathname.endsWith('.jpeg') ||
@@ -112,6 +122,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|logo.png|images/|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.webp|.*\\.gif|.*\\.svg|.*\\.ico|.*\\.html).*)',
+    '/((?!_next/static|_next/image|favicon.ico|logo.png|images/|alumni/|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.webp|.*\\.gif|.*\\.svg|.*\\.ico|.*\\.html|.*\\.css|.*\\.js|.*\\.woff2?).*)',
   ],
 };
