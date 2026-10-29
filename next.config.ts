@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
         destination: "/annual-gala-intro.html",
       },
       {
+        source: "/annual-gala-notice",
+        destination: "/annual-gala-notice.html",
+      },
+      {
         source: "/annual-gala-sponsorship",
         destination: "/annual-gala-sponsorship.html",
       },

@@ -56,6 +56,8 @@ export async function middleware(request: NextRequest) {
     pathname === '/directory-intro.html' ||
     pathname === '/annual-gala-intro' ||
     pathname === '/annual-gala-intro.html' ||
+    pathname === '/annual-gala-notice' ||
+    pathname === '/annual-gala-notice.html' ||
     pathname === '/annual-gala-sponsorship' ||
     pathname === '/annual-gala-sponsorship.html' ||
     pathname.endsWith('.html') ||
