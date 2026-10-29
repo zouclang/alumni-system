@@ -153,30 +153,64 @@
       background: #f8fafc;
     }
 
-    /* 赞助数据 3 宫格微型看板 */
+    /* 赞助数据 4 宫格微型看板 (现金 + 物资 双核驱动) */
     .stats-card {
       background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
       border: 1.5px solid #bfdbfe;
       border-radius: 18px;
-      padding: 16px 12px;
+      padding: 14px;
       margin-bottom: 22px;
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
       text-align: center;
       box-shadow: var(--shadow-sm);
     }
+    .stats-item {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    }
+    .stats-item.gold {
+      background: #fffdf5;
+      border-color: #fde68a;
+    }
+    .stats-item.emerald {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+    .stats-item.blue {
+      background: #f8faff;
+      border-color: #bfdbfe;
+    }
+    .stats-item.purple {
+      background: #faf5ff;
+      border-color: #e9d5ff;
+    }
     .stats-item .num {
-      font-size: 32px;
+      font-size: 30px;
       font-weight: 900;
-      color: var(--blue-main);
       line-height: 1.2;
     }
     .stats-item.gold .num {
       color: #b45309;
     }
+    .stats-item.emerald .num {
+      color: #059669;
+    }
+    .stats-item.blue .num {
+      color: var(--blue-main);
+    }
+    .stats-item.purple .num {
+      color: #7c3aed;
+    }
     .stats-item .lbl {
-      font-size: 16px;
+      font-size: 15.5px;
       color: var(--text-muted);
       font-weight: 800;
       margin-top: 4px;
@@ -563,19 +597,23 @@
     <!-- 核心主体内容 -->
     <main class="content-body">
 
-      <!-- 赞助数据 3 宫格看板 -->
+      <!-- 赞助数据 4 宫格看板 (现金 + 物资 双核驱动) -->
       <div class="stats-card">
-        <div class="stats-item">
-          <div class="num">23+</div>
-          <div class="lbl">落实赞助企业/校友</div>
-        </div>
         <div class="stats-item gold">
-          <div class="num">91,500</div>
-          <div class="lbl">累计现金赞助 (元)</div>
+          <div class="num">¥91,500</div>
+          <div class="lbl">💰 累计现金赞助</div>
         </div>
-        <div class="stats-item">
+        <div class="stats-item emerald">
+          <div class="num">¥78,680</div>
+          <div class="lbl">🎁 累计物资赞助</div>
+        </div>
+        <div class="stats-item blue">
+          <div class="num">23+ 家</div>
+          <div class="lbl">🤝 落实赞助主体</div>
+        </div>
+        <div class="stats-item purple">
           <div class="num">300+ 份</div>
-          <div class="lbl">全员尊享伴手好礼</div>
+          <div class="lbl">🍵 全员尊享伴手礼</div>
         </div>
       </div>
 
