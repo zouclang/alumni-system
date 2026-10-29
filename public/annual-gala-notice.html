@@ -686,6 +686,264 @@
       font-weight: 800;
     }
 
+    /* =========================================================================
+       📱 移动端自适应优化（专门解决手机端微信直接打开网页时的文字折行与挤压问题）
+       ========================================================================= */
+    @media (max-width: 640px) {
+      body {
+        padding: 10px 8px;
+        background: #f1f5f9;
+      }
+      .poster-wrap {
+        border-radius: 18px;
+      }
+      .hero-header {
+        padding: 24px 14px 20px;
+      }
+      .hero-badge-top {
+        font-size: 14.5px;
+        padding: 4px 14px;
+        margin-bottom: 8px;
+      }
+      .hero-main-title {
+        font-size: 23px !important;
+        line-height: 1.35 !important;
+        margin-bottom: 8px;
+      }
+      .hero-subtitle {
+        font-size: 15.5px;
+        margin-bottom: 14px;
+      }
+      .hero-info-grid {
+        padding: 12px 14px;
+        gap: 8px;
+      }
+      .hero-info-row {
+        font-size: 15px;
+        gap: 8px;
+      }
+      .hero-info-icon {
+        font-size: 18px;
+        width: 22px;
+      }
+      .hero-info-label {
+        font-size: 15px;
+      }
+      .hero-info-val {
+        font-size: 15.5px;
+      }
+
+      .content-body {
+        padding: 16px 12px 24px;
+      }
+
+      /* 4 宫格看板：字号微调适配手机 */
+      .stats-card {
+        padding: 10px;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .stats-item {
+        padding: 10px 6px;
+      }
+      .stats-item .num {
+        font-size: 24px !important;
+      }
+      .stats-item .lbl {
+        font-size: 14px !important;
+        margin-top: 2px;
+      }
+
+      .section-head {
+        margin-bottom: 10px;
+      }
+      .section-title {
+        font-size: 20px;
+      }
+      .section-tag {
+        font-size: 13px;
+        padding: 2px 8px;
+      }
+
+      /* ⭐⭐⭐ 赞助清单在手机端转为单列，整洁清晰，彻底避免文字断行折叠 ⭐⭐⭐ */
+      .sponsor-card-grid {
+        grid-template-columns: 1fr !important;
+        gap: 9px !important;
+        margin-bottom: 20px;
+      }
+      .sponsor-item {
+        padding: 10px 12px !important;
+        gap: 6px !important;
+        border-radius: 12px;
+      }
+      .sponsor-index {
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 14px !important;
+      }
+      .sponsor-org,
+      .sponsor-item.span-full .sponsor-org {
+        font-size: 16.5px !important;
+        line-height: 1.35 !important;
+      }
+      .sponsor-alumni,
+      .sponsor-item.span-full .sponsor-alumni {
+        font-size: 14.5px !important;
+      }
+      .sponsor-detail-pill,
+      .sponsor-item.span-full .sponsor-detail-pill {
+        font-size: 15px !important;
+        padding: 6px 10px !important;
+        line-height: 1.4 !important;
+      }
+      .sponsor-waiting {
+        font-size: 17px !important;
+        padding: 14px 10px !important;
+      }
+      .sponsor-waiting-sub {
+        font-size: 14.5px !important;
+      }
+
+      /* 参会席位卡片在手机端转为单列，给价格和礼包充分横向空间，绝不挤压 */
+      .tickets-container {
+        padding: 24px 12px 18px !important;
+        border-radius: 18px !important;
+        margin-bottom: 20px !important;
+      }
+      .tickets-badge {
+        font-size: 14px !important;
+        padding: 4px 16px !important;
+        top: -14px !important;
+      }
+      .tickets-title {
+        font-size: 21px !important;
+      }
+      .tickets-desc {
+        font-size: 14.5px !important;
+        margin-bottom: 14px !important;
+      }
+      .ticket-list {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+      }
+      .ticket-row {
+        padding: 12px 14px !important;
+        border-radius: 12px !important;
+      }
+      .ticket-top strong {
+        font-size: 17.5px !important;
+      }
+      .ticket-badge-pill {
+        font-size: 13px !important;
+        padding: 2px 8px !important;
+      }
+      .ticket-price {
+        font-size: 24px !important;
+      }
+      .ticket-price .unit {
+        font-size: 13.5px !important;
+      }
+      .ticket-gift-box {
+        font-size: 15px !important;
+        line-height: 1.55 !important;
+      }
+
+      /* 关怀票种 */
+      .ticket-special-grid {
+        gap: 8px !important;
+        margin-top: 12px !important;
+      }
+      .special-box {
+        padding: 10px 6px !important;
+        border-radius: 12px !important;
+      }
+      .special-box-title {
+        font-size: 14.5px !important;
+      }
+      .special-box-val {
+        font-size: 18px !important;
+      }
+
+      /* 早鸟提示 */
+      .earlybird-alert {
+        padding: 12px 14px !important;
+        gap: 10px !important;
+        margin-top: 12px !important;
+        border-radius: 12px !important;
+      }
+      .earlybird-icon {
+        font-size: 26px !important;
+      }
+      .earlybird-text {
+        font-size: 14.5px !important;
+        line-height: 1.5 !important;
+      }
+
+      /* 二维码报名通道：手机端上下流式排版，居中大图，右侧文字占满整宽，彻底告别细长条挤压 */
+      .signup-qr-container {
+        padding: 24px 12px 18px !important;
+        border-radius: 18px !important;
+        margin-bottom: 20px !important;
+      }
+      .signup-qr-badge {
+        font-size: 14px !important;
+        padding: 4px 16px !important;
+        top: -14px !important;
+      }
+      .signup-qr-title {
+        font-size: 21px !important;
+      }
+      .signup-qr-desc {
+        font-size: 14.5px !important;
+        margin-bottom: 14px !important;
+      }
+      .signup-qr-flex {
+        flex-direction: column !important;
+        gap: 16px !important;
+        padding: 16px 12px !important;
+        border-radius: 14px !important;
+      }
+      .signup-qr-img {
+        width: 190px !important;
+        height: 190px !important;
+      }
+      .signup-qr-scan-hint {
+        font-size: 13.5px !important;
+        margin-top: 6px !important;
+      }
+      .signup-qr-info {
+        width: 100% !important;
+        gap: 10px !important;
+      }
+      .signup-info-item {
+        font-size: 15px !important;
+        line-height: 1.5 !important;
+      }
+      .signup-info-item .icon {
+        font-size: 18px !important;
+      }
+
+      /* 页脚 */
+      .footer-box {
+        padding: 18px 14px !important;
+        border-radius: 16px !important;
+      }
+      .footer-quote {
+        font-size: 16.5px !important;
+        line-height: 1.6 !important;
+        margin-bottom: 12px !important;
+      }
+      .footer-tips {
+        font-size: 14.5px !important;
+        line-height: 1.65 !important;
+        padding-top: 12px !important;
+      }
+      .footer-sub-org {
+        font-size: 13.5px !important;
+        margin-top: 10px !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -703,7 +961,7 @@
         <span>🏛️</span> 大连理工大学苏州校友会
       </div>
       <h1 class="hero-main-title">
-        2026 年会盛典赞助公布<br>& 参会席位礼遇指南
+        2026 年会盛典<br>已落实赞助公布 & 参会礼遇
       </h1>
       <p class="hero-subtitle">
         连理同心 · 智汇苏城 · 共襄年度盛典
@@ -757,7 +1015,7 @@
         <h2 class="section-title">
           <span>🎖️</span> 目前已落实赞助公布
         </h2>
-        <span class="section-tag">双列清晰排版 · 持续更新</span>
+        <span class="section-tag">持续更新</span>
       </div>
 
       <div class="sponsor-card-grid">
