@@ -56,7 +56,5 @@ next-env.d.ts
 .DS_Store
 Thumbs.db
 
-# Annual meeting and sponsorship assets
-/public/annual-meeting-2026/
-/public/images/
-/public/alumni/
+# public directory (static assets & uploaded html/images)
+/public/
