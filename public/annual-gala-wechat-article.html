@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大工苏州2026年会盛典推文</title>
+  <style>
+    body {
+      background-color: #f6f7fb;
+      margin: 0;
+      padding: 20px 10px;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+      color: #333333;
+      -webkit-font-smoothing: antialiased;
+    }
+    .article-wrap {
+      max-width: 677px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 24px 20px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+      box-sizing: border-box;
+      line-height: 1.8;
+      font-size: 16px;
+    }
+    .copy-tip-bar {
+      background: #eff6ff;
+      border: 1px dashed #3b82f6;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      color: #1d4ed8;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .main-title {
+      font-size: 23px;
+      font-weight: 900;
+      color: #0f2756;
+      line-height: 1.45;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+    .article-meta {
+      font-size: 14px;
+      color: #8c98a4;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #f0f2f5;
+    }
+    .article-meta span {
+      margin-right: 12px;
+    }
+    .article-meta .author {
+      color: #003366;
+      font-weight: 700;
+    }
+    .lead-quote {
+      background: linear-gradient(135deg, #f0f7ff 0%, #e6f0fa 100%);
+      border-left: 4.5px solid #003366;
+      padding: 16px 18px;
+      border-radius: 0 10px 10px 0;
+      margin: 20px 0 28px;
+      font-size: 15.5px;
+      color: #1e3a8a;
+      line-height: 1.75;
+    }
+    .section-title-wrap {
+      text-align: center;
+      margin: 36px 0 20px;
+    }
+    .section-badge {
+      display: inline-block;
+      background: #003366;
+      color: #ffffff;
+      font-size: 12.5px;
+      font-weight: 800;
+      padding: 3px 12px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .section-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #003366;
+      display: inline-block;
+      position: relative;
+      padding-bottom: 6px;
+    }
+    .section-title::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 15%;
+      right: 15%;
+      height: 3px;
+      background: #d97706;
+      border-radius: 2px;
+    }
+    .gift-card {
+      background: #ffffff;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 22px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+      transition: transform 0.2s;
+    }
+    .gift-card-header {
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .gift-card-title {
+      font-size: 16.5px;
+      font-weight: 900;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .gift-card-tag {
+      font-size: 12px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    .tag-red { background: #fee2e2; color: #991b1b; }
+    .tag-blue { background: #dbeafe; color: #1e40af; }
+    .tag-green { background: #dcfce7; color: #166534; }
+    .tag-amber { background: #fef3c7; color: #92400e; }
+    .tag-purple { background: #f3e8ff; color: #6b21a8; }
+    .gift-img-wrap {
+      width: 100%;
+      text-align: center;
+      background: #fafafa;
+      border-bottom: 1px solid #f1f5f9;
+      padding: 10px 0;
+    }
+    .gift-img {
+      max-width: 94%;
+      height: auto;
+      max-height: 340px;
+      border-radius: 8px;
+      object-fit: contain;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      display: inline-block;
+    }
+    .gift-card-body {
+      padding: 14px 16px;
+      font-size: 15px;
+      color: #475569;
+      line-height: 1.7;
+    }
+    .gift-card-body strong {
+      color: #0f172a;
+    }
+    .highlight-price {
+      color: #dc2626;
+      font-weight: 900;
+    }
+    .ticket-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    @media (max-width: 520px) {
+      .ticket-grid { grid-template-columns: 1fr; }
+    }
+    .ticket-item {
+      background: #fafafa;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      box-sizing: border-box;
+    }
+    .ticket-item-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #003366;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .ticket-price {
+      color: #ea580c;
+      font-size: 18px;
+      font-weight: 900;
+    }
+    .ticket-desc {
+      font-size: 13.5px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+    .qr-box {
+      background: linear-gradient(135deg, #003366 0%, #1e40af 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 26px 20px;
+      text-align: center;
+      margin: 36px 0 20px;
+      box-shadow: 0 10px 25px rgba(0, 51, 102, 0.25);
+    }
+    .qr-box-title {
+      font-size: 21px;
+      font-weight: 900;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .qr-box-sub {
+      font-size: 14.5px;
+      opacity: 0.9;
+      margin-bottom: 18px;
+    }
+    .qr-img {
+      width: 170px;
+      height: 170px;
+      background: #ffffff;
+      padding: 8px;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+    .qr-hint {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #ffffff;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .info-strip {
+      background: #fffbeb;
+      border: 1.5px dashed #f59e0b;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 14.5px;
+      color: #92400e;
+      line-height: 1.65;
+    }
+    .footer-note {
+      font-size: 13.5px;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 30px;
+      line-height: 1.8;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="article-wrap">
+    
+    <div class="copy-tip-bar">
+      <span>💡 <strong>使用提示</strong>：本推文已针对微信公众号样式优化，在浏览器中打开全选直接复制，即可完美粘贴至公众号后台！</span>
+    </div>
+
+    <!-- 微信文章标题建议 -->
+    <div class="main-title">
+      豪礼剧透！大工苏州校友会2026年会盛典全员礼包&重磅抽奖大揭秘，火热抢位中！
+    </div>
+
+    <div class="article-meta">
+      <span>大工苏州校友会</span>
+      <span class="author">年会筹备组</span>
+      <span>2026年10月</span>
+    </div>
+
+    <div class="lead-quote">
+      <strong>连理同心 · 智汇苏城</strong><br>
+      时光流转，同窗情深。2026大连理工大学苏州校友会年会盛典将于 <strong>11 月 21 日</strong> 在 <strong>苏州国际会议酒店</strong> 盛大启幕！<br>
+      不仅有智慧激荡的高端论坛、温情洋溢的校友晚宴，更有广大爱心校友企业联袂呈献的<strong>“全员尊享伴手礼 + 抢先早鸟特权 + 晚宴豪华连环大抽奖”</strong>！诚意拉满，虚位以待，快来看看今年都有哪些神仙礼品！
+    </div>
+
+    <!-- 盛典速览 -->
+    <div class="info-strip">
+      📅 <strong>盛典时间</strong>：2026 年 11 月 21 日（周六全天）<br>
+      📍 <strong>盛典地点</strong>：苏州市相城区 · 苏州国际会议酒店<br>
+      👥 <strong>参会对象</strong>：在苏及长三角全体大工校友、校友家属及特邀嘉宾<br>
+      ⚡ <strong>重要提醒</strong>：前 44 位报名专享早鸟礼！席位名额有限，敬请尽早锁定！
+    </div>
+
+    <!-- ==================== 第一部分：全员伴手礼 ==================== -->
+    <div class="section-title-wrap">
+      <div class="section-badge">PART 01</div><br>
+      <div class="section-title">到场即领 · 全员尊享伴手礼（价值140元+）</div>
+    </div>
+    <p style="text-align: center; color: #64748b; font-size: 14.5px; margin-top:-8px; margin-bottom: 20px;">
+      每一位到场的校友都是盛典的贵宾，人手一份，绝不落空！
+    </p>
+
+    <!-- 伴手礼1：认养一亩茶 -->
+    <div class="gift-card">
+      <div class="gift-card-header">
+        <div class="gift-card-title">🎁 认养一亩茶 · 金奖大红袍礼盒（300份）</div>
+        <span class="gift-card-tag tag-green">赞助商：认养一亩茶</span>
+      </div>
+      <div class="gift-img-wrap">
+        <img class="gift-img" src="annual-gala-gift/认养一亩茶伴手礼-金奖大红袍300份.jpg" alt="认养一亩茶伴手礼">
+      </div>
+      <div class="gift-card-body">
+        由 <strong>黄尹唯 校友（认养一亩茶文化）</strong> 鼎力赞助！甄选高山生态茶园金奖大红袍，岩骨花香，汤色明亮。单盒价值 <span class="highlight-price">100 元</span>，共计赞助 300 份，为每位到场校友送上一整季的温润茶香！
+      </div>
+    </div>
+
+    <!-- 伴手礼2：苏太太食品花生 -->
+    <div class="gift-card">
+      <div class="gift-card-header">
+        <div class="gift-card-title">🥜 苏太太食品 · 精选烘炒花生（300份）</div>
+        <span class="gift-card-tag tag-amber">赞助商：苏太太食品</span>
+      </div>
+      <div class="gift-img-wrap">
+        <img class="gift-img" src="annual-gala-gift/苏太太食品伴手礼-烘炒花生300份.jpg" alt="苏太太食品烘炒花生">
+      </div>
+      <div class="gift-card-body">
+        由苏州老字号爱心企业 <strong>苏太太食品</strong> 暖心赞助！粒粒精选，慢火烘炒，醇香酥脆，佐茶下酒两相宜。单份价值 <span class="highlight-price">40 元</span>，人手一袋，把苏城的地道风味带回家！
+      </div>
+    </div>
+
+    <!-- 伴手礼3：凯悦尚选优惠礼券 -->
+    <div class="gift-card">
+      <div class="gift-card-header">
+        <div class="gift-card-title">🏨 云启一方·凯悦尚选酒店 · 尊享礼遇券（300份）</div>
+        <span class="gift-card-tag tag-purple">赞助商：苏州云启一方</span>
+      </div>
+      <div class="gift-img-wrap">
+        <img class="gift-img" src="annual-gala-gift/苏州云启一方-优惠券伴手礼300份.png" alt="云启一方酒店优惠券">
+      </div>
+      <div class="gift-card-body">
+        由 <strong>宫智明 校友（苏州云启一方·凯悦尚选酒店）</strong> 赞助！专属校友尊享高端住宿与餐饮优待，感受苏州现代精致生活方式。
+      </div>
+    </div>
+
+    <!-- ==================== 第二部分：早鸟与爱心加赠礼 ==================== -->
+    <div class="section-title-wrap">
+      <div class="section-badge">PART 02</div><br>
+      <div class="section-title">及早报名 · 抢先早鸟特权与爱心加赠礼</div>
+    </div>
+
+    <!-- 早鸟礼 -->
+    <div class="gift-card" style="border-color: #fdba74; background: #fffaf5;">
+      <div class="gift-card-header" style="background:#ffedd5;">
+        <div class="gift-card-title" style="color: #c2410c;">⚡ 限量早鸟特权 · 前44位专享礼包（价值4500元）</div>
+        <span class="gift-card-tag tag-amber" style="background:#ea580c; color:#fff;">手慢无</span>
+      </div>
+      <div class="gift-card-body">
+        由 <strong>陈振宇 校友（苏州磐固工具 / MBA）</strong> 倾情加码！<br>
+        凡 <strong>前 44 名抢先报名并完成交费</strong> 的校友，在享受全员伴手礼的基础上，<strong>额外获赠精美专属早鸟礼一份</strong>！名额有限，全凭手速，先到先得！
+      </div>
+    </div>
+
+    <!-- 阶梯席位及利安隆加赠礼 -->
+    <div class="ticket-grid">
+      <div class="ticket-item">
+        <div class="ticket-item-title">
+          <span>标准参会席</span>
+          <span class="ticket-price">¥200</span>
+        </div>
+        <div class="ticket-desc">
+          全天盛典席位 + 豪华晚宴 + 全员价值140元茶礼及花生伴手礼 + 晚宴全场抽奖资格
+        </div>
+      </div>
+
+      <div class="ticket-item" style="border-color: #bfdbfe; background: #f0f7ff;">
+        <div class="ticket-item-title">
+          <span>爱心支持档</span>
+          <span class="ticket-price">¥500</span>
+        </div>
+        <div class="ticket-desc">
+          含标准席全部权益 + <strong>额外加赠：利安隆赞助小米无线鼠标 或 高端防晒套装 1 套</strong>
+        </div>
+      </div>
+
+      <div class="ticket-item" style="border-color: #fef08a; background: #fefce8;">
+        <div class="ticket-item-title">
+          <span>尊享赞助档</span>
+          <span class="ticket-price">¥1000</span>
+        </div>
+        <div class="ticket-desc">
+          含标准席全部权益 + <strong>额外加赠：利安隆赞助价值580元亚朵同款深睡记忆枕 1 顶</strong>
+        </div>
+      </div>
+
+      <div class="ticket-item" style="border-color: #fed7aa; background: #fff7ed;">
+        <div class="ticket-item-title">
+          <span>至尊赞助档</span>
+          <span class="ticket-price">¥2000</span>
+        </div>
+        <div class="ticket-desc">
+          含标准席全部权益 + <strong>豪华双重大礼齐赠：价值380元防晒套装 + 580元亚朵记忆枕</strong>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size: 13.5px; color: #64748b; background: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 24px;">
+      🎗️ <strong>暖心特惠政策</strong>：70周岁以上资深老学长<strong>免费特邀参会</strong>；全日制应届毕业生及退休老学长享 <strong>¥100 半价关怀价</strong>！
+    </div>
+
+    <!-- ==================== 第三部分：晚宴重磅抽奖礼品 ==================== -->
+    <div class="section-title-wrap">
+      <div class="section-badge">PART 03</div><br>
+      <div class="section-title">高潮迭起 · 晚会豪华奖池重磅大抽奖</div>
+    </div>
+    <p style="text-align: center; color: #64748b; font-size: 14.5px; margin-top:-8px; margin-bottom: 20px;">
+      多轮惊喜抽奖贯穿晚宴全程，大奖轮番轰炸，幸运锦鲤非你莫属！
+    </p>
+
+    <!-- 抽奖礼品1：云启一方凯悦尚选 套房 -->
+    <div class="gift-card">
+      <div class="gift-card-header">
+        <div class="gift-card-title">🏨 奢享度假 · 凯悦尚选套房含双早 1晚（2间）</div>
+        <span class="gift-card-tag tag-purple">单价 ¥2250 / 间</span>
+      </div>
+      <div class="gift-img-wrap">
+        <img class="gift-img" src="annual-gala-gift/苏州云启一方-套房1晚2间.jpg" alt="凯悦尚选套房体验">
+      </div>
+      <div class="gift-card-body">
+        由 <strong>宫智明 校友（苏州云启一方·凯悦尚选酒店）</strong> 赞助！超大阔景豪华套房，体验苏州当代雅致风尚与高水准管家服务，次日尊享双人丰盛自助早餐，度假休闲的不二之选！
+      </div>
+    </div>
+
+    <!-- 抽奖礼品2：好好先生 始祖鸟同款外衣 -->
+    <div class="gift-card">
+      <div class="gift-card-header">
+        <div class="gift-card-title">🧥 户外先锋 · 始祖鸟同款防风科技外衣（12件）</div>
+        <span class="gift-card-tag tag-blue">赞助商：苏州好好先生服装</span>
+      </div>
+      <div class="gift-img-wrap">
+        <img class="gift-img" src="annual-gala-gift/好好先生-始祖鸟同款外衣12件.jpg" alt="始祖鸟同款防风外衣">
+      </div>
+      <div class="gift-card-body">
+        由爱心企业 <strong>苏州好好先生服装</strong> 倾情赞助！硬核科技面料，专业防风透气，立体版型上身利落有型，户外徒步、日常通勤皆具超凡格调！
+      </div>
+    </div>
+
+    <!-- 抽奖礼品3：好好先生 牛津纺衬衫 -->
+    <div class="gift-card">
+      <div class="gift-card-header">
+        <div class="gift-card-title">👔 绅士型格 · 经典高支牛津纺衬衫（12件）</div>
+        <span class="gift-card-tag tag-blue">赞助商：苏州好好先生服装</span>
+      </div>
+      <div class="gift-img-wrap">
+        <img class="gift-img" src="annual-gala-gift/好好先生-牛津纺衬衫12件.jpeg" alt="高品质牛津纺衬衫">
+      </div>
+      <div class="gift-card-body">
+        由 <strong>苏州好好先生服装</strong> 赞助！经典纯棉牛津纺质感，舒适透气，抗皱耐洗，职场精英与休闲出行百搭必备款。
+      </div>
+    </div>
+
+    <!-- 抽奖礼品4：招商银行 乐扣乐扣保温杯 -->
+    <div class="gift-card">
+      <div class="gift-card-header">
+        <div class="gift-card-title">☕ 温暖伴行 · 招商银行定制乐扣乐扣保温杯（20套）</div>
+        <span class="gift-card-tag tag-red">赞助商：招商银行苏州分行</span>
+      </div>
+      <div class="gift-img-wrap">
+        <img class="gift-img" src="annual-gala-gift/招商银行-乐扣保温杯20个.jpeg" alt="招商银行乐扣保温杯">
+      </div>
+      <div class="gift-card-body">
+        由重磅支持单位 <strong>招商银行苏州分行</strong> 倾情提供！国际知名品牌 LocknLock 乐扣乐扣制造，食品级不锈钢内胆，长效强力保温锁冷，秋冬温暖常伴左右。
+      </div>
+    </div>
+
+    <!-- 抽奖礼品5：招商银行 钢笔礼盒 -->
+    <div class="gift-card">
+      <div class="gift-card-header">
+        <div class="gift-card-title">✒️ 翰墨铭心 · 招商银行商务精装钢笔礼盒（20套）</div>
+        <span class="gift-card-tag tag-red">赞助商：招商银行苏州分行</span>
+      </div>
+      <div class="gift-img-wrap">
+        <img class="gift-img" src="annual-gala-gift/招商银行-钢笔礼盒20套.jpeg" alt="招商银行精装钢笔礼盒">
+      </div>
+      <div class="gift-card-body">
+        由 <strong>招商银行苏州分行</strong> 赞助！匠心工艺金属笔身，书写顺滑流畅，配尊贵礼盒包装，彰显学子文墨风雅与商务尊贵气度。
+      </div>
+    </div>
+
+    <!-- 抽奖礼品6：苏州利安隆 小米无线鼠标/防晒/亚朵枕头 -->
+    <div class="gift-card">
+      <div class="gift-card-header">
+        <div class="gift-card-title">🖱️ 智慧生活 · 小米无线鼠标（20个）& 防晒套装 & 亚朵枕</div>
+        <span class="gift-card-tag tag-amber">赞助商：苏州利安隆新材料</span>
+      </div>
+      <div class="gift-img-wrap">
+        <img class="gift-img" src="annual-gala-gift/苏州利安隆-小米无线鼠标舒适版20个.jpeg" alt="小米无线鼠标舒适版">
+      </div>
+      <div class="gift-card-body">
+        由 <strong>毕红燕 校友（苏州利安隆新材料）</strong> 豪气赞助！包含 20 套小米无线鼠标舒适版、20 套高倍防护美肤防晒套装，以及 5 套价值 580 元的亚朵酒店同款慢回弹记忆深睡枕，贴心呵护您的健康与睡眠！
+      </div>
+    </div>
+
+    <!-- 抽奖礼品7：麦胜精酿鲜啤+白酒红酒畅饮 -->
+    <div class="gift-card">
+      <div class="gift-card-header">
+        <div class="gift-card-title">🍻 开怀碰杯 · 华润雪花20升鲜打精酿鲜啤（5大桶）</div>
+        <span class="gift-card-tag tag-amber">麦胜食品 / 金瑞阳科技 赞助</span>
+      </div>
+      <div class="gift-img-wrap">
+        <img class="gift-img" src="annual-gala-gift/麦胜食品-20升华润精酿5桶.jpeg" alt="麦胜食品精酿鲜啤">
+      </div>
+      <div class="gift-card-body">
+        由 <strong>翟青云 校友（麦胜食品）</strong> 赞助 5 大桶（共 100 升）华润雪花鲜打原浆精酿，泡沫绵密麦香浓郁；搭配 <strong>王晨阳 校友（苏州金瑞阳信息科技）</strong> 赞助的晚宴精品红酒与高档白酒，邀诸位同窗畅饮欢聚，不醉不归！
+      </div>
+    </div>
+
+    <!-- ==================== 第四部分：报名通道 ==================== -->
+    <div class="qr-box">
+      <div class="qr-box-title">⚡ 立即扫码 · 抢占盛典早鸟席位</div>
+      <div class="qr-box-sub">微信长按识别下方小程序码 · 一键选座在线报名</div>
+      <img class="qr-img" src="annual-gala-qr.png" alt="报名小程序码">
+      <br>
+      <span class="qr-hint">👆 微信长按识别小程序码</span>
+    </div>
+
+    <div class="info-strip" style="background:#eff6ff; border-color:#3b82f6; color:#1e40af;">
+      📌 <strong>报名须知与流程提示</strong>：<br>
+      1. 长按上方小程序码进入报名系统；<br>
+      2. 登记您的姓名、届别专业及联系方式；<br>
+      3. 选择对应参会席位（前44位自动锁定早鸟礼包）；<br>
+      4. 完成支付即报名成功，届时凭报名凭条入场领取伴手礼并参与抽奖！
+    </div>
+
+    <!-- 赞助鸣谢 -->
+    <div class="footer-note">
+      <strong>特别致谢全体赞助单位与爱心校友（部分名单）：</strong><br>
+      招商银行苏州分行 · 苏州好好先生服装 · 苏州利安隆新材料 · 苏州云启一方·凯悦尚选酒店 · 苏太太食品 · 认养一亩茶 · 麦胜食品 · 苏州飞思达精密机械（张忠华校友） · 苏州磐固工具 · 苏州金瑞阳信息科技 · 大工长三角校友经济创新中心 · 苏州谦通仪器 · 稳中密封系统 · 苏州慧迪科创服务 · 锦祥硕精密通讯设备 · 北京德和衡律所 · 苏州美格保洁 · 江苏一通信息科技 · 苏州浩德自动化 · 行知合一机械荟 · 苏州胤煌精密仪器 · 苏州新傲 · 和利时离散事业群<br><br>
+      <em>期待 11 月 21 日与您相聚苏州国际会议酒店，共叙同窗之谊，共创辉煌未来！</em><br>
+      大连理工大学苏州校友会 · 年会盛典筹备组
+    </div>
+
+  </div>
+
+</body>
+</html>
